@@ -1,0 +1,202 @@
+<div class="orders-container">
+  <div class="page-header">
+    <div>
+      <h1>Orders</h1>
+      <p>Manage customer orders and shipments</p>
+    </div>
+    <div class="btn-globex-container">
+      <button class="btn-globex" (click)="exportOrders()">
+        Export CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="card filters-card">
+    <div class="filter-group">
+      <input type="text" placeholder="Search by order ID or customer..." [(ngModel)]="searchTerm" class="search-input" />
+    </div>
+    <div class="filter-group">
+      <select [(ngModel)]="filterStatus" class="filter-select">
+        <option value="">All Status</option>
+        <option *ngFor="let status of statuses" [value]="status">{{ status | titlecase }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading orders...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="error && !isLoading" class="error-banner">
+    ⚠️ {{ error }}
+    <button (click)="loadOrders()" class="retry-btn">Retry</button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card table-card" *ngIf="!isLoading">
+    <div class="table-header">
+      <h3>{{ filteredOrders.length }} Orders</h3>
+    </div>
+    <div class="table-wrapper">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of filteredOrders" class="table-row">
+            <td><span class="order-id">{{ order.id }}</span></td>
+            <td>
+              <div class="customer-info">
+                <span class="avatar">{{ order.customer.charAt(0).toUpperCase() }}</span>
+                <span class="customer-name">{{ order.customer }}</span>
+              </div>
+            </td>
+            <td>{{ order.date }}</td>
+            <td><span class="items-count">{{ order.items }} items</span></td>
+            <td><span class="total">${{ order.total | number:'1.2-2' }}</span></td>
+            <td>
+              <span class="status-badge"
+                    [style.background]="getStatusColor(order.status) + '20'"
+                    [style.color]="getStatusColor(order.status)">
+                {{ getStatusIcon(order.status) }} {{ order.status | titlecase }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="action-btn view" (click)="viewOrder(order.id)" title="View Details">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+                <button class="action-btn download" 
+                        (click)="generateInvoicePDF(order)" 
+                        [disabled]="generatingInvoice[order.id]"
+                        title="Download PDF Invoice">
+                  <svg *ngIf="!generatingInvoice[order.id]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span *ngIf="generatingInvoice[order.id]" class="spinner-mini"></span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="filteredOrders.length === 0" class="empty-state">
+        <p>No orders found</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div class="preview-overlay" *ngIf="isPreviewOpen" (click)="closePreview()">
+  <div class="preview-container" (click)="$event.stopPropagation()">
+    <button class="close-preview" (click)="closePreview()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    
+    <div class="invoice-tilt-wrapper">
+      <div class="invoice-paper">
+        <div class="invoice-sidebar">
+          <div class="invoice-logo">C</div>
+          <div class="invoice-sidebar-content">
+            <div class="sidebar-item">
+              <label>INVOICE NO.</label>
+              <span>{{ selectedOrder?.id }}</span>
+            </div>
+            <div class="sidebar-item">
+              <label>DATE</label>
+              <span>{{ selectedOrder?.date }}</span>
+            </div>
+            <div class="sidebar-item">
+              <label>STATUS</label>
+              <span class="status-dot" [style.background]="getStatusColor(selectedOrder?.status || '')"></span>
+              <span>{{ selectedOrder?.status | titlecase }}</span>
+            </div>
+          </div>
+          <div class="invoice-qr">
+            <div class="qr-mock"></div>
+          </div>
+        </div>
+        
+        <div class="invoice-main">
+          <div class="invoice-header">
+            <div class="brand">
+              <h2>Globex</h2>
+              <p>Premium Living & Decor</p>
+            </div>
+            <div class="client-details">
+              <label>BILL TO</label>
+              <h3>{{ selectedOrder?.customer }}</h3>
+              <p>Valued Customer</p>
+            </div>
+          </div>
+
+          <div class="invoice-items">
+            <table>
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th class="text-center">Qty</th>
+                  <th class="text-right">Price</th>
+                  <th class="text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="item-name">Order Items Tracking</div>
+                    <div class="item-desc">Standard processing for order #{{ selectedOrder?.id }}</div>
+                  </td>
+                  <td class="text-center">{{ selectedOrder?.items }}</td>
+                  <td class="text-right">${{ (selectedOrder?.total || 0) / (selectedOrder?.items || 1) | number:'1.2-2' }}</td>
+                  <td class="text-right">${{ selectedOrder?.total | number:'1.2-2' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="invoice-footer">
+            <div class="notes">
+              <label>Notes</label>
+              <p>Thank you for your order! We appreciate your loyalty to Globex. This invoice was generated automatically for your convenience.</p>
+            </div>
+            <div class="totals">
+              <div class="total-row">
+                <span>Subtotal</span>
+                <span>${{ selectedOrder?.total | number:'1.2-2' }}</span>
+              </div>
+              <div class="total-row">
+                <span>Tax (0.00%)</span>
+                <span>$0.00</span>
+              </div>
+              <div class="total-row grand-total">
+                <span>Total Amount</span>
+                <span>${{ selectedOrder?.total | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

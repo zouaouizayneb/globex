@@ -1,0 +1,153 @@
+<div class="transporteurs-container">
+  <div class="page-header">
+    <div>
+      <h1>Transporters</h1>
+      <p>Manage your delivery partners</p>
+    </div>
+    <div class="btn-globex-container">
+      <button class="btn-globex" (click)="addTransporter()">
+        Add Transporter
+      </button>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="card filters-card">
+    <div class="filter-group">
+      <input type="text" placeholder="Search by name or email..." [(ngModel)]="searchTerm" class="search-input" />
+    </div>
+    <div class="filter-group">
+      <select [(ngModel)]="filterStatus" class="filter-select">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading transporters...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="error && !isLoading" class="error-banner">
+    ⚠️ {{ error }}
+    <button (click)="loadTransporters()" class="retry-btn">Retry</button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card table-card" *ngIf="!isLoading">
+    <div class="table-header">
+      <h3>{{ filteredTransporters.length }} Transporters</h3>
+    </div>
+    <div class="table-wrapper">
+      <table class="transporteurs-table">
+        <thead>
+          <tr>
+            <th>Transporter</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>Delivery Fee</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let transporter of filteredTransporters" class="table-row">
+            <td>
+              <div class="transporter-cell">
+                <span class="avatar" [style.background]="getAvatarColor(transporter.id)">{{ getInitials(transporter.name) }}</span>
+                <span class="transporter-name">{{ transporter.name }}</span>
+              </div>
+            </td>
+            <td><span class="email">{{ transporter.email }}</span></td>
+            <td><span class="phone">{{ transporter.phone || '—' }}</span></td>
+            <td>{{ transporter.address || '—' }}</td>
+            <td><span class="fee">${{ transporter.deliveryFee | number:'1.2-2' }}</span></td>
+            <td>
+              <span class="status-badge" [ngClass]="'status-' + transporter.status">
+                {{ transporter.status | titlecase }}
+              </span>
+            </td>
+            <td>
+              <div class="actions">
+                <button class="action-btn edit" (click)="editTransporter(transporter.id)" title="Edit">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
+                <button class="action-btn delete" (click)="deleteTransporter(transporter.id)" title="Delete">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="filteredTransporters.length === 0" class="empty-state">
+        <p>No transporters found</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAWER: Add / Edit Transporter -->
+  <div class="drawer-overlay" *ngIf="showModal" (click)="cancelModal()">
+    <div class="drawer-box" (click)="$event.stopPropagation()">
+      <div class="drawer-header">
+        <h2>{{ editingTransporter ? 'Edit Transporter' : 'New Transporter' }}</h2>
+        <button class="close-btn" (click)="cancelModal()">✕</button>
+      </div>
+
+      <div class="drawer-content">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" [(ngModel)]="formName" placeholder="Enter transporter name" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" [(ngModel)]="formEmail" placeholder="transporter@example.com" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="text" [(ngModel)]="formPhone" placeholder="+1 234 567 890" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Address</label>
+          <input type="text" [(ngModel)]="formAddress" placeholder="123 Main St, City, Country" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Delivery Fee</label>
+          <input type="number" [(ngModel)]="formDeliveryFee" min="0" step="0.01" placeholder="0.00" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select [(ngModel)]="formStatus" class="form-input">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <button class="btn-globex btn-globex-secondary btn-globex-sm" (click)="cancelModal()" [disabled]="isSaving">Cancel</button>
+        <button class="btn-globex btn-globex-sm" (click)="saveTransporter()" [disabled]="isSaving || !formName.trim() || !formEmail.trim()">
+          {{ isSaving ? 'Saving...' : 'Save Transporter' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

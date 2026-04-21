@@ -1,0 +1,80 @@
+body {
+    font-family: 'Segoe UI', sans-serif;
+    padding: 20px;
+    background: #f8f8f8;
+    color: #333;
+  }
+  
+  h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 32px;
+  }
+  
+  .wishlist-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  }
+  
+  .wishlist-table th,
+  .wishlist-table td {
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .wishlist-table th {
+    background: #e0e0e0;
+  }
+  
+  .wishlist-table img {
+    width: 100px;
+    height: auto;
+    border-radius: 8px;
+  }
+  
+  .brand {
+    font-weight: bold;
+    font-family: 'Courier New', cursive;
+    margin-bottom: 5px;
+  }
+  
+  .name {
+    font-size: 16px;
+    margin-bottom: 5px;
+  }
+  
+  .price {
+    color: #444;
+  }
+  
+  .old-price {
+    text-decoration: line-through;
+    color: #999;
+    margin-left: 5px;
+  }
+  
+  .add-btn,
+  .sold-out-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #689284;
+    color: #333;
+    font-weight: bold;
+  }
+  
+  .sold-out-btn {
+    background-color: #689284;
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .delete-icon {
+    color: red;
+    font-size: 18px;
+    cursor: pointer;
+  }

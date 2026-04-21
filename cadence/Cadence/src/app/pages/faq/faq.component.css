@@ -1,0 +1,394 @@
+/* la photo */
+.common-banner-sec {
+    padding: 100px 0;
+    background-color: #689284;
+    background-position: 50% 50%;
+    position: relative;
+    z-index: 1;
+    background-repeat: no-repeat;
+    background-size: cover;
+    display: block;
+}
+.common-banner-content {
+    position: relative;
+    z-index: 1;
+}
+
+.text-center {
+    text-align: center !important;
+}
+.section-title {
+    margin-bottom: 26px;
+}
+.common-banner-sec .section-title .subtitle {
+    margin-bottom: 0;
+    color: white;
+}
+.subtitle {
+    font-size: 22px;
+    margin-bottom: 15px;
+    text-transform: capitalize;
+    font-family: Delicious Handrawn, cursive;
+    color: #555555;
+}
+.breadcrumbs {
+    text-transform: capitalize;
+}
+
+.filter-cat li:not(:last-of-type) {
+    position: relative;
+    padding-right: 40px;
+    margin-right: 15px;
+}
+
+.filter-cat li {
+    font-family: Federo, sans-serif;
+    font-size: 46px;
+    color: white;
+}
+
+.filter-cat li:not(:last-child):after {
+    content: ">";
+    position: absolute;
+    right: 0;
+}
+
+.justify-center {
+    -webkit-box-pack: center;
+    justify-content: center;
+    -webkit-justify-content: center;
+}
+.align-center {
+    -webkit-box-align: center;
+    align-items: center;
+    -webkit-align-items: center;
+}
+.flex {
+    display: flex;
+ 
+    flex-wrap: wrap;
+    box-sizing: border-box;
+}
+li, ul, ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    
+}
+
+
+.row [class*=col-] {
+    padding: 0 15px;
+}
+
+.faq-left-itm {
+    max-width: 85%;
+    width: 100%;
+  }
+  
+  .section-title {
+    margin-bottom: 26px;
+  }
+  
+
+.section-title h2 {
+    margin-bottom: 20px;
+    text-transform: capitalize;
+    position: relative;
+    font-family:  Federo, sans-serif;
+    font-size: 46px;
+}
+
+  
+  p {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: Gothic A1, sans-serif;
+  }
+  
+  .faq-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  h2 {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .faq-acnav .set:not(:last-of-type) {
+    margin-bottom: 20px;
+  }
+  
+  .set {
+    border: 1px solid #e4e4e4;
+  }
+  
+  .set .acnav-label {
+    padding: 12px 40px 12px 12px;
+    position: relative;
+    font-size: 16px;
+    font-weight: 600;
+    width: 100%;
+    color: black;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .set .acnav-label:after {
+    content: "+";
+    position: absolute;
+    color: white; /* couleur du "+" */
+    font-weight: bold;
+    font-size: 14px;
+    height: 20px;
+    width: 20px;
+    background-color: #111111;
+    border-radius: 50%;
+    right:10px;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+    line-height: 20px; /* même que la hauteur */
+    transition: all ease-in-out 0.5s;
+    padding-right: 1px;
+  }
+  
+
+  /* Transition améliorée pour l'ouverture */
+  .acnav-list {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.2s ease, opacity 0.4s ease, padding 0.4s ease;
+    padding: 0 15px;
+    border-top: 1px solid #e4e4e4;
+  }
+  
+  /* Appliqué lorsque la réponse est ouverte */
+  .acnav-list.open {
+    max-height: 500px; /* ajustable selon le contenu */
+    opacity: 1;
+    padding: 15px;
+  }
+
+
+/*Form*/
+.faq-right-itm .faq-form, .contact-page .contact-right-inner .contact-form {
+    border: 1px solid #e4e4e4;
+}
+
+.form-control, input:not([type=submit]), input:not([type=checkbox]), input:not([type=button]), input:not([type=radio]), select, textarea {
+    position: relative;
+    border: 1px solid #e4e4e4;
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    background: transparent;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1;
+    color: black;
+    font-family: Gothic A1, sans-serif;
+}
+.form-control, textarea, input {
+    font-family: Gothic A1, sans-serif;
+}
+
+.form-container {
+    padding: 15px;
+    border-bottom: 1px solid #e4e4e4;
+}
+
+.faq-right-itm .faq-form .form-heading h4 {
+    text-transform: capitalize;
+    font-family:Federo, sans-serif;
+    margin: 0;
+    font-size: 26px;
+    font-weight: 400;
+}
+.form-container .btn {
+    width: 100%;
+    --tilt: 40px;
+    text-align: center;
+    padding: 12px 22px;
+    color: var(--primary-text-color);
+    outline: none;
+    background-color:#689284;
+    border: 1px solid #689284;
+    font-size: 16px;
+    line-height: 1;
+    display: inline-flex;
+    gap: 10px;
+    font-weight: 600;
+    align-items: center;
+    justify-content: center;
+    transition: all .5s ease-in-out 0s;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+.form-group {
+    margin-bottom: 20px;
+}
+.form-container .form-group label {
+    margin-bottom: 5px;
+}
+.form-group label {
+    display: inline-block;
+    margin-bottom: 10px;
+}
+.form-group label sup {
+    color: red;
+    font-size: 10px;
+    line-height: 0;
+    margin-right: 3px;
+    position: relative;
+    font-weight: 500;
+    margin-left: 5px;
+}
+
+
+.banner {
+    position: relative;
+    height: 300px;
+    background-image: url('//cadence-workdo.myshopify.com/cdn/shop/files/common-banner.png?v=1717741810');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    margin-bottom: 40px;
+  }
+  
+  .banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .containerr {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .text-center {
+    text-align: center;
+  }
+  
+  .breadcrumb {
+    font-size: 18px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-family: Gothic A1, sans-serif;
+  }
+  
+  .banner-title h1 {
+    font-size: 46px;
+    font-weight: 400;
+    margin: 0;
+    font-family: 'Federo', sans-serif;
+  }
+  
+  .common-banner-content .subtitle {
+    font-size: 22px;
+    margin-bottom: 15px;
+    color: white;
+    text-transform: capitalize;
+    font-family: 'Delicious Handrawn', cursive;
+  }
+  
+  .breadcrumbs {
+    color: white;
+    font-family: 'Federo', sans-serif;
+    margin-bottom: 15px;
+    font-size: 45px;
+  }
+  
+  .filter-cat {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  @media screen and (max-width: 768px) {
+    .banner {
+      height: 200px;
+    }
+  
+    .banner-title h1 {
+      font-size: 32px;
+    }
+  
+      .profile-container {
+        flex-direction: column;
+      }
+      
+      .features {
+        grid-template-columns: 1fr;
+      }
+    }
+  
+  .common-banner-sec {
+    padding: 100px 0;
+    background-color: var(--primary-color);
+    background-position: 50% 50%;
+    position: relative;
+    z-index: 1;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+  
+  
+  
+  @media screen and (max-width: 767px) {
+    .filter-cat li {
+        font: var(--h3);
+    }
+  }
+  
+  
+  .breadcrumbs {
+    text-transform: capitalize;
+    color: white;
+  }
+
+
+
+
+
+.justify-center {
+    -webkit-box-pack: center;
+    justify-content: center;
+    -webkit-justify-content: center;
+}
+.align-center {
+    -webkit-box-align: center;
+    align-items: center;
+    -webkit-align-items: center;
+}
+.flex {
+    display: flex;
+ 
+    flex-wrap: wrap;
+    box-sizing: border-box;
+}
+li, ul, ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    
+}

@@ -1,0 +1,22 @@
+[
+    {
+        "id": 1,
+        "label" : "Ceramic candle",
+        "image" :   "//cadence-workdo.myshopify.com/cdn/shop/files/2148720019.jpg?v=1736486220"
+    },
+    {
+        "id": 2,
+        "label" : "Geometric candles",
+        "image" :  "//cadence-workdo.myshopify.com/cdn/shop/files/2148720016.jpg?v=1736486264"
+    },
+    {
+        "id": 3,
+        "label" : "Glass candles",
+        "image" :   "//cadence-workdo.myshopify.com/cdn/shop/files/there-is-candle-that-is-sitting-tray-table.jpg?v=1736487205"
+    },
+    {
+        "id": 4,
+        "label" : "Jar candle",
+        "image" :   "//cadence-workdo.myshopify.com/cdn/shop/files/three-pink-flowers-are-table-with-candle-middle.jpg?v=1736487234"
+    }
+]

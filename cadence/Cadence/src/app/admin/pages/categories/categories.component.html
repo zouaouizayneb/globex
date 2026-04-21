@@ -1,0 +1,346 @@
+<div class="categories-container">
+  <!-- CATEGORIES VIEW -->
+  <div *ngIf="!showProductsView">
+    <div class="page-header">
+      <div>
+        <h1>Categories</h1>
+        <p>Organize your product categories</p>
+      </div>
+      <div class="btn-globex-container">
+        <button class="btn-globex" (click)="addCategory()">
+          Add Category
+        </button>
+      </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="card filters-card">
+      <div class="filter-group">
+        <input
+          type="text"
+          placeholder="Search categories..."
+          [(ngModel)]="searchTerm"
+          class="search-input"
+        />
+      </div>
+      <div class="filter-group">
+        <select [(ngModel)]="filterStatus" class="filter-select">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- LOADING -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading categories...</p>
+    </div>
+
+    <!-- ERROR -->
+    <div *ngIf="error && !isLoading" class="error-banner">
+      ⚠️ {{ error }}
+      <button (click)="loadCategories()" class="retry-btn">Retry</button>
+    </div>
+
+    <!-- GRID -->
+    <div class="categories-grid" *ngIf="!isLoading">
+      <div *ngFor="let category of filteredCategories" class="category-card">
+        <div class="card-header">
+          <span class="category-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </span>
+          <div class="category-info">
+            <h3>{{ category.name }}</h3>
+            <p class="description">{{ category.description || 'No description' }}</p>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="stat">
+            <span class="label">Products</span>
+            <span class="value">{{ category.productCount }}</span>
+          </div>
+          <div class="stat">
+            <span class="label">Status</span>
+            <span class="status-badge" [ngClass]="'status-' + category.status">
+              {{ category.status | titlecase }}
+            </span>
+          </div>
+        </div>
+
+      <div class="card-footer">
+        <button class="action-btn view" (click)="viewCategoryProducts(category)" title="View Products">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+          </svg>
+          View Products
+        </button>
+        <button class="action-btn edit" (click)="editCategory(category)" title="Edit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          Edit
+        </button>
+        <button class="action-btn delete" (click)="deleteCategory(category.id)" title="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && filteredCategories.length === 0" class="empty-state">
+    <p>No categories found</p>
+  </div>
+
+  <!-- PRODUCTS VIEW (for category) -->
+  <div *ngIf="showProductsView && selectedCategory">
+    <div class="page-header">
+      <div>
+        <button class="back-btn" (click)="backToCategories()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Back
+        </button>
+        <h1>{{ selectedCategory.name }} - Products</h1>
+        <p>Manage products in this category</p>
+      </div>
+      <div class="btn-globex-container">
+        <button class="btn-globex" (click)="addProductToCategory()">
+          Add Product
+        </button>
+      </div>
+    </div>
+
+    <!-- TEMPORARY DEBUG INFO -->
+    <div class="debug-banner" *ngIf="debugInfo">
+      🔍 Dashboard Debug: {{ debugInfo }}
+    </div>
+
+    <!-- LOADING PRODUCTS -->
+    <div *ngIf="isLoadingProducts" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading products for {{ selectedCategory.name }}...</p>
+    </div>
+
+    <!-- ERROR LOADING PRODUCTS -->
+    <div *ngIf="errorLoadingProducts && !isLoadingProducts" class="error-banner">
+      ⚠️ {{ errorLoadingProducts }}
+      <button (click)="viewCategoryProducts(selectedCategory!)" class="retry-btn">Retry</button>
+    </div>
+
+    <!-- PRODUCTS GRID (like client interface) -->
+    <div class="products-showcase-grid" *ngIf="!isLoadingProducts && !errorLoadingProducts">
+      <div *ngIf="categoryProducts.length === 0" class="empty-state">
+        <div class="empty-icon">📦</div>
+        <p>No products found in <strong>{{ selectedCategory.name }}</strong></p>
+        <p class="sub-text">Add your first product to this category to see it here.</p>
+        <p class="debug-sub-text">Category ID: {{ selectedCategory.id || 'N/A' }}</p>
+      </div>
+
+      <div class="product-showcase-card" *ngFor="let product of categoryProducts">
+        <!-- Product Image -->
+        <div class="showcase-image-container">
+          <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.name" class="showcase-image" />
+          <div *ngIf="!product.imageUrl" class="placeholder-image">📦</div>
+          
+          <!-- Product Actions -->
+          <div class="product-actions-overlay">
+            <button class="action-btn view" (click)="openProductPreview(product)" title="Preview Product">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+            <button class="action-btn edit" (click)="editProduct(product)" title="Edit Product">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
+            <button class="action-btn delete" (click)="deleteProduct(product.id)" title="Delete Product">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="showcase-info">
+          <h3 class="product-name">{{ product.name }}</h3>
+          <p class="product-description">{{ product.description || 'No description' }}</p>
+          <div class="product-meta">
+            <span class="sku">SKU: {{ product.sku }}</span>
+            <span class="status-badge" [ngClass]="'status-' + product.status">{{ product.status }}</span>
+          </div>
+          <div class="product-details">
+            <div class="detail">
+              <span class="label">Price</span>
+              <span class="value">${{ product.price.toFixed(2) }}</span>
+            </div>
+            <div class="detail">
+              <span class="label">Stock</span>
+              <span class="value">{{ product.stock }} units</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCT EDIT/CREATE MODAL -->
+    <div class="modal-overlay" *ngIf="showProductModal" (click)="cancelProductModal()">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+        <h2>{{ editingProduct ? 'Edit Product' : 'New Product' }}</h2>
+
+        <div class="form-group">
+          <label>Product Name *</label>
+          <input type="text" [(ngModel)]="productForm.name" placeholder="Product name" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="productForm.description" placeholder="Product description" class="form-input" rows="3"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>SKU *</label>
+            <input type="text" [(ngModel)]="productForm.sku" placeholder="Product SKU" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select [(ngModel)]="productForm.status" class="form-input">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Price ($)</label>
+            <input type="number" [(ngModel)]="productForm.price" placeholder="0.00" class="form-input" step="0.01" />
+          </div>
+          <div class="form-group">
+            <label>Stock</label>
+            <input type="number" [(ngModel)]="productForm.stock" placeholder="0" class="form-input" />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-globex btn-globex-secondary btn-globex-sm" (click)="cancelProductModal()" [disabled]="isSavingProduct">Cancel</button>
+          <button class="btn-globex btn-globex-sm" (click)="saveProduct()" [disabled]="isSavingProduct || !productForm.name.trim() || !productForm.sku.trim()">
+            {{ isSavingProduct ? 'Saving...' : 'Save Product' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add / Edit Category -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="cancelModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h2>{{ editingCategory ? 'Edit Category' : 'New Category' }}</h2>
+
+      <div class="form-group">
+        <label>Name *</label>
+        <input type="text" [(ngModel)]="formName" placeholder="Category name" class="form-input" />
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="formDescription" placeholder="Optional description" class="form-input" rows="3"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-globex btn-globex-secondary btn-globex-sm" (click)="cancelModal()" [disabled]="isSaving">Cancel</button>
+        <button class="btn-globex btn-globex-sm" (click)="saveCategory()" [disabled]="isSaving || !formName.trim()">
+          {{ isSaving ? 'Saving...' : 'Save' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- PRODUCT PREVIEW MODAL -->
+<div class="product-preview-overlay" *ngIf="isProductPreviewOpen" (click)="closeProductPreview()">
+  <div class="product-preview-container" (click)="$event.stopPropagation()">
+    <button class="close-preview-btn" (click)="closeProductPreview()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+
+    <div class="preview-card">
+      <!-- Media Section -->
+      <div class="preview-media">
+        <div class="main-preview-image">
+          <img *ngIf="selectedProductForPreview?.imageUrl" [src]="selectedProductForPreview?.imageUrl" [alt]="selectedProductForPreview?.name" />
+          <div *ngIf="!selectedProductForPreview?.imageUrl" class="preview-placeholder">📦</div>
+        </div>
+        <!-- Thumbnails (reserved for future multi-image support) -->
+        <div class="preview-thumbnails" *ngIf="selectedProductForPreview?.imageUrl">
+          <div class="thumb">
+            <img [src]="selectedProductForPreview?.imageUrl" alt="Preview" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Section -->
+      <div class="preview-details">
+        <div class="preview-header">
+          <span class="category-tag">{{ selectedCategory?.name }}</span>
+          <h1>{{ selectedProductForPreview?.name }}</h1>
+          <p class="sku-id">SKU: {{ selectedProductForPreview?.sku }}</p>
+        </div>
+
+        <div class="preview-price-stock">
+          <div class="price-box">
+            <label>Retail Price</label>
+            <span class="price">${{ selectedProductForPreview?.price | number:'1.2-2' }}</span>
+          </div>
+          <div class="stock-box">
+            <label>Inventory Level</label>
+            <div class="stock-status">
+              <span class="stock-dot" [style.background]="(selectedProductForPreview?.stock || 0) > 10 ? '#10b981' : '#f59e0b'"></span>
+              <span>{{ selectedProductForPreview?.stock }} units available</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="preview-description">
+          <label>Product Description</label>
+          <p>{{ selectedProductForPreview?.description || 'No description provided for this product.' }}</p>
+        </div>
+
+        <div class="preview-footer">
+          <div class="globex-branding">
+            <div class="brand-logo">G</div>
+            <div class="brand-text">
+              <strong>Globex Premium</strong>
+              <p>Quality Verified Collection</p>
+            </div>
+          </div>
+          <button class="btn-globex btn-globex-sm" (click)="editProduct(selectedProductForPreview!)">
+            Edit Details
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

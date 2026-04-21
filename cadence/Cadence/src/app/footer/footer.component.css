@@ -1,0 +1,236 @@
+.newsletter-bg-1 {
+  top: -40px;
+  left: 240px;
+  position: absolute;
+  z-index:2;
+}
+.newsletter-bg-2 {
+  top: -30px;
+  right: 250px;
+  position: absolute;
+  z-index: 2;
+}
+.section-title {
+  margin-bottom: 30px;
+}
+
+.text-center {
+  text-align: center;
+}
+.subtitle {
+  font-size: 22px;
+  margin-bottom: 15px;
+  text-transform: capitalize;
+  font-family: Delicious Handrawn, cursive;
+  color: #555555;
+}
+.section-title.line .h22 {
+  padding-bottom: 8px;
+}
+
+.section-title .h22 {
+  text-transform: capitalize;
+  position: relative;
+  color: #111111;
+  font-size: 46px;
+  font-weight: 400;
+}
+.section-title.line h2:before{
+  position: absolute;
+  content: "";
+  bottom: 0;
+  height: 2px;
+  width: 102px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: black;
+}
+
+.subscribe-form-wrapper {
+  position: relative;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex; /* Use flexbox to align items inline */
+  align-items: center;
+}
+.subscribe-form-wrapper .input-wrapper {
+  position: relative;
+  flex-grow: 1; /* Ensure input takes up remaining space */
+}
+.subscribe-form-wrapper input:focus {
+  outline: none; /* Removes the outline when focused */
+  border-bottom: 2px solid #e4e4e4; /* Retain only bottom border on focus */
+}
+.subscribe-form-wrapper input {
+  border: 0;
+  border-bottom: 2px solid #e4e4e4;
+  padding: 18px 35px 12px 0;
+  width: 100%;
+}
+.subscribe-btn {
+  position: relative;
+  border: 0; /* Remove button border */
+  background: none; /* Remove button background */
+  padding: 12px 20px; /* Adjust padding for button */
+  cursor: pointer;
+  display: inline-block; /* Keep button inline with input */
+  height: auto;
+}
+input:not([type=submit]), input:not([type=checkbox]), input:not([type=button]), input:not([type=radio]){
+  position: relative;
+  display: block;
+    width: 100%;
+    background: transparent;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1;
+    color: black;
+}
+input {
+  font-family:Gothic A1, sans-serif;
+}
+.newsletter-inner .subscribe-form-wrapper .subscribe-btn {
+  right: 0;
+  top: 50%;
+  height: 70%;
+  transform: translateY(-50%);
+  padding: 0;
+    border: 0;
+    background: none;
+}
+button {
+  box-shadow: none;
+  cursor: pointer;
+  display: inline-block;
+  transition: all .5s ease-in-out 0s;
+}
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+h2{
+  font-family: Federo, sans-serif;
+  font-size: 26px;
+  color: #689284;
+}
+.footer {
+  background-color: #000000;
+  color: #689284;
+  padding-top: 300px;
+  font-family: Gothic A1, sans-serif;
+  font-size: 16px;
+  margin-top: auto;
+  height: 110vh;
+}
+
+.footer-container{
+  padding-top: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 40px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.footer-column {
+  flex: 1;
+  min-width: 180px;
+}
+
+.footer-column h3 {
+  color: #689284;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.footer-column ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-column ul li {
+  color: #8d8d8d;
+  margin: 6px 0;
+  transition: color 0.3s;
+  cursor: pointer;
+}
+
+.footer-column ul li:hover {
+  color: #ffffff;
+}
+
+.footer-column p {
+  color: #8d8d8d;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.brand img {
+  width: 120px;
+  margin-bottom: 10px;
+}
+
+.social-icons {
+  margin-top: 15px;
+}
+
+.social-icons i {
+  color: #689284;
+  font-size: 20px;
+  margin-right: 10px;
+  transition: color 0.3s, transform 0.3s;
+  cursor: pointer;
+}
+
+.social-icons i:hover {
+  color: white;
+  transform: scale(1.1);
+}
+
+.footer-bottom {
+  border-top: 1px solid #000000;
+  margin-top: 60px;
+  padding-top: 20px;
+  text-align: center;
+  color: #8d8d8d;
+  font-size: 13px;
+}
+
+.payment-icons img {
+  height: 20px;
+  margin: 0 5px;
+  filter: grayscale(100%);
+  opacity: 0.7;
+  transition: filter 0.3s, opacity 0.3s;
+}
+
+.payment-icons img:hover {
+  filter: grayscale(0%);
+  opacity: 1;
+}
+
+
+
+app-root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+
+
+
+/* Enlever le style par défaut des liens */
+a {
+  text-decoration: none; 
+  color: inherit;         
+  font-weight: normal;   
+}
+
+a:hover {
+  text-decoration: none; 
+  color: inherit;         
+}

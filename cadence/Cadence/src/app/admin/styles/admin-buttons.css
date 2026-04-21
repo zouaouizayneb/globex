@@ -1,0 +1,333 @@
+/* ─── Admin Global Button Styles ─── */
+
+/* Primary Button Style */
+.btn-primary,
+.btn,
+button[type="button"],
+button[type="submit"] {
+  position: relative;
+  display: inline-block;
+  padding: 10px 24px;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 600;
+  text-decoration: none;
+  color: white;
+  cursor: pointer;
+  overflow: hidden;
+  background: #4a8b6f;
+  border: 2px solid #4a8b6f;
+  z-index: 1;
+  border-radius: 6px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:before,
+.btn:before,
+button[type="button"]:before,
+button[type="submit"]:before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: calc(100% + 40px);
+  height: 100%;
+  top: 0;
+  left: calc(-100% - 40px);
+  transition: all 0.8s ease-in-out;
+  background: #3d7159;
+  border-radius: 4px;
+}
+
+.btn-primary:after,
+.btn:after,
+button[type="button"]:after,
+button[type="submit"]:after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: calc(100% + 40px);
+  height: 100%;
+  top: 0;
+  transition: all 0.8s ease-in-out;
+  background: #3d7159;
+  left: 100%;
+  border-radius: 4px;
+}
+
+.btn-primary:hover:before,
+.btn:hover:before,
+button[type="button"]:hover:before,
+button[type="submit"]:hover:before {
+  left: 0;
+}
+
+.btn-primary:hover:after,
+.btn:hover:after,
+button[type="button"]:hover:after,
+button[type="submit"]:hover:after {
+  left: 0;
+}
+
+/* Secondary Button Variant */
+.btn-secondary,
+.btn-secondary[type="button"] {
+  background: white;
+  color: #4a8b6f;
+  border: 2px solid #4a8b6f;
+}
+
+.btn-secondary:before,
+.btn-secondary[type="button"]:before {
+  background: #f0f0f0;
+}
+
+.btn-secondary:after,
+.btn-secondary[type="button"]:after {
+  background: #f0f0f0;
+}
+
+.btn-secondary:hover {
+  color: white;
+}
+
+/* Danger Button Variant */
+.btn-danger,
+.btn-danger[type="button"] {
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
+.btn-danger:before,
+.btn-danger[type="button"]:before {
+  background: #dc2626;
+}
+
+.btn-danger:after,
+.btn-danger[type="button"]:after {
+  background: #dc2626;
+}
+
+/* Success Button Variant */
+.btn-success,
+.btn-success[type="button"] {
+  background: #10b981;
+  border-color: #10b981;
+}
+
+.btn-success:before,
+.btn-success[type="button"]:before {
+  background: #059669;
+}
+
+.btn-success:after,
+.btn-success[type="button"]:after {
+  background: #059669;
+}
+
+/* Info Button Variant */
+.btn-info,
+.btn-info[type="button"] {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.btn-info:before,
+.btn-info[type="button"]:before {
+  background: #2563eb;
+}
+
+.btn-info:after,
+.btn-info[type="button"]:after {
+  background: #2563eb;
+}
+
+/* Small Button */
+.btn-sm {
+  padding: 6px 16px;
+  font-size: 12px;
+}
+
+/* Large Button */
+.btn-lg {
+  padding: 14px 32px;
+  font-size: 16px;
+}
+
+/* Full Width Button */
+.btn-block {
+  width: 100%;
+}
+
+/* Disabled State */
+.btn-primary:disabled,
+.btn:disabled,
+button[type="button"]:disabled,
+button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary:disabled:hover:before,
+.btn:disabled:hover:before,
+button[type="button"]:disabled:hover:before,
+button[type="submit"]:disabled:hover:before {
+  left: calc(-100% - 40px);
+}
+
+.btn-primary:disabled:hover:after,
+.btn:disabled:hover:after,
+button[type="button"]:disabled:hover:after,
+button[type="submit"]:disabled:hover:after {
+  left: 100%;
+}
+
+/* Action Button - Smaller Icon Button */
+.action-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  background: white;
+  color: #4a8b6f;
+  border: 1px solid #e5e7eb;
+  font-size: 0;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.action-btn:before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  background: rgba(74, 139, 111, 0.1);
+  top: 0;
+  left: -100%;
+  transition: all 0.6s ease-in-out;
+}
+
+.action-btn:after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  background: rgba(74, 139, 111, 0.1);
+  top: 0;
+  left: 100%;
+}
+
+.action-btn:hover:before {
+  left: 0;
+}
+
+.action-btn:hover:after {
+  left: 0;
+}
+
+.action-btn svg {
+  width: 16px;
+  height: 16px;
+  position: relative;
+  z-index: 2;
+}
+
+/* ─── Globex Animated Button ─── */
+.btn-globex-container {
+  position: relative;
+  max-width: 220px;
+  width: 100%;
+  z-index: 2;
+}
+
+.btn-globex {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  padding: 8px 16px;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 600;
+  text-decoration: none;
+  color: #1a2c24;
+  cursor: pointer;
+  overflow: hidden;
+  background: #e8f5e9; /* Soft Green */
+  border: 2px solid #1a2c24;
+  z-index: 1;
+  border-radius: 0;
+  font-family: 'Inter', -apple-system, sans-serif;
+  white-space: nowrap;
+  transition: all 0.4s ease;
+}
+
+.btn-globex:hover {
+  color: white;
+  border-color: #000;
+}
+
+.btn-globex:before,
+.btn-globex:after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: calc(100% + 40px);
+  height: 100%;
+  top: 0;
+  transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+  background: #000; /* Black hover fill */
+  clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 50%, calc(100% - 40px) 100%, 0 100%);
+}
+
+.btn-globex:before {
+  left: calc(-100% - 40px);
+}
+
+.btn-globex:after {
+  left: 100%;
+  transform: rotate(180deg);
+}
+
+.btn-globex:hover:before {
+  left: 0;
+}
+
+.btn-globex:hover:after {
+  left: 0;
+}
+
+.btn-globex:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Secondary Globex Button (for Cancel) */
+.btn-globex-secondary {
+  color: #6b7280;
+  border-color: #e5e7eb;
+}
+
+.btn-globex-secondary:before,
+.btn-globex-secondary:after {
+  background: #f3f4f6;
+}
+
+.btn-globex-secondary:hover {
+  color: #111;
+  border-color: #9ca3af;
+}
+
+/* Small Globex Button */
+.btn-globex-sm {
+  padding: 6px 16px;
+  font-size: 13px;
+}

@@ -1,0 +1,146 @@
+<div class="suppliers-container">
+  <div class="page-header">
+    <div>
+      <h1>Suppliers</h1>
+      <p>Manage your product suppliers</p>
+    </div>
+    <div class="btn-globex-container">
+      <button class="btn-globex" (click)="addSupplier()">
+        Add Supplier
+      </button>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="card filters-card">
+    <div class="filter-group">
+      <input type="text" placeholder="Search by name or email..." [(ngModel)]="searchTerm" class="search-input" />
+    </div>
+    <div class="filter-group">
+      <select [(ngModel)]="filterStatus" class="filter-select">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading suppliers...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="error && !isLoading" class="error-banner">
+    ⚠️ {{ error }}
+    <button (click)="loadSuppliers()" class="retry-btn">Retry</button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card table-card" *ngIf="!isLoading">
+    <div class="table-header">
+      <h3>{{ filteredSuppliers.length }} Suppliers</h3>
+    </div>
+    <div class="table-wrapper">
+      <table class="suppliers-table">
+        <thead>
+          <tr>
+            <th>Supplier</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let supplier of filteredSuppliers" class="table-row">
+            <td>
+              <div class="supplier-cell">
+                <span class="avatar" [style.background]="getAvatarColor(supplier.id)">{{ getInitials(supplier.name) }}</span>
+                <span class="supplier-name">{{ supplier.name }}</span>
+              </div>
+            </td>
+            <td><span class="email">{{ supplier.email }}</span></td>
+            <td><span class="phone">{{ supplier.phone || '—' }}</span></td>
+            <td>{{ supplier.address || '—' }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="'status-' + supplier.status">
+                {{ supplier.status | titlecase }}
+              </span>
+            </td>
+            <td>
+              <div class="actions">
+                <button class="action-btn edit" (click)="editSupplier(supplier.id)" title="Edit">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
+                <button class="action-btn delete" (click)="deleteSupplier(supplier.id)" title="Delete">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="filteredSuppliers.length === 0" class="empty-state">
+        <p>No suppliers found</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAWER: Add / Edit Supplier -->
+  <div class="drawer-overlay" *ngIf="showModal" (click)="cancelModal()">
+    <div class="drawer-box" (click)="$event.stopPropagation()">
+      <div class="drawer-header">
+        <h2>{{ editingSupplier ? 'Edit Supplier' : 'New Supplier' }}</h2>
+        <button class="close-btn" (click)="cancelModal()">✕</button>
+      </div>
+
+      <div class="drawer-content">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" [(ngModel)]="formName" placeholder="Enter supplier name" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" [(ngModel)]="formEmail" placeholder="supplier@example.com" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="text" [(ngModel)]="formPhone" placeholder="+1 234 567 890" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Address</label>
+          <input type="text" [(ngModel)]="formAddress" placeholder="123 Main St, City, Country" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select [(ngModel)]="formStatus" class="form-input">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <button class="btn-globex btn-globex-secondary btn-globex-sm" (click)="cancelModal()" [disabled]="isSaving">Cancel</button>
+        <button class="btn-globex btn-globex-sm" (click)="saveSupplier()" [disabled]="isSaving || !formName.trim() || !formEmail.trim()">
+          {{ isSaving ? 'Saving...' : 'Save Supplier' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

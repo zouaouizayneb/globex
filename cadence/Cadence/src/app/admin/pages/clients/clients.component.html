@@ -1,0 +1,145 @@
+<div class="clients-container">
+  <div class="page-header">
+    <div>
+      <h1>Clients</h1>
+      <p>Manage your customer base</p>
+    </div>
+    <div class="btn-globex-container">
+      <button class="btn-globex" (click)="addClient()">
+        Add Client
+      </button>
+    </div>
+  </div>
+
+  
+  <div class="card filters-card">
+    <div class="filter-group">
+      <input type="text" placeholder="Search by name or email..." [(ngModel)]="searchTerm" class="search-input" />
+    </div>
+    <div class="filter-group">
+      <select [(ngModel)]="filterStatus" class="filter-select">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading clients...</p>
+  </div>
+
+  <div *ngIf="error && !isLoading" class="error-banner">
+    {{ error }}
+    <button (click)="loadClients()" class="retry-btn">Retry</button>
+  </div>
+
+  <div class="card table-card" *ngIf="!isLoading">
+    <div class="table-header">
+      <h3>{{ filteredClients.length }} Clients</h3>
+    </div>
+    <div class="table-wrapper">
+      <table class="clients-table">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Country</th>
+            <th>Orders</th>
+            <th>Total Spent</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let client of filteredClients" class="table-row">
+            <td>
+              <div class="client-cell">
+                <span class="avatar" [style.background]="getAvatarColor(client.id)">{{ getInitials(client.name) }}</span>
+                <span class="client-name">{{ client.name }}</span>
+              </div>
+            </td>
+            <td><span class="email">{{ client.email }}</span></td>
+            <td><span class="phone">{{ client.phone || '—' }}</span></td>
+            <td>{{ client.country || '—' }}</td>
+            <td><span class="orders">{{ client.totalOrders }}</span></td>
+            <td><span class="spent">${{ client.totalSpent | number:'1.2-2' }}</span></td>
+            <td>
+              <span class="status-badge" [ngClass]="'status-' + client.status">
+                {{ client.status | titlecase }}
+              </span>
+            </td>
+            <td>
+              <div class="actions">
+                <button class="action-btn edit" (click)="editClient(client.id)" title="Edit">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
+                <button class="action-btn delete" (click)="deleteClient(client.id)" title="Delete">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="filteredClients.length === 0" class="empty-state">
+        <p>No clients found</p>
+      </div>
+    </div>
+  </div>
+  <div class="drawer-overlay" *ngIf="showModal" (click)="cancelModal()">
+    <div class="drawer-box" (click)="$event.stopPropagation()">
+      <div class="drawer-header">
+        <h2>{{ editingClient ? 'Edit Client' : 'New Client' }}</h2>
+        <button class="close-btn" (click)="cancelModal()">✕</button>
+      </div>
+
+      <div class="drawer-content">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" [(ngModel)]="formName" placeholder="Enter client name" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" [(ngModel)]="formEmail" placeholder="client@example.com" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="text" [(ngModel)]="formPhone" placeholder="+1 234 567 890" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Country</label>
+          <input type="text" [(ngModel)]="formCountry" placeholder="United States" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select [(ngModel)]="formStatus" class="form-input">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <button class="btn-globex btn-globex-secondary btn-globex-sm" (click)="cancelModal()" [disabled]="isSaving">Cancel</button>
+        <button class="btn-globex btn-globex-sm" (click)="saveClient()" [disabled]="isSaving || !formName.trim() || !formEmail.trim()">
+          {{ isSaving ? 'Saving...' : 'Save Client' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

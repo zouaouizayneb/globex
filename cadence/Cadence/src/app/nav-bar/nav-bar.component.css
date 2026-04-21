@@ -1,0 +1,549 @@
+.international-bar {
+  padding: 8px 0;
+  height: 40px;
+  background-color: #689284; 
+  border-bottom: 1px solid #689284;
+  position: relative;
+  z-index: 100000;
+}
+
+.international-bar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.contact-info {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.contact-item {
+  color: #DADED8;
+  font-size: 13px;
+  font-family: 'Gothic A1', sans-serif;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.contact-item:hover {
+  color: #ffffff;
+}
+
+.international-options {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+/* Dropdown Styling */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-toggle {
+  background: none;
+  border: none;
+  color: #DADED8;
+  font-size: 13px;
+  font-family: 'Gothic A1', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.dropdown-toggle:hover {
+  background-color: #4C583E;
+  color: #ffffff;
+}
+
+.flag-icon {
+  font-size: 16px;
+  margin-right: 5px;
+  display: inline-block;
+}
+
+.international-bar .fi {
+  width: 20px;
+  height: 15px;
+  border-radius: 2px;
+  margin-right: 6px;
+  display: inline-block;
+}
+
+.arrow {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid #DADED8;
+  margin-left: 5px;
+  transition: transform 0.3s ease;
+}
+
+.dropdown.active .arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #ffffff;
+  border: 1px solid #959581;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 150px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  color: #2C3424;
+  font-size: 13px;
+  font-family: 'Gothic A1', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #DADED8;
+}
+
+.dropdown-item .fi {
+  width: 20px;
+  height: 15px;
+  border-radius: 2px;
+  margin-right: 8px;
+  display: inline-block;
+}
+
+/* General Block Styling */
+div {
+  display: block;
+  unicode-bidi: isolate;
+}
+
+/* Main Navigation Bar Styling */
+.main-navigationbar {
+  padding: 15px 0;
+  height: 75px;
+  display: flex;
+  unicode-bidi: isolate;
+  position: relative;
+  z-index: 99999;
+}
+
+.container {
+  padding: 0 15px;
+  margin: 0;
+  font-size: 100%;
+  list-style: none;
+  display: block;
+  unicode-bidi: isolate;
+  max-width: 100%;
+  height: 45px;
+  box-sizing: border-box;
+}
+
+.main-navigationbar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+  padding: 0;
+  margin: 0 auto;
+  height: 45px;
+  max-width: 1400px;
+}
+
+.logo-col {
+  display: flex;
+  justify-content: center;
+  width: 190px;
+}
+.main-navigationbar .logo-col a {
+  display: block;
+}
+h1{
+  font-size: 64px;
+  font-weight: 400;
+  margin: 0;
+}
+img {
+  max-width: 100%;
+  display: block;
+}
+
+.menu-item-left {
+  display: flex;
+  align-items: center;
+  height: 16px;
+  padding-right: 90px;
+}
+
+.main-nav {
+  display: flex;
+  gap: 20px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu-lnk {
+  font-size: 14px;
+  color: #689284;
+  padding-right: 25px;
+  position: relative;
+  list-style: none;
+}
+
+.menu-lnk a {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  font-weight: 600;
+  text-transform: capitalize;
+  position: relative;
+  font-family: 'Gothic A1', sans-serif;
+  color: #555555;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+/* Hover effect for text color */
+.menu-lnk:hover a {
+  color: #000000;
+}
+
+/* Animated border effect */
+.menu-lnk.has-item {
+  position: relative;
+}
+
+.menu-lnk.has-item::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 1px;
+  background-color: #333;
+  transition: width 0.8s ease;
+}
+
+.menu-lnk.has-item:hover::before {
+  width: 100%;
+}
+
+/* Arrow in <a> tag */
+.main-nav > .menu-lnk > a::after {
+  content: "";
+  position: absolute;
+  top: 48%;
+  right: -18px;
+  width: 8px;
+  height: 8px;
+  border-top: 1.7px solid #333;
+  border-left: 1.7px solid #333;
+  transform: translateY(-50%) rotate(-135deg);
+  transition: transform 0.3s ease;
+}
+
+.menu-lnk:hover a::after {
+  transform: translateY(-50%) rotate(45deg);
+}
+
+a, .btn, button {
+  cursor: pointer;
+}
+
+/* Right-side menu */
+.menu-item-right {
+  flex: 1;
+  -webkit-box-flex: 1;
+  gap: 15px;
+  margin: 0;
+  padding: 0;
+}
+.justify-end {
+  -webkit-box-pack: end;
+  justify-content: flex-end;
+}
+.align-center {
+  -webkit-box-align: center;
+}
+.flex {
+  display: -webkit-flex;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  padding-inline-start: 40px;
+  unicode-bidi: isolate;
+}
+/*
+/* Shopall Menu Styling */
+.shopall, .home  {
+  height: 0;
+  width: 100vw;
+  transition: height 1s ease;
+  background-color: rgb(255, 255, 255);
+  position: absolute;
+  top: 116px; /* Position it below the international bar + navbar */
+  z-index: 1000000;
+  overflow: hidden;
+  display: flex; /* Using flex for managing column display */
+}
+
+.shopall.visible{
+  height: 50vh; /* Visible height when the div is active */
+}
+.home.visible {
+  height: 35vh; /* Visible height when the div is active */
+}
+
+.col-3 {
+  flex: 1; /* Each column takes equal width */
+  height: 100%; /* Ensure columns fill the height of the container */
+}
+
+/* Image Container Styling */
+.image-container {
+  display: flex;
+  justify-content: center;  /* Center the content horizontally */
+  align-items: center;      /* Center the content vertically */
+  height: 85%;
+  width: 100%;       
+  padding-top: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* Image Styling */
+img {
+  width: 120%;   /* Ensure the image doesn't overflow the container */
+  max-height: 100%;  /* Ensure the image doesn't overflow the container */
+  object-fit: cover;  /* Maintain aspect ratio while covering the container */
+  object-position: center; /* Center the image */
+}
+
+/* Shopall Text Styling */
+.shopall a {
+  font-family: Federo, sans-serif;     /* Font family */
+  border-bottom: 1px solid transparent;     /* Transparent border at the bottom */
+  transition: all 0.5s ease-in-out;         /* Smooth transition for all properties */
+  color: #111111;                           /* Text color */
+  text-decoration: none;                    /* Remove underline */
+  outline: none;                            /* Remove outline */
+  display: block; 
+  text-align: center;                       /* Center the text */
+  padding-top: 5px;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.shopall a:hover {
+  border-bottom: 1px solid #111111;        /* Change border to black on hover */
+}
+.home a ,.products a ,.pages a, .blogs a {
+  position: relative;
+  display: inline-block;
+  font-weight: 500;
+  padding: 0;
+  border-bottom: 1px solid transparent; /* Default border */
+  transition: all 0.4s ease-in-out 0s; /* Smooth transition for all properties */
+  font-family: 'Gothic A1', sans-serif; /* Updated font */
+  text-decoration: none; /* Remove underline */
+  color: #111111; /* Set text color */
+  outline: none; /* Remove outline */
+}
+
+.home a:hover , .products a:hover, .pages a:hover , .blogs a:hover{
+  border-bottom: 1px solid #111111; /* Border color on hover */
+  color: #000000; /* Text color on hover */
+}
+.home li , .products li ,.pages li , .blogs li  {
+  margin-bottom: 13px; /* Adds space between each list item */
+  font-size: 16px; /* Increase font size for better readability */
+}
+
+ul>li span {
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 600;
+}
+
+
+.img-col {
+  position: relative;
+  width: 90%;
+  display: block;
+  top: 10px;
+  height: 90%;
+}
+
+.products {
+  width: 100vw !important;
+  left: 0;
+  position: fixed;
+}
+
+.products, .pages, .blogs {
+  height: 0;
+  transition: height 0.4s ease;
+  background-color: rgb(255, 255, 255);
+  position: absolute;
+  top: 45px;
+  z-index: 1000000;
+  overflow: hidden;
+  display: flex;
+  pointer-events: none;
+}
+
+.products.visible, .pages.visible, .blogs.visible {
+  pointer-events: auto;
+}
+
+.products.visible{
+  height: 37vh;
+}
+
+.pages.visible{
+  height: 27vh;
+  width: 15vw;
+}
+.blogs.visible {
+  height: 12vh;
+  width: 15vw;
+}
+
+
+.search-dropdown {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 33vh;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 2rem 1rem;
+  z-index: 1000;
+  animation: slideDown 0.4s ease forwards;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Close button */
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #333;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.close-button:hover {
+  color: #ff0000;
+}
+
+/* === Search content === */
+.search-content {
+  text-align: center;
+}
+
+.search-content h2 {
+  font-size: 36px;
+  margin-bottom: 1rem;
+  color: #333;
+  font-family: Federo, sans-serif;
+  color: black;
+}
+
+/* Wrapper pour l'input + l'icône */
+.search-wrapper {
+  position: relative;
+  width: 1000px;
+}
+
+/* Input */
+.search-input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  background: transparent;
+  padding: 0.5rem 2.5rem 0.5rem 0.5rem; /* Espace à droite pour l'icône */
+  font-size: 1rem;
+  text-align: left;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.search-input::placeholder {
+  color: #aaa;
+  font-style: italic;
+}
+
+.search-input:focus {
+  border-bottom-color: #007bff;
+}
+
+/* Icone */
+.search-icon {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.search-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke: #111;
+}

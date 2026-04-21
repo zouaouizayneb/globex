@@ -1,0 +1,84 @@
+<section class="common-banner-sec" style="background-image:url(https://i.imgur.com/WzPjkDY.png);">
+  <div class="containerr">
+    <div class="common-banner-content text-center">
+
+      <div class="section-title">
+        <div class="subtitle" style="color: white; font-size: 18px;">About Us</div>
+      </div>
+
+      <div class="breadcrumbs">
+        <ul class="filter-cat flex align-center justify-center">
+          <li>
+            <a [routerLink]="['']" style="color: white; text-decoration:none;">Home</a>
+            <span style="margin: 0 5px;">></span>
+            <a style="color: white; text-decoration:none;">About Us</a>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- First Section -->
+<div class="row pb pt pl" style="width: 100%;">
+  <div class="col-9">
+    <div class="about-left-inner">
+      <div class="section-title">
+        
+        <h2>
+          At Globex, we go beyond selling products — we create seamless shopping experiences that connect people with quality, innovation, and everyday convenience across the globe.
+        </h2>
+
+        <p>
+          Our journey began with a clear vision: to build a global marketplace where customers can access a wide variety of products in one place. From home and garden essentials to fashion, electronics, and lifestyle accessories, Globex offers carefully selected items that combine quality, style, and practicality.
+        </p>
+
+        <p>
+          Whether you're enhancing your living space, updating your wardrobe, or exploring the latest technologies, Globex provides a reliable and user-friendly platform designed to meet your needs. Our goal is to make online shopping simple, efficient, and accessible to everyone.
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-3">
+    <img style="width: 100%;" src="https://i.imgur.com/dKYPGfX.png" alt="about-image">
+  </div>
+</div>
+
+<!-- Second Section -->
+<div class="row about-full-img-sec pb pl" style="width: 100%;">
+  
+  <div class="section-title">
+    <div class="subtitle">Our Vision</div>
+
+    <h3>
+      Discover the Globex Experience: Your All-in-One Shopping Destination
+    </h3>
+
+    <p>
+      At Globex, we believe that shopping should be convenient, enjoyable, and inspiring. Our platform brings together a diverse range of products across multiple categories, ensuring that customers can find everything they need in one place.
+    </p>
+
+    <p>
+      We are committed to delivering high standards in product quality, customer service, and innovation. By collaborating with trusted suppliers and continuously improving our services, we aim to provide a smooth and satisfying shopping experience for customers around the world.
+    </p>
+
+  </div>
+
+  <div class="about-full-img">
+    <img src="https://i.imgur.com/yrAdIHu.png" alt="about-full-img">
+  </div>
+
+</div>
+
+<!-- Third Section -->
+<div class="row about-counter-sec pb pl pr" style="width: 100%;">
+  <div class="col-4" *ngFor="let item of counters">
+    <div class="counter-item">
+      <div #countEl class="counting">{{ item.start }}</div>
+      <p>{{ item.text }}</p>
+    </div>
+  </div>
+</div>

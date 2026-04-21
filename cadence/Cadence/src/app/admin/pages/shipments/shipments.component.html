@@ -1,0 +1,151 @@
+<div class="shipments-container">
+  <div class="page-header">
+    <div>
+      <h1>Shipments</h1>
+      <p>Manage and track order shipments</p>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="card filters-card">
+    <div class="filter-group">
+      <input type="text" placeholder="Search by tracking number or carrier..." [(ngModel)]="searchTerm" class="search-input" />
+    </div>
+    <div class="filter-group">
+      <select [(ngModel)]="filterStatus" class="filter-select">
+        <option value="">All Status</option>
+        <option *ngFor="let status of statuses" [value]="status">{{ status | titlecase }}</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <select [(ngModel)]="filterShippingMethod" class="filter-select">
+        <option value="">All Methods</option>
+        <option *ngFor="let method of shippingMethods" [value]="method">{{ method | titlecase }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading shipments...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="error && !isLoading" class="error-banner">
+    ⚠️ {{ error }}
+    <button (click)="loadShipments()" class="retry-btn">Retry</button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card table-card" *ngIf="!isLoading">
+    <div class="table-header">
+      <h3>{{ filteredShipments.length }} Shipments</h3>
+    </div>
+    <div class="table-wrapper">
+      <table class="shipments-table">
+        <thead>
+          <tr>
+            <th>Shipment ID</th>
+            <th>Order ID</th>
+            <th>Carrier</th>
+            <th>Tracking Number</th>
+            <th>Shipping Method</th>
+            <th>Ship Date</th>
+            <th>Est. Delivery</th>
+            <th>Shipping Cost</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let shipment of filteredShipments" class="table-row">
+            <td><span class="shipment-id">#{{ shipment.idShip }}</span></td>
+            <td><span class="order-id">#{{ shipment.orderId }}</span></td>
+            <td>{{ shipment.carrier || '-' }}</td>
+            <td><span class="tracking-number">{{ shipment.trackingNumber || '-' }}</span></td>
+            <td>
+              <span class="method-badge">
+                {{ getShippingMethodIcon(shipment.shippingMethod) }} {{ shipment.shippingMethod | titlecase }}
+              </span>
+            </td>
+            <td>{{ shipment.dateShip || '-' }}</td>
+            <td>{{ shipment.estimatedDeliveryDate || '-' }}</td>
+            <td><span class="cost">${{ shipment.shippingCost | number:'1.2-2' }}</span></td>
+            <td>
+              <span class="status-badge"
+                    [style.background]="getStatusColor(shipment.status) + '20'"
+                    [style.color]="getStatusColor(shipment.status)">
+                {{ getStatusIcon(shipment.status) }} {{ shipment.status | titlecase }}
+              </span>
+            </td>
+            <td>
+              <button class="action-btn edit" (click)="editShipment(shipment)" title="Edit Shipment">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="filteredShipments.length === 0" class="empty-state">
+        <p>No shipments found</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT MODAL -->
+  <div class="modal-overlay" *ngIf="editingShipment" (click)="cancelEdit()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Edit Shipment #{{ editingShipment.idShip }}</h2>
+        <button class="close-btn" (click)="cancelEdit()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Carrier</label>
+          <input type="text" [(ngModel)]="editingShipment.carrier" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label>Transporter</label>
+          <select [(ngModel)]="editingShipment.transporterId" class="form-select">
+            <option value="">Select Transporter</option>
+            <option *ngFor="let transporter of transporters" [value]="transporter.id">
+              {{ transporter.name }} (Fee: ${{ transporter.deliveryFee | number:'1.2-2' }})
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tracking Number</label>
+          <input type="text" [(ngModel)]="editingShipment.trackingNumber" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select [(ngModel)]="editingShipment.status" class="form-select">
+            <option *ngFor="let status of statuses" [value]="status">{{ status | titlecase }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Shipping Method</label>
+          <select [(ngModel)]="editingShipment.shippingMethod" class="form-select">
+            <option *ngFor="let method of shippingMethods" [value]="method">{{ method | titlecase }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Estimated Delivery Date</label>
+          <input type="date" [(ngModel)]="editingShipment.estimatedDeliveryDate" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label>Shipping Cost</label>
+          <input type="number" [(ngModel)]="editingShipment.shippingCost" class="form-input" step="0.01" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="cancelEdit()">Cancel</button>
+        <button class="btn-primary" (click)="saveShipment()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>

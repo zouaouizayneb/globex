@@ -1,0 +1,259 @@
+.banner {
+    position: relative;
+    height: 300px;
+    background-image: url('//cadence-workdo.myshopify.com/cdn/shop/files/common-banner.png?v=1717741810');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    margin-bottom: 40px;
+  }
+  
+  .banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .containerr {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .text-center {
+    text-align: center;
+  }
+  
+  .breadcrumb {
+    font-size: 18px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-family: var(--first-font);
+  }
+  
+  .banner-title h1 {
+    font-size: 46px;
+    font-weight: 400;
+    margin: 0;
+    font-family: 'Federo', sans-serif;
+  }
+  
+  .subtitle {
+    font-size: 22px;
+    margin-bottom: 15px;
+    color: white;
+    text-transform: capitalize;
+    font-family: 'Delicious Handrawn', cursive;
+  }
+  
+  .breadcrumbs {
+    color: white;
+    font-family: 'Federo', sans-serif;
+    margin-bottom: 15px;
+    font-size: 45px;
+  }
+  
+  .filter-cat {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  @media screen and (max-width: 768px) {
+    .banner {
+      height: 200px;
+    }
+  
+    .banner-title h1 {
+      font-size: 32px;
+    }
+  
+      .profile-container {
+        flex-direction: column;
+      }
+      
+      .features {
+        grid-template-columns: 1fr;
+      }
+    }
+  
+  .common-banner-sec {
+    padding: 100px 0;
+    background-color: var(--primary-color);
+    background-position: 50% 50%;
+    position: relative;
+    z-index: 1;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+  
+  
+  
+  @media screen and (max-width: 767px) {
+    .filter-cat li {
+        font: var(--h3);
+    }
+  }
+  
+  p, li, ul{
+    color: white;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font: var(--common-text);
+  }
+  
+  ul {
+    list-style-type: disc;
+  }
+  .breadcrumbs {
+    text-transform: capitalize;
+    color: white;
+  }
+  
+  .create-account-containerr {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background-color: #f5f5f5;
+  }
+    .btn {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+      padding: 7px 28px;
+      font-size: 20px;
+      text-align: center;
+      font-weight: 400;
+      text-decoration: none;
+      color: #000000;
+      cursor: pointer;
+      overflow: hidden;
+      background: #689284;
+      border: 2px solid white;
+      z-index: 1;
+      border-radius: 0;
+      font-family: var(--first-font);
+      white-space: nowrap
+    }
+  
+    .btn:before,
+    .btn:after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      width: calc(100% + 40px);
+      height: 100%;
+      top: 0;
+      transition: all 0.5s ease-in-out;
+      background: #0b0b0b;
+      clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 50%, calc(100% - 40px) 100%, 0 100%);
+    }
+  
+    .btn:before {
+      left: calc(-100% - 40px);
+    }
+  
+    .btn:after {
+      left: 100%;
+      transform: rotate(180deg);
+    }
+  
+    .btn:hover:before {
+      left: 0;
+    }
+  
+    .btn:hover:after {
+      left: 0;
+    }
+  
+  .btn:hover{
+      color: white;
+    }
+  
+    .common-banner-sec {
+      padding: 80px 0 60px;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      text-align: center;
+      position: relative;
+    }
+    
+    .common-banner-content {
+      color: white;
+    }
+    
+    .section-title .subtitle {
+      font-size: 24px;
+      color: white;
+      margin-bottom: 10px;
+    }
+    
+    .breadcrumbs p {
+      font-size: 40px;
+      font-weight: 400;
+      color: white;
+      margin: 0;
+      font-family: 'Federo', sans-serif;
+    }
+    
+    .account-container {
+      padding: 100px 20px 160px; /* bottom space added */
+      background-color: #fff;
+      display: flex;
+      justify-content: flex-start;
+    }
+    
+    .container {
+      margin-top: 60px;   
+      margin-bottom: 80px;
+      max-width: 900px;
+      padding: 0 60px; /* shifted left */
+      text-align: left;
+    }
+    
+    
+    h2 {
+      font-size: 36px;
+      margin-bottom: 10px;
+      font-weight: 500;
+      font-family: 'Federo', sans-serif;
+    }
+    
+    .sub {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 40px;
+    }
+    
+    .details-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 40px;
+    }
+    
+    .details-table td {
+      padding: 15px 10px;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 16px;
+    }
+    
+    .details-table td:first-child {
+      font-weight: bold;
+      width: 150px;
+      color: #747070;
+    }
+    

@@ -1,0 +1,49 @@
+<div class="chatbot-container">
+  <div class="chatbot-header">
+    <h2>Globex Assistant</h2>
+    <button class="close-btn" (click)="goBack()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+
+  <div class="chatbot-messages">
+    <div *ngFor="let message of messages" 
+         [class.user-message]="message.role === 'user'"
+         [class.bot-message]="message.role === 'bot'"
+         class="message">
+      <div class="message-content">
+        <p>{{ message.text }}</p>
+        <span class="message-time">{{ getTimeString(message.timestamp) }}</span>
+      </div>
+    </div>
+    
+    <div *ngIf="isLoading" class="message bot-message">
+      <div class="message-content typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="chatbot-input">
+    <textarea 
+      [(ngModel)]="userInput" 
+      (keydown)="handleKeyPress($event)"
+      placeholder="Type your message..."
+      rows="1"
+      class="input-field"></textarea>
+    <button 
+      (click)="sendMessage()" 
+      [disabled]="!userInput.trim() || isLoading"
+      class="send-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </div>
+</div>

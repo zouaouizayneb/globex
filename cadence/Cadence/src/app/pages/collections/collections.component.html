@@ -1,0 +1,66 @@
+<section class="common-banner-sec" style="background-image:url(https://i.imgur.com/WzPjkDY.png);margin-bottom: 60px;">
+  <div class="containerr">
+    <div class="common-banner-content text-center">
+      <div class="section-title">
+        <div class="subtitle" style="color: white; font-size: 18px;">Collections</div>
+      </div>
+      <div class="breadcrumbs">
+        <ul class="filter-cat flex align-center justify-center">
+          <li>
+            <a [routerLink]="['/']" style="color: white; text-decoration:none;">Home</a>
+            <span style="margin: 0 13px;">></span>
+            <a style="color: white; text-decoration:none;">Collections</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div *ngIf="loading" style="text-align:center; padding: 60px;">
+  <p>Loading categories...</p>
+</div>
+
+<div *ngIf="error && !loading" style="text-align:center; padding: 60px; color: red;">
+  <p>{{ error }}</p>
+</div>
+
+<div class="container-fluid" *ngIf="!loading && !error">
+  <div class="row">
+
+    <div class="col-3">
+      <div class="collection-card">
+        <div class="collection-card-image">
+          <a class="collection-image" tabindex="0">
+            <img class="standard-product-image" src="//cadence-workdo.myshopify.com/cdn/shop/files/1.png?v=1717577753" alt="All Products" loading="lazy">
+          </a>
+        </div>
+        <div class="collection-content">
+          <a [routerLink]="['/list-article', 'all']" class="btn" tabindex="0">All Products</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-3" *ngFor="let categorie of categories">
+      <div class="collection-card">
+        <div class="collection-card-image">
+          <a class="collection-image" tabindex="0">
+            <img
+              class="standard-product-image"
+              [src]="categorie.image"
+              [alt]="categorie.label"
+              loading="lazy"
+              (error)="onImageError($event)"
+            >
+          </a>
+        </div>
+        <div class="collection-content">
+          <a [routerLink]="['/list-article', categorie.id]" class="btn" tabindex="0">
+            {{ categorie.label }}
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,131 @@
+
+.main-banner-sec .banner-content {
+    padding: 160px 0;
+    max-width: 640px;
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;}
+.banner-content {
+    padding: 160px 0;
+    max-width: 640px;
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+}
+.main-banner-sec {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    color: white;
+}
+
+.main-banner-sec video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -2;
+}
+
+video {
+    object-fit: contain;
+    overflow: clip;
+    margin: 0;
+    padding: 0;
+    font-size: 100%;
+    list-style: none;
+    vertical-align: baseline;
+}
+
+.container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column; /* so text stacks vertically */
+    text-align: center;
+    z-index: 1;
+    color: white;
+}
+
+.banner-content {
+    padding: 20px;
+}
+.section-title {
+    margin-bottom: 26px;
+}
+h2 {
+    color: white;
+    font-family: 'Federo', sans-serif;;
+    margin-bottom: 15px;
+    font-size: 64px;
+}
+
+.section-title h2 {
+    color: white;
+    margin-bottom: 15px;
+}
+
+.subtitle {
+    font-size: 22px;
+    margin-bottom: 15px;
+    color:#689284;
+    text-transform: capitalize;
+    font-family: Delicious Handrawn, cursive;;
+}
+
+.section-title h2 {
+    text-transform: capitalize;
+    position: relative;
+}
+
+
+    
+.btn {
+    position: relative;
+    display: inline-block;
+    padding: 7px 26px;
+    font-size: 18px;
+    text-align: center;
+    font-weight: 600;
+    text-decoration: none;
+    color: #111;
+    cursor: pointer;
+    overflow: hidden;
+    background: #689284;
+    border: 2px solid #689284;
+    z-index: 1;
+    border-radius: 0;
+    font-family: Gothic A1, sans-serif;
+    white-space: nowrap;
+}
+
+
+.btn:hover {
+    background-color: #000000;
+    border: 2px solid #000000;
+    color: #ffffff;
+}
+
+.main-banner-sec::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3); /* transparent black */
+    z-index: -1; /* make sure it stays behind text but above video */
+}

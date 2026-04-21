@@ -1,0 +1,124 @@
+.testimonials-section {
+  background-color: #D5BEB9;
+  padding: 4rem 2rem;
+  min-height: 100vh;
+  display: flex;
+}
+
+.testimonials-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+.testimonials-header {
+  .subtitle {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 1rem;
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  .title {
+    font-size: 3.5rem;
+    color: #000;
+    font-family: 'Marcellus', serif;
+    line-height: 1.2;
+    margin-bottom: 2rem;
+    position: relative;
+    
+    &:after {
+      content: '';
+      display: block;
+      width: 100px;
+      height: 2px;
+      background-color: #000;
+      margin-top: 1rem;
+    }
+  }
+
+  .description {
+    font-size: 1.1rem;
+    color: #333;
+    line-height: 1.6;
+    max-width: 80%;
+  }
+}
+
+.testimonials-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.testimonial-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+
+  .client-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 1rem;
+    }
+
+    .client-name {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #000;
+      margin: 0;
+    }
+  }
+
+  .rating {
+    margin-bottom: 1rem;
+    
+    .star {
+      color: #FFD700;
+      font-size: 1.2rem;
+      
+      &.empty {
+        color: #E0E0E0;
+      }
+    }
+  }
+
+  .testimonial-text {
+    color: #666;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// Add media query for responsive design
+@media (max-width: 768px) {
+  .testimonials-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .testimonials-header {
+    .title {
+      font-size: 2.5rem;
+    }
+
+    .description {
+      max-width: 100%;
+    }
+  }
+} 

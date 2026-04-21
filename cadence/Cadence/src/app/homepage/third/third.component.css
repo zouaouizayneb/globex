@@ -1,0 +1,162 @@
+.third {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 50px;
+  padding: 80px 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.about-left {
+  flex: 1;
+  max-width: 600px;
+}
+
+.subtitle {
+  font-size: 22px;
+  margin-bottom: 15px;
+  font-family: 'Delicious Handrawn', cursive;
+  color: #689284;
+}
+
+h2 {
+  font-family: 'Federo', sans-serif;
+  font-size: 46px;
+  font-weight: 400;
+  color: #111;
+  margin-bottom: 25px;
+  line-height: 1.2;
+}
+
+.section-title p {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.8;
+  margin-bottom: 40px;
+}
+
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  padding: 0;
+  list-style: none;
+}
+
+.features li {
+  width: calc(50% - 15px);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.about-icon {
+  width: 45px;
+  height: 45px;
+  background:#689284;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.about-icon img {
+  width: 24px;
+  height: 24px;
+}
+
+
+.about-content h3 {
+  font-size: 18px;
+  margin-bottom: 5px;
+  color: #111;
+}
+
+.about-content p {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Images section */
+.about-right {
+  flex: 1;
+  position: relative;
+  min-height: 500px;
+}
+
+.about-image-wrp {
+  position: absolute;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.about-image-wrp img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Positioning each image */
+.img1 {
+  top: 100;
+  left: 220px;
+  width: 250px;
+  z-index: 3;
+}
+
+.img2 {
+  top: 50px;
+  left: 30px;
+  width: 250px;
+  z-index: 2;
+}
+
+.img3 {
+  top: 50px;
+  left: 400px;
+  width: 250px;
+  z-index: 2;
+}
+
+.img4 {
+  top: 380px;
+  left: 200px;
+  width: 250px;
+  z-index: 1;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  .third {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .about-left {
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .features {
+    justify-content: center;
+  }
+
+  .about-right {
+    min-height: 400px;
+    width: 100%;
+    position: relative;
+  }
+
+  .img1, .img2, .img3, .img4 {
+    width: 40%;
+  }
+
+  .img1 { top: 0; left: 10%; }
+  .img2 { top: 0; left: 50%; }
+  .img3 { top: 150px; left: 55%; }
+  .img4 { top: 270px; left: 15%; }
+}
+

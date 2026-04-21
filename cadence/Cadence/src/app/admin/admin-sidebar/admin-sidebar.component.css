@@ -1,0 +1,181 @@
+/* ── Admin Sidebar ── Professional style ───────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --sb-primary:      #4a8b6f;
+  --sb-primary-bg:   #eef5f2;
+  --sb-text:         #1a1a1a;
+  --sb-muted:        #6b7280;
+  --sb-border:       #f0f0f0;
+  --sb-width:        220px;
+}
+
+/* Shell */
+.admin-sidebar {
+  width: var(--sb-width);
+  height: 100vh;
+  background: white;
+  border-right: 1px solid var(--sb-border);
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.sidebar-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid var(--sb-border);
+  gap: 6px;
+  min-height: 80px;
+  background: white;
+}
+
+.sidebar-logo img {
+  width: 120px;
+  height: 56px;
+  object-fit: contain;
+  display: block;
+}
+
+.sidebar-logo .tagline {
+  font-size: 11px;
+  color: var(--sb-muted);
+  letter-spacing: 0.3px;
+  margin: 0;
+  font-weight: 400;
+  text-align: center;
+}
+
+.sidebar-nav {
+  padding: 14px 10px;
+  flex: 1;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-section {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--sb-muted);
+  padding: 14px 12px 6px;
+}
+
+.menu-item {
+  margin-bottom: 2px;
+}
+
+/* Link */
+.menu-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  letter-spacing: 0.1px;
+}
+
+/* Icon */
+.menu-link svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: #9ca3af;
+  transition: all 0.3s ease;
+}
+
+/* Hover */
+.menu-link:hover {
+  background: #fafafa;
+  color: #1a1a1a;
+}
+
+.menu-link:hover svg {
+  color: var(--sb-primary);
+}
+
+/* Active */
+.menu-item.active .menu-link {
+  background: var(--sb-primary-bg);
+  color: var(--sb-primary);
+  font-weight: 600;
+}
+
+.menu-item.active .menu-link svg {
+  color: var(--sb-primary);
+}
+
+/* Badge */
+.menu-badge {
+  margin-left: auto;
+  background: #edf2ef;
+  color: var(--sb-primary);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  min-width: 22px;
+  text-align: center;
+}
+
+/* Divider line between groups */
+.menu-divider {
+  height: 1px;
+  background: var(--sb-border);
+  margin: 10px 12px;
+}
+
+/* Logout link red colour */
+.menu-item--logout .menu-link {
+  color: #e05252;
+}
+.menu-item--logout .menu-link svg {
+  color: #e05252;
+}
+.menu-item--logout .menu-link:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────── */
+.sidebar-footer {
+  padding: 14px 18px;
+  border-top: 1px solid var(--sb-border);
+  font-size: 11px;
+  color: var(--sb-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-footer p {
+  margin: 0;
+  font-weight: 600;
+  color: #374151;
+  font-size: 12px;
+}
+
+.sidebar-footer span {
+  font-size: 11px;
+  color: var(--sb-muted);
+}

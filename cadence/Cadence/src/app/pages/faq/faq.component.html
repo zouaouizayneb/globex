@@ -1,0 +1,87 @@
+<section class="common-banner-sec" style="background-image:url(https://i.imgur.com/WzPjkDY.png);">
+  <div class="containerr">
+    <div class="common-banner-content text-center">
+
+      <div class="section-title">
+        <div class="subtitle" style="color: white; font-size: 18px;">FAQ'S</div>
+      </div>
+
+      <div class="breadcrumbs">
+        <ul class="filter-cat flex align-center justify-center">
+          <li>
+            <a  [routerLink]="['']" style="color: white; text-decoration:none;">Home</a>
+            <span style="margin: 0 13px;">></span>
+            <a  style="color: white; text-decoration:none;">Pages</a>
+            <span style="margin: 0 13px;">></span>
+            <a  style="color: white; text-decoration:none;">FAQ’s</a>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- faqs-->
+
+  <div class="row" style=" margin:75px 5px;">
+    <div class="col-8" >
+      <div class="faq-left-itm">
+        <div class="section-title">
+            <h2>Frequently Asked Questions</h2>
+            <p>
+At Globex, we are committed to providing you with clear and helpful information to enhance your shopping experience. Our Frequently Asked Questions section covers common topics such as ordering, shipping, returns, payments, and product availability across our different categories including home, fashion, electronics, and more.
+
+Whether you're shopping with us for the first time or you're a returning customer, this section is designed to guide you through every step of your journey. If you need additional assistance, our support team is always ready to help ensure a smooth and satisfying experience.
+</p>
+        <div class="faq-acnav">
+          <div *ngFor="let faq of faqs" class="set has-children">
+            <a href="javascript:;" class="acnav-label" (click)="toggle(faq)">
+              <span>{{ faq.question }}</span>
+            </a>
+            <div class="acnav-list" [class.open]="faq.isOpen">
+              <p>{{ faq.answer }}</p>
+            </div>
+          </div>
+        </div>
+                                    
+        </div>
+    </div>
+    <!--Form-->
+    <div class="col-4" style="padding-left: 0px;">
+      <div class="faq-right-itm"><form method="post" action="/contact#ContactForm" id="ContactForm" accept-charset="UTF-8" class="faq-form"><input type="hidden" name="form_type" value="contact"><input type="hidden" name="utf8" value="✓"><div class="form-container">
+        <div class="form-heading">
+            <h4>Ask Your Questions</h4>
+        </div>
+    </div><div class="form-container">
+        <div class="row"> 
+            <div class="col-12">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" class="form-control" placeholder="First and Last Name" autocomplete="name" id="name" name="contact[name]" value="">
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-group">
+                    <label for="email">Email<sup aria-hidden="true">*</sup>:</label>
+                    <input type="email" class="form-control" id="email" name="contact[email]" autocomplete="email" spellcheck="false" autocapitalize="off" value="" aria-required="true" placeholder="shop@company.com" required="">
+                </div>
+            </div> 
+            <div class="col-12">
+                <div class="form-group">
+                    <label for="Question">Question</label>
+                    <textarea class="form-control" name="message" rows="10" id="Question" placeholder="Your Question"></textarea>
+                </div>
+            </div> 
+        </div> 
+    </div>  
+    <div class="form-container">
+        <button class="btn" type="submit">
+            Send questions
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="9" viewBox="0 0 10 9" fill="none">
+                <path d="M9.85535 4.29584C9.83631 4.34193 9.80883 4.38346 9.77426 4.41802L6.26763 7.92466C6.19449 7.9978 6.09829 8.03485 6.00211 8.03485C5.90593 8.03485 5.80973 7.9983 5.73659 7.92466C5.58981 7.77788 5.58981 7.53991 5.73659 7.39314L8.602 4.52773H0.491678C0.284285 4.52773 0.115967 4.35941 0.115967 4.15201C0.115967 3.94462 0.284285 3.7763 0.491678 3.7763H8.60151L5.7361 0.910894C5.58932 0.764116 5.58932 0.526148 5.7361 0.37937C5.88288 0.232593 6.12085 0.232593 6.26763 0.37937L9.77426 3.88601C9.80883 3.92057 9.83631 3.9621 9.85535 4.00819C9.89342 4.10036 9.89342 4.20367 9.85535 4.29584Z" fill="white"></path>
+            </svg>
+        </button>
+    </div></form></div>
+</div>
+

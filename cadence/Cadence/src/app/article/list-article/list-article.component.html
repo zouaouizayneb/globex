@@ -1,0 +1,278 @@
+<section class="common-banner-sec" style="background-image:url(https://i.imgur.com/WzPjkDY.png);">
+  <div class="containerr">
+    <div class="common-banner-content text-center">
+      <div class="section-title">
+        <div class="subtitle" style="color: white; font-size: 18px;">{{ categoryLabel }}</div>
+      </div>
+      <div class="breadcrumbs">
+        <ul class="filter-cat flex align-center justify-center">
+          <li>
+            <a [routerLink]="['/']" style="color: white; text-decoration:none;">Home</a>
+            <span style="margin: 0 5px;">></span>
+            <a style="color: white; text-decoration:none;">{{ categoryLabel }}</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="row" style="margin: 10px 0px;">
+
+  <div class="col-3" style="padding: 10px;">
+    <div class="container" style="padding: 20px; background-color: #f8f9fa;">
+      <div class="facets__wrapper">
+
+        <details class="product-widget facets__disclosure" open>
+          <summary class="facets__summary caption-large pro-itm">
+            <div class="acnav-label">Availability</div>
+          </summary>
+          <div class="facets__display pro-itm-inner acnav-list">
+            <div class="facets__header">
+              <span class="facets__selected">{{ selectedAvailabilityCount }} selected</span>
+              <a class="facets__reset link" role="button" (click)="resetAvailability()">Reset</a>
+            </div>
+            <ul class="facets__list list-unstyled" role="list">
+              <li class="list-menu__item facets__item">
+                <label for="Filter-Availability-1" class="flex facet-checkbox">
+                  <input type="checkbox" id="Filter-Availability-1"
+                    [(ngModel)]="inStockSelected" (change)="filter()">
+                  <svg width="1.6rem" height="1.6rem" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" stroke="currentColor" fill="none" stroke-width="1"></rect></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <div class="color-name">In stock <span class="color-count">{{ inStockCount }}</span></div>
+                </label>
+              </li>
+              <li class="list-menu__item facets__item">
+                <label for="Filter-Availability-2" class="flex facet-checkbox">
+                  <input type="checkbox" id="Filter-Availability-2"
+                    [(ngModel)]="outOfStockSelected" (change)="filter()">
+                  <svg width="1.6rem" height="1.6rem" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" stroke="currentColor" fill="none" stroke-width="1"></rect></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <div class="color-name">Out of stock <span class="color-count">{{ outOfStockCount }}</span></div>
+                </label>
+              </li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="product-price-widget product-widget facets__disclosure" open>
+          <summary class="facets__summary caption-large pro-itm">
+            <div class="acnav-label">Price</div>
+          </summary>
+          <div class="facets__display pro-itm-inner acnav-list">
+            <div class="facets__header">
+              <span class="facets__selected price-header">Filter by price</span>
+              <a class="facets__reset link" role="button" (click)="resetPrice()">Reset</a>
+            </div>
+            <div class="facets__price">
+              <div class="field">
+                <label class="field__label" for="Filter-Price-GTE">Min price:</label>
+                <input class="field__input" [(ngModel)]="minPrice" (change)="filter()"
+                  id="Filter-Price-GTE" type="number" placeholder="0" min="0">
+              </div>
+              <div class="field">
+                <label class="field__label" for="Filter-Price-LTE">Max price:</label>
+                <input class="field__input" [(ngModel)]="maxPrice" (change)="filter()"
+                  id="Filter-Price-LTE" type="number" placeholder="9999" min="0">
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="product-widget facets__disclosure" open>
+          <summary class="facets__summary caption-large pro-itm">
+            <div class="acnav-label">Brand</div>
+          </summary>
+          <div class="facets__display pro-itm-inner acnav-list">
+            <div class="facets__header">
+              <span class="facets__selected">{{ selectedBrandsCount }} selected</span>
+              <a class="facets__reset link" role="button" (click)="resetBrands()">Reset</a>
+            </div>
+            <ul class="facets__list list-unstyled" role="list">
+              <li class="list-menu__item facets__item" *ngFor="let brand of brands; let i = index">
+                <label [for]="'Filter-Brand-' + i" class="flex facet-checkbox">
+                  <input type="checkbox" [id]="'Filter-Brand-' + i"
+                    [(ngModel)]="selectedBrands[brand]" (change)="filter()">
+                  <svg width="1.6rem" height="1.6rem" viewBox="0 0 16 16" aria-hidden="true"><rect width="16" height="16" stroke="currentColor" fill="none" stroke-width="1"></rect></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <div class="color-name">{{ brand }} <span class="color-count">{{ getBrandProductCount(brand) }}</span></div>
+                </label>
+              </li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="product-widget facets__disclosure" open>
+          <summary class="facets__summary caption-large pro-itm">
+            <div class="acnav-label">Color</div>
+          </summary>
+          <div class="facets__display pro-itm-inner acnav-list">
+            <div class="facets__header">
+              <span class="facets__selected">{{ selectedColorsCount }} selected</span>
+              <a class="facets__reset link" role="button" (click)="resetColors()">Reset</a>
+            </div>
+            <ul class="facets__list list-unstyled facets-color-main" role="list">
+              <li class="facets-color" *ngFor="let color of colors">
+                <label [style.background-color]="color" [for]="'Filter-Color-' + color"
+                  class="color-label" [ngClass]="{ 'selected': selectedColors[color] }"></label>
+                <input type="checkbox" [value]="color" [id]="'Filter-Color-' + color"
+                  [(ngModel)]="selectedColors[color]" (change)="filter()">
+              </li>
+            </ul>
+          </div>
+        </details>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-9" style="padding: 10px;">
+
+    <div *ngIf="loading" style="text-align:center; padding: 60px;">
+      <p>Loading products...</p>
+    </div>
+
+    <div *ngIf="!loading && productsFiltred.length === 0" style="text-align:center; padding: 60px;">
+      <p>No products found.</p>
+    </div>
+
+    <div class="row" *ngFor="let item of productsFiltred"
+      style="height:274px; margin:0; top:20px; background-color:#f8f9fa; margin-bottom:30px;">
+
+      <div class="col-3" style="padding:20px; height:100%">
+        <a style="display:block; height:100%;" class="img-wrapper product__media-item" tabindex="0">
+          <img loading="lazy" class="standard-product-image default-img"
+            [src]="item.images[0]?.url"
+            [alt]="item.title"
+            (error)="onImageError($event)">
+        </a>
+      </div>
+
+      <div class="col-5" style="padding:25px;">
+        <div class="product-content-top">
+          <div class="product-label-wrp">
+            <div class="pro-label pro-sale" *ngIf="item.isNew">New</div>
+            <div class="pro-label pro-discount" *ngIf="item.remise > 0">-{{ item.remise }}%</div>
+          </div>
+          <h3><a>{{ item.title }}</a></h3>
+          <p>{{ item.description }}</p>
+        </div>
+      </div>
+
+      <div class="col-4" style="padding-top:60px; padding-left:180px;">
+
+        <div class="rating-container">
+          <div class="stars">{{ getStars(item.rating) }}</div>
+        </div>
+
+        <div style="padding-top:10px;">
+          <div class="pro-btn-wrapper">
+
+            <div class="pro-btn pro-wishlist" (click)="addToWishlist(item)" [routerLink]="'/wishlist'" style="cursor: pointer;">
+              <label style="cursor: pointer;">
+                <span class="wishlist-label wishlist-btn">
+                  <div class="svg-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="15" viewBox="0 0 17 15" fill="none">
+                      <path d="M8.50033 14.3354C8.28074 14.3354 8.06824 14.3071 7.89116 14.2433C5.18533 13.3154 0.885742 10.0216 0.885742 5.15538C0.885742 2.67622 2.89033 0.664551 5.35533 0.664551C6.55241 0.664551 7.67158 1.13205 8.50033 1.96788C9.32908 1.13205 10.4482 0.664551 11.6453 0.664551C14.1103 0.664551 16.1149 2.6833 16.1149 5.15538C16.1149 10.0287 11.8153 13.3154 9.10949 14.2433C8.93241 14.3071 8.71991 14.3354 8.50033 14.3354ZM5.35533 1.72705C3.47824 1.72705 1.94824 3.26413 1.94824 5.15538C1.94824 9.9933 6.60199 12.685 8.23824 13.2446C8.36574 13.2871 8.64199 13.2871 8.76949 13.2446C10.3987 12.685 15.0595 10.0004 15.0595 5.15538C15.0595 3.26413 13.5295 1.72705 11.6524 1.72705C10.5757 1.72705 9.57699 2.22997 8.93241 3.10122C8.73408 3.37038 8.28074 3.37038 8.08241 3.10122C7.42366 2.22288 6.43199 1.72705 5.35533 1.72705Z" fill="#111111"></path>
+                    </svg>
+                  </div>
+                  <span class="bt-tooltip-content">Add To Wishlist</span>
+                </span>
+              </label>
+            </div>
+
+            <div class="pro-btn" style="margin-right:-40px;">
+              <button (click)="toggleQuickView(item)" class="qv-btn quickview-btn">
+                <div class="svg-container">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none">
+                    <path d="M8.4997 11.5673C6.80678 11.5673 5.43262 10.1931 5.43262 8.50019C5.43262 6.80727 6.80678 5.43311 8.4997 5.43311C10.1926 5.43311 11.5668 6.80727 11.5668 8.50019C11.5668 10.1931 10.1926 11.5673 8.4997 11.5673ZM8.4997 6.49561C7.3947 6.49561 6.49512 7.39519 6.49512 8.50019C6.49512 9.60519 7.3947 10.5048 8.4997 10.5048C9.6047 10.5048 10.5043 9.60519 10.5043 8.50019C10.5043 7.39519 9.6047 6.49561 8.4997 6.49561Z" fill="#111111"></path>
+                    <path d="M8.49965 14.8892C5.83632 14.8892 3.32173 13.3308 1.5934 10.625C0.842565 9.45626 0.842565 7.55084 1.5934 6.37501C3.32881 3.66917 5.8434 2.11084 8.49965 2.11084C11.1559 2.11084 13.6705 3.66917 15.3988 6.37501C16.1496 7.54376 16.1496 9.44917 15.3988 10.625C13.6705 13.3308 11.1559 14.8892 8.49965 14.8892ZM8.49965 3.17334C6.21173 3.17334 4.02298 4.54751 2.49298 6.94876C1.96173 7.77751 1.96173 9.22251 2.49298 10.0513C4.02298 12.4525 6.21173 13.8267 8.49965 13.8267C10.7876 13.8267 12.9763 12.4525 14.5063 10.0513C15.0376 9.22251 15.0376 7.77751 14.5063 6.94876C12.9763 4.54751 10.7876 3.17334 8.49965 3.17334Z" fill="#111111"></path>
+                  </svg>
+                </div>
+                <span class="bt-tooltip-content">Quick View</span>
+              </button>
+            </div>
+
+            <div class="quickview-modal" *ngIf="showQuickView && selectedProduct">
+              <div class="modal-overlay" (click)="toggleQuickView(null)"></div>
+              <div class="modal-content">
+                <button class="close-btn" (click)="toggleQuickView(null)">×</button>
+                <div class="row" style="height:100%;">
+                  <div class="col-6">
+                    <div class="quickview-slider-wrapper">
+                      <button class="arrow left" (click)="prevImage()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
+                          <path fill="#111" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                        </svg>
+                      </button>
+                      <div class="quickview-slider">
+                        <div class="slider-track" [style.transform]="'translateX(-' + currentImageIndex * 100 + '%)'">
+                          <div class="slide" *ngFor="let img of selectedProduct.images">
+                            <img class="standard-product-image" [src]="img.url" alt="Product Image" loading="lazy" (error)="onImageError($event)"/>
+                          </div>
+                        </div>
+                      </div>
+                      <button class="arrow right" (click)="nextImage()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
+                          <path fill="#111" d="m10 6-1.41 1.41L13.17 12l-4.58 4.59L10 18l6-6z"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col-6" style="padding-top:100px;">
+                    <div class="section-title">
+                      <h3><a>{{ selectedProduct.title }}</a></h3>
+                    </div>
+                    <div class="no-js-hidden qv-price price" role="status">
+                      <ins class="price-item--regular">${{ selectedProduct.price - (selectedProduct.price * selectedProduct.remise / 100) | number:'1.2-2' }}</ins>
+                      <del class="price-item--sale" *ngIf="selectedProduct.remise > 0">${{ selectedProduct.price | number:'1.2-2' }}</del>
+                    </div>
+                    <div class="quick-product-dis">{{ selectedProduct.description }}</div>
+                    <div class="product-actions">
+                      <div class="quantity-selector" style="width:130px;">
+                        <button (click)="decreaseQuantity()" class="qty-btn">-</button>
+                        <input [(ngModel)]="quantity" min="1" class="qty-input"/>
+                        <button (click)="increaseQuantity()" class="qty-btn">+</button>
+                      </div>
+                      <div style="display: flex; gap: 10px;">
+                        <button (click)="addToCart(selectedProduct)" [routerLink]="'/cart'"
+                          type="submit" class="cart-btn product-form__submit">
+                          Add to Cart
+                        </button>
+                        <button (click)="addToWishlist(selectedProduct)" [routerLink]="'/wishlist'"
+                          type="button" class="cart-btn product-form__submit" style="padding: 0 15px;">
+                          Wishlist
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="no-js-hidden price" role="status" style="padding-top:12px; padding-right:5px;">
+          <ins class="price-item--regular">${{ item.price - (item.price * item.remise / 100) | number:'1.2-2' }}</ins>
+          <del class="price-item--sale" *ngIf="item.remise > 0">${{ item.price | number:'1.2-2' }}</del>
+        </div>
+
+        <button (click)="addToCart(item)" [routerLink]="'/cart'"
+          type="submit" class="cart-btn product-form__submit" aria-label="Add to Cart">
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none">
+            <path d="M3.67596 4.51919C3.54138 4.51919 3.39971 4.46252 3.30055 4.36335C3.09513 4.15794 3.09513 3.81794 3.30055 3.61252L5.8718 1.04127C6.07721 0.835853 6.41721 0.835853 6.62263 1.04127C6.82805 1.24669 6.82805 1.58669 6.62263 1.7921L4.05138 4.36335C3.94513 4.46252 3.81055 4.51919 3.67596 4.51919Z" fill="#111111"></path>
+            <path d="M13.3234 4.51919C13.1888 4.51919 13.0542 4.4696 12.948 4.36335L10.3767 1.7921C10.1713 1.58669 10.1713 1.24669 10.3767 1.04127C10.5821 0.835853 10.9221 0.835853 11.1276 1.04127L13.6988 3.61252C13.9042 3.81794 13.9042 4.15794 13.6988 4.36335C13.5996 4.46252 13.458 4.51919 13.3234 4.51919Z" fill="#111111"></path>
+            <path d="M14.3157 7.50814H2.83366C2.33783 7.51522 1.77116 7.51522 1.36033 7.10439C1.03449 6.78564 0.885742 6.2898 0.885742 5.56022C0.885742 3.6123 2.30949 3.6123 2.98949 3.6123H14.0112C14.6912 3.6123 16.1149 3.6123 16.1149 5.56022C16.1149 6.29689 15.9662 6.78564 15.6403 7.10439C15.272 7.47272 14.7762 7.50814 14.3157 7.50814Z" fill="#111111"></path>
+            <path d="M6.91309 12.9623C6.62267 12.9623 6.38184 12.7215 6.38184 12.4311V9.9165C6.38184 9.62609 6.62267 9.38525 6.91309 9.38525C7.2035 9.38525 7.44434 9.62609 7.44434 9.9165V12.4311C7.44434 12.7286 7.2035 12.9623 6.91309 12.9623Z" fill="#111111"></path>
+            <path d="M10.1719 12.9623C9.88146 12.9623 9.64062 12.7215 9.64062 12.4311V9.9165C9.64062 9.62609 9.88146 9.38525 10.1719 9.38525C10.4623 9.38525 10.7031 9.62609 10.7031 9.9165V12.4311C10.7031 12.7286 10.4623 12.9623 10.1719 12.9623Z" fill="#111111"></path>
+            <path d="M10.547 16.1148H6.2757C3.73987 16.1148 3.1732 14.606 2.95362 13.2956L1.95487 7.16853C1.90528 6.87811 2.10362 6.60894 2.39403 6.55936C2.68445 6.50978 2.95362 6.70811 3.0032 6.99853L4.00195 13.1185C4.20737 14.3723 4.63237 15.0523 6.2757 15.0523H10.547C12.3674 15.0523 12.5728 14.4148 12.8065 13.1823L13.9965 6.98436C14.0532 6.69394 14.3294 6.50269 14.6199 6.56644C14.9103 6.62311 15.0944 6.89936 15.0378 7.18978L13.8478 13.3877C13.5715 14.8256 13.1111 16.1148 10.547 16.1148Z" fill="#111111"></path>
+          </svg>
+          <span class="bt-tooltip-content">Add to Cart</span>
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,74 @@
+<h1>Wishlist ({{ wishlist.length }})</h1>
+
+<table class="wishlist-table" *ngIf="wishlist.length > 0">
+  <thead>
+    <tr>
+      <th>Product</th>
+      <th>Details</th>
+      <th>Cart Button</th>
+      <th>Delete</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr *ngFor="let item of wishlist">
+
+      <!-- Product Image -->
+      <td>
+        <img 
+          [src]="getImage(item.image)" 
+          alt="product"
+          loading="lazy"
+          style="width: 90px; border-radius: 8px;"
+        >
+      </td>
+
+      <!-- Product Details -->
+      <td>
+        <div class="brand">
+          Globex
+        </div>
+
+        <div class="name">
+          {{ item.name }}
+        </div>
+
+        <div class="price">
+          ${{ item.price }}
+        </div>
+      </td>
+
+      <!-- Add to Cart -->
+      <td>
+        <button 
+          class="add-btn"
+          (click)="addToCart(item.id)">
+          Add to Cart
+        </button>
+      </td>
+
+      <!-- Delete -->
+      <td>
+        <span 
+          class="delete-icon" 
+          (click)="removeFromWishlist(item.id)"
+          style="cursor:pointer; font-size:18px;">
+          🗑️
+        </span>
+      </td>
+
+    </tr>
+  </tbody>
+</table>
+
+<!-- Empty Wishlist -->
+<div *ngIf="wishlist.length === 0" style="text-align: center; margin-top: 80px;">
+  <h2>Your wishlist is empty</h2>
+  <p>Browse products and add your favorites to your wishlist.</p>
+
+  <a [routerLink]="['/']">
+    <button class="add-btn" style="margin-top: 20px;">
+      Continue Shopping
+    </button>
+  </a>
+</div>

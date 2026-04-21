@@ -1,0 +1,87 @@
+.auth-page {
+  height: 100vh;
+  background: linear-gradient(135deg, #2C3424, #768064);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-card {
+  width: 380px;
+  padding: 40px 30px;
+  border-radius: 25px;
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  color: white;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-form h2 {
+  margin-bottom: 25px;
+  font-weight: 500;
+}
+
+.auth-form input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.5);
+  padding: 10px 5px;
+  margin-bottom: 15px;
+  color: white;
+}
+
+.auth-form input::placeholder {
+  color: rgba(255,255,255,0.7);
+}
+
+.password-field {
+  position: relative;
+}
+
+.forgot {
+  position: absolute;
+  right: 0;
+  top: 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.remember {
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.main-btn {
+  background: #1c1c1c;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px;
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+
+.social-btn {
+  background: white;
+  color: black;
+  border: none;
+  border-radius: 25px;
+  padding: 12px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.switch {
+  font-size: 13px;
+  text-align: center;
+}
+
+.switch span {
+  text-decoration: underline;
+  cursor: pointer;
+}

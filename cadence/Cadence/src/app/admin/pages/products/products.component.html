@@ -1,0 +1,234 @@
+<div class="products-container">
+  <div class="page-header">
+    <div>
+      <h1>Products</h1>
+      <p>Manage your product inventory</p>
+    </div>
+    <div class="btn-globex-container">
+      <button class="btn-globex" (click)="addProduct()">
+        Add Product
+      </button>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="card filters-card">
+    <div class="filter-group">
+      <input type="text" placeholder="Search by name or SKU..." [(ngModel)]="searchTerm" class="search-input" />
+    </div>
+    <div class="filter-group">
+      <select [(ngModel)]="filterStatus" class="filter-select">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+        <option value="draft">Draft</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <select [(ngModel)]="filterCategory" class="filter-select">
+        <option value="">All Categories</option>
+        <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading products...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="error && !isLoading" class="error-banner">
+    ⚠️ {{ error }}
+    <button (click)="loadProducts()" class="retry-btn">Retry</button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card table-card" *ngIf="!isLoading">
+    <div class="table-header">
+      <h3>{{ filteredProducts.length }} Products</h3>
+    </div>
+    <div class="table-wrapper">
+      <table class="products-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>SKU</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let product of filteredProducts" class="table-row">
+            <td>
+              <div class="product-cell">
+                <span class="product-image" *ngIf="!product.imageUrl">📦</span>
+                <img *ngIf="product.imageUrl" [src]="product.imageUrl" alt="{{ product.name }}"
+                     class="product-thumb" onerror="this.style.display='none'" />
+                <span class="product-name">{{ product.name }}</span>
+              </div>
+            </td>
+            <td><span class="sku">{{ product.sku }}</span></td>
+            <td>{{ product.category }}</td>
+            <td><span class="price">${{ product.price.toFixed(2) }}</span></td>
+            <td>
+              <span class="stock" [style.color]="getStockColor(product.stock)">
+                {{ getStockStatus(product.stock) }} ({{ product.stock }})
+              </span>
+            </td>
+            <td>
+              <span class="status-badge"
+                    [style.background]="getStatusColor(product.status) + '20'"
+                    [style.color]="getStatusColor(product.status)">
+                {{ product.status | titlecase }}
+              </span>
+            </td>
+            <td>
+              <div class="actions">
+                <button class="action-btn edit" (click)="editProduct(product.id)" title="Edit">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
+                <button class="action-btn delete" (click)="deleteProduct(product.id)" title="Delete">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="filteredProducts.length === 0" class="empty-state">
+        <p>No products found</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAWER: Add / Edit Product -->
+  <div class="drawer-overlay" *ngIf="showModal" (click)="cancelModal()">
+    <div class="drawer-box" (click)="$event.stopPropagation()">
+      <div class="drawer-header">
+        <h2>{{ editingProduct ? 'Edit Product' : 'New Product' }}</h2>
+        <button class="close-btn" (click)="cancelModal()">✕</button>
+      </div>
+
+      <div class="drawer-content">
+        <div class="form-group">
+          <label>Product Name *</label>
+          <input type="text" [(ngModel)]="formName" placeholder="Enter product name" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="formDescription" placeholder="Enter product description" class="form-input" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Product Images</label>
+          <div *ngFor="let url of formImageUrls; let i = index" class="image-url-item">
+            <div class="image-url-input-group">
+              <input type="text" [(ngModel)]="formImageUrls[i]" placeholder="https://example.com/image.png" class="form-input" />
+              <button *ngIf="formImageUrls.length > 1" class="icon-btn-delete" (click)="removeImageUrl(i)" title="Remove image">✕</button>
+            </div>
+            <div class="image-preview" *ngIf="formImageUrls[i]">
+              <img [src]="formImageUrls[i]" alt="Preview" onerror="this.style.display='none'">
+            </div>
+          </div>
+          <button class="btn-sm" (click)="addImageUrl()">+ Add Another Image</button>
+        </div>
+
+        <div class="form-group">
+          <label>Category</label>
+          <select [(ngModel)]="formCategoryId" class="form-input">
+            <option value="">Select Category</option>
+            <option *ngFor="let cat of rawCategories" [value]="cat.id">{{ cat.name }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Supplier</label>
+          <select [(ngModel)]="formSupplierId" class="form-input">
+            <option value="">Select Supplier</option>
+            <option *ngFor="let supplier of suppliers" [value]="supplier.id">{{ supplier.name }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Base Price *</label>
+          <input type="number" [(ngModel)]="formPrice" min="0" placeholder="0" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Stock</label>
+          <input type="number" [(ngModel)]="formStock" min="0" placeholder="0" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select [(ngModel)]="formStatus" class="form-input">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="draft">Draft</option>
+          </select>
+        </div>
+
+        <div class="variants-section">
+          <div class="variants-header">
+            <h3>Variants</h3>
+            <button class="btn-sm" (click)="addVariant()">+ Add Variant</button>
+          </div>
+          
+          <div class="variant-card" *ngFor="let variant of formVariants; let i = index">
+            <div class="variant-header">
+              <h4>Variant {{ i + 1 }}</h4>
+              <button class="icon-btn-delete" *ngIf="formVariants.length > 1" (click)="removeVariant(i)">✕</button>
+            </div>
+            <div class="variant-grid">
+              <div class="form-group mb-0">
+                <label>SKU</label>
+                <input type="text" [(ngModel)]="variant.sku" class="form-input" />
+              </div>
+              <div class="form-group mb-0">
+                <label>Additional Price</label>
+                <input type="number" [(ngModel)]="variant.additionalPrice" class="form-input" />
+              </div>
+              <div class="form-group mb-0">
+                <label>Color</label>
+                <input type="text" [(ngModel)]="variant.color" placeholder="e.g. Red, #FF0000" class="form-input" />
+              </div>
+              <div class="form-group mb-0">
+                <label>Size</label>
+                <input type="text" [(ngModel)]="variant.size" placeholder="e.g. S, M, L" class="form-input" />
+              </div>
+              <div class="form-group mb-0">
+                <label>Stock</label>
+                <input type="number" [(ngModel)]="variant.stockQuantity" class="form-input" />
+              </div>
+              <div class="form-group mb-0">
+                <label>Image URL</label>
+                <input type="text" [(ngModel)]="variant.imageUrl" placeholder="https://example.com/variant-image.png" class="form-input" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <button class="btn-globex btn-globex-secondary btn-globex-sm" (click)="cancelModal()" [disabled]="isSaving">Cancel</button>
+        <button class="btn-globex btn-globex-sm" (click)="saveProduct()" [disabled]="isSaving || !formName.trim()">
+          {{ isSaving ? 'Saving...' : 'Save Product' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

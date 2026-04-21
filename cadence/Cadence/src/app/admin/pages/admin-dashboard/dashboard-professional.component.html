@@ -1,0 +1,152 @@
+<div class="dashboard-container">
+  <div *ngIf="errorMessage" class="error-banner">
+    <div class="error-content">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span>{{ errorMessage }}</span>
+      <button (click)="retryLoadData()" class="retry-btn">Retry</button>
+    </div>
+  </div>
+
+  <div class="dashboard-header">
+    <h1>Dashboard</h1>
+    <p class="subtitle">Welcome back! Here's your business overview.</p>
+  </div>
+
+  <div class="kpi-section">
+    <h2 class="section-title">Key Performance Indicators</h2>
+    <div class="kpi-grid">
+      <div class="kpi-card" [class.loading]="isLoadingKPI">
+        <div class="kpi-header">
+          <h3>Total Revenue</h3>
+          <div class="kpi-icon revenue-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-value" *ngIf="!isLoadingKPI; else loadingKPI">
+            ${{ formatNumber(kpiData.revenue) }}
+          </div>
+          <ng-template #loadingKPI>
+            <div class="skeleton-text"></div>
+          </ng-template>
+          <p class="kpi-label">This month</p>
+        </div>
+      </div>
+
+      <div class="kpi-card" [class.loading]="isLoadingKPI">
+        <div class="kpi-header">
+          <h3>Total Orders</h3>
+          <div class="kpi-icon orders-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-value" *ngIf="!isLoadingKPI; else loadingKPI2">
+            {{ formatNumber(kpiData.orders) }}
+          </div>
+          <ng-template #loadingKPI2>
+            <div class="skeleton-text"></div>
+          </ng-template>
+          <p class="kpi-label">Active orders</p>
+        </div>
+      </div>
+
+      <div class="kpi-card" [class.loading]="isLoadingKPI">
+        <div class="kpi-header">
+          <h3>Total Clients</h3>
+          <div class="kpi-icon clients-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-value" *ngIf="!isLoadingKPI; else loadingKPI3">
+            {{ formatNumber(kpiData.clients) }}
+          </div>
+          <ng-template #loadingKPI3>
+            <div class="skeleton-text"></div>
+          </ng-template>
+          <p class="kpi-label">Registered clients</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="charts-section">
+    <div class="chart-card" [class.loading]="isLoadingCharts">
+      <div class="chart-header">
+        <h2>Sales Evolution</h2>
+        <p class="chart-subtitle">Daily sales over the last 30 days</p>
+      </div>
+      <div class="chart-container" *ngIf="!isLoadingCharts; else loadingChart">
+        <canvas
+          *ngIf="lineChartData"
+          baseChart
+          [type]="lineChartType"
+          [data]="lineChartData"
+          [options]="lineChartOptions"
+          class="sales-chart">
+        </canvas>
+      </div>
+      <ng-template #loadingChart>
+        <div class="skeleton-chart"></div>
+      </ng-template>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-card" [class.loading]="isLoadingCharts">
+        <div class="chart-header">
+          <h2>Product Distribution</h2>
+          <p class="chart-subtitle">Sales by product category</p>
+        </div>
+        <div class="chart-container" *ngIf="!isLoadingCharts; else loadingChart2">
+          <canvas
+            *ngIf="pieChartData"
+            baseChart
+            [type]="pieChartType"
+            [data]="pieChartData"
+            [options]="pieChartOptions"
+            class="product-chart">
+          </canvas>
+        </div>
+        <ng-template #loadingChart2>
+          <div class="skeleton-chart"></div>
+        </ng-template>
+      </div>
+
+      <div class="chart-card" [class.loading]="isLoadingCharts">
+        <div class="chart-header">
+          <h2>Orders by Category</h2>
+          <p class="chart-subtitle">Order count per category</p>
+        </div>
+        <div class="chart-container" *ngIf="!isLoadingCharts; else loadingChart3">
+          <canvas
+            *ngIf="barChartData"
+            baseChart
+            [type]="barChartType"
+            [data]="barChartData"
+            [options]="barChartOptions"
+            class="orders-chart">
+          </canvas>
+        </div>
+        <ng-template #loadingChart3>
+          <div class="skeleton-chart"></div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<section class="testimonials-section">
+  <div class="testimonials-content">
+    <div class="testimonials-header">
+      <p class="subtitle">Client Testimonials</p>
+      <h1 class="title">Customer Stories: Hear What Our Clients Say</h1>
+      <p class="description">Discover firsthand experiences from our satisfied customers. Read testimonials that showcase the impact of our candles on their lives and spaces.</p>
+    </div>
+    
+    <div class="testimonials-list">
+      <div class="testimonial-card">
+        <div class="client-info">
+          <img [src]="testimonials[0].image" alt="Client photo">
+          <h3 class="client-name">Harper & Co. Interior Design</h3>
+        </div>
+        <div class="rating">
+          <span class="star" *ngFor="let star of [1,2,3,4]">★</span>
+          <span class="star empty">★</span>
+        </div>
+        <p class="testimonial-text">"The Range Of Products Available Is Extensive, And The Detailed Product Descriptions And Specifications Provided Helped Me Make An Informed Decision For My Interior Design Project."</p>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="client-info">
+          <img [src]="testimonials[1].image" alt="Client photo">
+          <h3 class="client-name">Home Decor Enthusiast</h3>
+        </div>
+        <div class="rating">
+          <span class="star" *ngFor="let star of [1,2,3,4]">★</span>
+          <span class="star empty">★</span>
+        </div>
+        <p class="testimonial-text">"The Website's Layout Is Intuitive, Making It Easy To Find The Latest Gadgets And Electronics. I Recently Purchased A Speaker From Techno, And I Was Impressed With The Quality And Service."</p>
+      </div>
+    </div>
+  </div>
+</section>

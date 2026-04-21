@@ -1,0 +1,67 @@
+<div class="auth-page">
+  <div class="auth-card">
+
+    <!-- LOGIN FORM -->
+    <div class="auth-form" *ngIf="currentView === 'login'">
+      <h2>Log into your account</h2>
+      <input type="text" placeholder="Username or Email" [(ngModel)]="loginIdentifier" required>
+
+      <div class="password-field">
+        <input type="password" placeholder="Password" [(ngModel)]="loginPassword" required>
+        <span class="forgot" (click)="switchView('forgot')" style="cursor: pointer;">Forgot?</span>
+      </div>
+
+      <label class="remember">
+        <input type="checkbox"> Remember me
+      </label>
+
+      <button class="main-btn" (click)="onLogin()">Log In</button>
+      <button class="social-btn">Log in with Facebook</button>
+
+      <p class="switch">
+        Don't have an account?
+        <span (click)="switchView('register')" style="cursor: pointer;">Sign Up</span>
+      </p>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div class="auth-form" *ngIf="currentView === 'register'">
+      <h2>Create your account</h2>
+      <input type="text" placeholder="Full Name" [(ngModel)]="regFullname" required>
+      <input type="email" placeholder="Email Address" [(ngModel)]="regEmail" required>
+      <input type="tel" placeholder="Phone Number" [(ngModel)]="regPhone" required>
+      <input type="text" placeholder="Address" [(ngModel)]="regAddress" required>
+      <input type="text" placeholder="Country" [(ngModel)]="regCountry" required>
+      <input type="password" placeholder="Password" [(ngModel)]="regPassword" required>
+      <input type="password" placeholder="Confirm Password" [(ngModel)]="regConfirmPassword" required>
+
+      <label class="remember">
+        <input type="checkbox">
+        By signing up you agree to the terms
+      </label>
+
+      <button class="main-btn" (click)="onRegister()">Sign Up</button>
+      <button class="social-btn">Sign up with Facebook</button>
+
+      <p class="switch">
+        Already have an account?
+        <span (click)="switchView('login')" style="cursor: pointer;">Log In</span>
+      </p>
+    </div>
+
+    <!-- FORGOT PASSWORD FORM -->
+    <div class="auth-form" *ngIf="currentView === 'forgot'">
+      <h2>Reset Password</h2>
+      <p style="margin-bottom: 20px; font-size: 14px; color: #666;">Enter your email to receive a password reset link.</p>
+      <input type="email" placeholder="Email Address" [(ngModel)]="forgotEmail" required>
+
+      <button class="main-btn" (click)="onForgotPassword()">Send Reset Link</button>
+
+      <p class="switch">
+        Remember your password?
+        <span (click)="switchView('login')" style="cursor: pointer;">Back to Log In</span>
+      </p>
+    </div>
+
+  </div>
+</div>
