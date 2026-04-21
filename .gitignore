@@ -1,0 +1,13 @@
+# Angular
+cadence/node_modules/
+cadence/dist/
+
+# Spring Boot
+backend/target/
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
