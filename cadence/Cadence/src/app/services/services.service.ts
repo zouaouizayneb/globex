@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
@@ -7,14 +7,13 @@ import { Observable, map } from 'rxjs';
 })
 export class ServicesService {
 
-  private prefix = 'http://localhost:8080';
+  private prefix = 'http://localhost:8080'; // Update this if your backend runs on a different port or URL
 
   constructor(private http: HttpClient) {}
 
   getImageUrl(relativePath: string): string {
     return `${this.prefix}${relativePath}`;
   }
-
 
   login(data: any): Observable<any> {
     return this.http.post(`${this.prefix}/api/auth/login`, data);
@@ -28,30 +27,21 @@ export class ServicesService {
     return this.http.post(`${this.prefix}/api/auth/forgot-password`, { email });
   }
 
-
-  private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token');
-    return new HttpHeaders({ Authorization: `Bearer ${token}` });
-  }
-
-
   getUsers(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/users`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/users`);
   }
 
   getClients(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/clients`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/clients`);
   }
 
-
   getAddresses(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/addresses`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/addresses`);
   }
 
   addAddress(data: any): Observable<any> {
-    return this.http.post(`${this.prefix}/api/addresses`, data, { headers: this.getAuthHeaders() });
+    return this.http.post(`${this.prefix}/api/addresses`, data);
   }
-
 
   getAllCategories(): Observable<any[]> {
     return this.http.get<any[]>(`${this.prefix}/api/categories`);
@@ -60,7 +50,6 @@ export class ServicesService {
   getCategoryById(id: number): Observable<any> {
     return this.http.get<any>(`${this.prefix}/api/categories/${id}`);
   }
-
 
   getAllProducts(): Observable<any[]> {
     return this.http.get<any[]>(`${this.prefix}/api/products`);
@@ -86,93 +75,96 @@ export class ServicesService {
     return this.http.get<any[]>(`${this.prefix}/api/products/search`, { params });
   }
 
+  search(keyword: string): Observable<any[]> {
+    return this.searchProducts(keyword);
+  }
+
   getFeaturedProducts(limit: number = 8): Observable<any[]> {
     const params = new HttpParams().set('limit', limit.toString());
     return this.http.get<any[]>(`${this.prefix}/api/products/featured`, { params });
   }
 
-
   addToCart(cartData: any): Observable<any> {
-    return this.http.post<any>(`${this.prefix}/api/cart/add`, cartData, { headers: this.getAuthHeaders() });
+    return this.http.post<any>(`${this.prefix}/api/cart/add`, cartData);
   }
 
   getCart(): Observable<any> {
-    return this.http.get<any>(`${this.prefix}/api/cart`, { headers: this.getAuthHeaders() });
+    return this.http.get<any>(`${this.prefix}/api/cart`);
   }
 
   removeFromCart(itemId: number): Observable<any> {
-    return this.http.delete<any>(`${this.prefix}/api/cart/${itemId}`, { headers: this.getAuthHeaders() });
+    return this.http.delete<any>(`${this.prefix}/api/cart/${itemId}`);
   }
 
-
   getWishlist(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/wishlist`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/wishlist`);
   }
 
   addToWishlist(data: any): Observable<any> {
-    return this.http.post(`${this.prefix}/api/wishlist`, data, { headers: this.getAuthHeaders() });
+    return this.http.post(`${this.prefix}/api/wishlist`, data);
   }
 
   removeFromWishlist(itemId: number): Observable<any> {
-    return this.http.delete(`${this.prefix}/api/wishlist/${itemId}`, { headers: this.getAuthHeaders() });
+    return this.http.delete(`${this.prefix}/api/wishlist/${itemId}`);
   }
 
-
   getOrders(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/orders`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/orders`);
   }
 
   createOrder(data: any): Observable<any> {
-    return this.http.post(`${this.prefix}/api/orders`, data, { headers: this.getAuthHeaders() });
+    return this.http.post(`${this.prefix}/api/orders`, data);
   }
 
-
   getPayments(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/payments`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/payments`);
   }
 
   createPayment(data: any): Observable<any> {
-    return this.http.post(`${this.prefix}/api/payments`, data, { headers: this.getAuthHeaders() });
+    return this.http.post(`${this.prefix}/api/payments`, data);
   }
 
   checkout(data: any): Observable<any> {
-    return this.http.post(`${this.prefix}/api/checkout`, data, { headers: this.getAuthHeaders() });
+    return this.http.post(`${this.prefix}/api/checkout`, data);
   }
 
-
   getInvoices(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/invoices`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/invoices`);
   }
 
   getShipments(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/shipments`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/shipments`);
   }
 
   getStocks(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/stocks`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/stocks`);
   }
 
   getInventory(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/inventory`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/inventory`);
   }
 
   getSuppliers(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/suppliers`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/suppliers`);
   }
 
   getPurchaseOrders(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/purchase-orders`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/purchase-orders`);
   }
 
   getAnalytics(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/analytics`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/analytics`);
   }
 
   getNotifications(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/notifications`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/notifications`);
   }
 
   getChatbotMessages(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/chatbot-messages`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.prefix}/api/chatbot-messages`);
+  }
+
+  initiatePayment(payload: any): Observable<any> {
+    return this.http.post(`${this.prefix}/api/payment/initiate`, payload);
   }
 }

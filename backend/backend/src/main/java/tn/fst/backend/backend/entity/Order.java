@@ -31,7 +31,23 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
+    @Column(precision = 10, scale = 2)
     private BigDecimal totalAmount;
+
+    @Column(name = "shipping_cost", precision = 10, scale = 2)
+    private BigDecimal shippingCost;
+
+    @Column(name = "tax_amount", precision = 10, scale = 2)
+    private BigDecimal taxAmount;
+
+    @Column(name = "shipping_address", columnDefinition = "TEXT")
+    private String shippingAddress;
+
+    @Column(name = "shipping_method", length = 50)
+    private String shippingMethod;
+
+    @Column(name = "payment_method_label", length = 50)
+    private String paymentMethodLabel;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails;
@@ -43,3 +59,4 @@ public class Order {
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Shipment shipment;
 }
+

@@ -9,6 +9,7 @@ import { StockManagementComponent } from './pages/stock-management/stock-managem
 import { ShipmentsComponent } from './pages/shipments/shipments.component';
 import { TransporteursComponent } from './pages/transporteurs/transporteurs.component';
 import { SuppliersComponent } from './pages/suppliers/suppliers.component';
+import { InvoicesComponent } from './pages/invoices/invoices.component';
 
 export const adminRoutes: Routes = [
   {
@@ -19,6 +20,7 @@ export const adminRoutes: Routes = [
       { path: 'dashboard', component: AdminDashboardComponent },
       { path: 'products', component: ProductsComponent },
       { path: 'orders', component: OrdersComponent },
+      { path: 'invoices', component: InvoicesComponent },
       { path: 'shipments', component: ShipmentsComponent },
       { path: 'clients', component: ClientsComponent },
       { path: 'categories', component: CategoriesComponent },

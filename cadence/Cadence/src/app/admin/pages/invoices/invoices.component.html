@@ -1,0 +1,226 @@
+<div class="invoices-container">
+  <div class="page-header">
+    <div>
+      <h1>Invoices</h1>
+      <p>Manage and download invoices for all orders</p>
+    </div>
+    <div class="btn-globex-container">
+      <button class="btn-globex" (click)="exportInvoices()">
+        Export CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="card filters-card">
+    <div class="filter-group">
+      <input type="text" placeholder="Search by invoice #, customer, or order ID..." [(ngModel)]="searchTerm" class="search-input" />
+    </div>
+    <div class="filter-group">
+      <select [(ngModel)]="filterStatus" class="filter-select">
+        <option value="">All Status</option>
+        <option *ngFor="let status of statuses" [value]="status">{{ status | titlecase }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading invoices...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="error && !isLoading" class="error-banner">
+    ⚠️ {{ error }}
+    <button (click)="loadInvoices()" class="retry-btn">Retry</button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card table-card" *ngIf="!isLoading">
+    <div class="table-header">
+      <h3>{{ filteredInvoices.length }} Invoices</h3>
+    </div>
+    <div class="table-wrapper">
+      <table class="invoices-table">
+        <thead>
+          <tr>
+            <th>Invoice #</th>
+            <th>Customer</th>
+            <th>Order ID</th>
+            <th>Issue Date</th>
+            <th>Due Date</th>
+            <th>Total</th>
+            <th>Currency</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let invoice of filteredInvoices" class="table-row">
+            <td><span class="invoice-number">{{ invoice.invoice_number }}</span></td>
+            <td>
+              <div class="customer-info">
+                <span class="avatar">{{ invoice.customer_name?.[0]?.toUpperCase() || '?' }}</span>
+                <span class="customer-name">{{ invoice.customer_name || 'Unknown' }}</span>
+              </div>
+            </td>
+            <td><span class="order-id">{{ invoice.order_id_display || '#' + invoice.order_id }}</span></td>
+            <td>{{ invoice.issue_date }}</td>
+            <td>{{ invoice.due_date || '—' }}</td>
+            <td><span class="total">{{ invoice.currency }} {{ invoice.total_amount | number:'1.2-2' }}</span></td>
+            <td><span class="currency">{{ invoice.currency }}</span></td>
+            <td>
+              <span class="status-badge"
+                    [style.background]="getStatusColor(invoice.status) + '20'"
+                    [style.color]="getStatusColor(invoice.status)">
+                {{ getStatusIcon(invoice.status) }} {{ invoice.status | titlecase }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="action-btn view" (click)="viewInvoice(invoice.id_invoice)" title="View Details">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+                <button class="action-btn download" 
+                        (click)="invoice.pdf_generated ? downloadExistingPDF(invoice) : generateInvoicePDF(invoice)" 
+                        [disabled]="generatingInvoice[invoice.id_invoice]"
+                        [title]="invoice.pdf_generated ? 'Download Existing PDF' : 'Generate PDF Invoice'">
+                  <svg *ngIf="!generatingInvoice[invoice.id_invoice]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span *ngIf="generatingInvoice[invoice.id_invoice]" class="spinner-mini"></span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="filteredInvoices.length === 0" class="empty-state">
+        <p>No invoices found</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div class="preview-overlay" *ngIf="isPreviewOpen" (click)="closePreview()">
+  <div class="preview-container" (click)="$event.stopPropagation()">
+    <button class="close-preview" (click)="closePreview()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    
+    <div class="invoice-tilt-wrapper">
+      <div class="invoice-paper">
+        <div class="invoice-sidebar">
+          <div class="invoice-logo">I</div>
+          <div class="invoice-sidebar-content">
+            <div class="sidebar-item">
+              <label>INVOICE NO.</label>
+              <span>{{ selectedInvoice?.invoice_number }}</span>
+            </div>
+            <div class="sidebar-item">
+              <label>ISSUE DATE</label>
+              <span>{{ selectedInvoice?.issue_date }}</span>
+            </div>
+            <div class="sidebar-item">
+              <label>DUE DATE</label>
+              <span>{{ selectedInvoice?.due_date || 'N/A' }}</span>
+            </div>
+            <div class="sidebar-item">
+              <label>STATUS</label>
+              <span class="status-dot" [style.background]="getStatusColor(selectedInvoice?.status || '')"></span>
+              <span>{{ selectedInvoice?.status | titlecase }}</span>
+            </div>
+          </div>
+          <div class="invoice-qr">
+            <div class="qr-mock"></div>
+          </div>
+        </div>
+        
+        <div class="invoice-main">
+          <div class="invoice-header">
+            <div class="brand">
+              <h2>Cadence</h2>
+              <p>ERP Invoice Management</p>
+            </div>
+            <div class="client-details">
+              <label>BILL TO</label>
+              <h3>{{ selectedInvoice?.customer_name || 'Unknown Customer' }}</h3>
+              <p style="white-space: pre-wrap;">{{ selectedInvoice?.billing_address || 'N/A' }}</p>
+            </div>
+          </div>
+
+          <div class="invoice-info-grid">
+            <div class="info-item">
+              <label>Order Reference</label>
+              <span>{{ selectedInvoice?.order_id_display || '#' + selectedInvoice?.order_id }}</span>
+            </div>
+            <div class="info-item">
+              <label>Currency</label>
+              <span>{{ selectedInvoice?.currency }}</span>
+            </div>
+            <div class="info-item">
+              <label>Payment Method</label>
+              <span>{{ selectedInvoice?.payment_method || 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+              <label>Paid Date</label>
+              <span>{{ selectedInvoice?.paid_date || 'Not paid yet' }}</span>
+            </div>
+          </div>
+
+          <div class="invoice-items">
+            <table>
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th class="text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Subtotal</td>
+                  <td class="text-right">{{ selectedInvoice?.currency }} {{ (selectedInvoice?.subtotal || 0) | number:'1.2-2' }}</td>
+                </tr>
+                <tr *ngIf="selectedInvoice && selectedInvoice.shipping_cost && selectedInvoice.shipping_cost > 0">
+                  <td>Shipping Cost</td>
+                  <td class="text-right">{{ selectedInvoice?.currency }} {{ selectedInvoice?.shipping_cost | number:'1.2-2' }}</td>
+                </tr>
+                <tr *ngIf="selectedInvoice && selectedInvoice.discount_amount && selectedInvoice.discount_amount > 0">
+                  <td>Discount</td>
+                  <td class="text-right" style="color: #ef4444;">-{{ selectedInvoice?.currency }} {{ selectedInvoice?.discount_amount | number:'1.2-2' }}</td>
+                </tr>
+                <tr *ngIf="selectedInvoice && selectedInvoice.tax_amount && selectedInvoice.tax_amount > 0">
+                  <td>Tax ({{ selectedInvoice?.tax_rate }}%)</td>
+                  <td class="text-right">{{ selectedInvoice?.currency }} {{ selectedInvoice?.tax_amount | number:'1.2-2' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="invoice-footer">
+            <div class="notes" *ngIf="selectedInvoice?.notes">
+              <label>Notes</label>
+              <p style="white-space: pre-wrap;">{{ selectedInvoice?.notes }}</p>
+            </div>
+            <div class="totals">
+              <div class="total-row grand-total">
+                <span>Total Amount</span>
+                <span>{{ selectedInvoice?.currency }} {{ selectedInvoice?.total_amount | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

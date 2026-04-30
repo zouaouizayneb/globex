@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ShopService } from '../../pages/shared/shop.services';
+import { CurrencyService } from '../../services/currency.service';
 
 @Component({
   selector: 'app-list-article',
@@ -35,11 +36,15 @@ export class ListArticleComponent implements OnInit {
   quantity: number = 1;
   loading: boolean = true;
 
+  currentCurrencyRate: number = 1;
+  currentCurrencySymbol: string = '$';
+
   constructor(
     public services: ServicesService,
     public route: ActivatedRoute,
     private router: Router,
-    private shopService: ShopService
+    private shopService: ShopService,
+    private currencyService: CurrencyService
   ) {}
 
   ngOnInit(): void {
@@ -48,6 +53,14 @@ export class ListArticleComponent implements OnInit {
       console.log('✅ ListArticleComponent category:', this.category);
       this.setCategoryLabel();
       this.getArticlesByCategory();
+    });
+
+    // Subscribe to currency changes
+    this.currencyService.getSelectedCurrencyRate().subscribe(rate => {
+      this.currentCurrencyRate = rate;
+    });
+    this.currencyService.getSelectedCurrencySymbol().subscribe(symbol => {
+      this.currentCurrencySymbol = symbol;
     });
   }
 
@@ -320,6 +333,15 @@ export class ListArticleComponent implements OnInit {
 
   getStars(rating: number): string {
     return '★'.repeat(Math.floor(rating)) + '☆'.repeat(5 - Math.floor(rating));
+  }
+
+  convertPrice(price: number): number {
+    return Math.round(price * this.currentCurrencyRate * 100) / 100;
+  }
+
+  formatPrice(price: number): string {
+    const convertedPrice = this.convertPrice(price);
+    return `${this.currentCurrencySymbol}${convertedPrice.toFixed(2)}`;
   }
 }
 

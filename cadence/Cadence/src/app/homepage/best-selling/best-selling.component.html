@@ -1,0 +1,107 @@
+<section class="bestsellers" id="bestsellers">
+
+  <div class="bestsellers__header">
+    <span class="bestsellers__eyebrow">Our Sale</span>
+    <h2 class="bestsellers__title">Sparkling Savings<br /><em>Shop Now!</em></h2>
+    <div class="bestsellers__divider"></div>
+    <p class="bestsellers__subtitle">Hand-picked favourites flying off the shelves.</p>
+  </div>
+
+  <div class="bestsellers__filters" role="tablist">
+    <button 
+      class="filter-tab" 
+      [class.filter-tab--active]="activeFilter === 'all'" 
+      (click)="setFilter('all')" 
+      role="tab">All</button>
+    <button 
+      class="filter-tab" 
+      [class.filter-tab--active]="activeFilter === 'trend'" 
+      (click)="setFilter('trend')" 
+      role="tab">Trending</button>
+    <button 
+      class="filter-tab" 
+      [class.filter-tab--active]="activeFilter === 'hot'" 
+      (click)="setFilter('hot')" 
+      role="tab">Hot Deals</button>
+    <button 
+      class="filter-tab" 
+      [class.filter-tab--active]="activeFilter === 'sale'" 
+      (click)="setFilter('sale')" 
+      role="tab">On Sale</button>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading">
+    <p>Loading best selling products...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="error && !loading">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Product Grid -->
+  <div class="bestsellers__grid" #productGrid *ngIf="!loading && !error">
+
+    <article 
+      *ngFor="let product of products; let i = index"
+      class="product-card" 
+      [class.product-card--hero]="product.isHero"
+      [class.is-hidden]="!isProductVisible(product)"
+      [attr.data-category]="product.badge">
+      
+      <div class="product-card__badge" [ngClass]="'product-card__badge--' + product.badge">
+        {{ product.badge | titlecase }}
+      </div>
+      
+      <div class="product-card__media">
+        <img
+          [src]="product.image"
+          [alt]="product.name"
+          class="product-card__img standard-product-image"
+          loading="lazy"
+          (error)="onImageError($event)"
+        />
+        <div class="product-card__overlay" *ngIf="product.isHero"></div>
+      </div>
+      
+      <div class="product-card__body" [class.product-card__body--overlay]="product.isHero">
+        <p class="product-card__category">{{ product.category }}</p>
+        <h3 class="product-card__name">{{ product.name }}</h3>
+        <div class="product-card__pricing">
+          <span class="product-card__price">{{ formatPrice(product.price) }}</span>
+          <span class="product-card__old-price" *ngIf="product.oldPrice">{{ formatOldPrice(product.oldPrice) }}</span>
+        </div>
+        <p class="product-card__desc" *ngIf="product.isHero">Experience the allure of darkness with our exquisite candle collection.</p>
+        <div class="product-card__stars" *ngIf="!product.isHero">
+          {{ getStars(product.rating) }}
+          <span class="product-card__reviews">({{ product.reviews }})</span>
+        </div>
+        <button class="product-card__cta" (click)="addToCart(product)">Add to Cart</button>
+      </div>
+      
+      <div class="product-card__sold-bar">
+        <span class="product-card__sold-label">{{ product.soldCount }} sold this week</span>
+        <div class="product-card__sold-track">
+          <div class="product-card__sold-fill" [style.--fill]="product.soldPercentage + '%'"></div>
+        </div>
+      </div>
+    </article>
+
+  </div><!-- /grid -->
+
+  <!-- View All CTA -->
+  <div class="bestsellers__footer" *ngIf="!loading && !error">
+    <button class="view-all-btn" (click)="viewAllProducts()">
+      <span>View All Products</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
+  </div>
+
+</section>
+
+<!-- Toast notification -->
+<div class="cart-toast" [class.is-visible]="toastVisible" role="status" aria-live="polite">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+  <span>{{ toastMessage }}</span>
+</div>

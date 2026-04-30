@@ -164,7 +164,7 @@
     text-align: center;
     min-width: 52px;
     padding: 5px 10px;
-    background-color: #689284;;
+    background-color: #689284;
     color: black;
     text-transform: capitalize;
 }
@@ -289,7 +289,7 @@
 }
 
 .quickview-btn:hover{
-    background-color: #689284;
+    background-color: #f74032;
 }
 
 input[type="checkbox"] {
@@ -406,6 +406,9 @@ summary {
     color: #111111;
     font-size: 16px;
     position: relative;
+    z-index: 1;
+    outline: none;
+    border: 1px solid #689284;
   }
   
   /* FLECHE CUSTOM */
@@ -547,7 +550,7 @@ summary {
     border: 1px solid #ccc;
   }
   .color-label.selected {
-    border: 2px solid #e90f07 !important;
+    border: 2px solid #689284;
   }
   
   

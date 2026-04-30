@@ -8,6 +8,8 @@ export interface AdminProduct {
   description?: string;
   sku: string;
   price: number;
+  color?: string;
+  size?: string;
   stock: number;
   category: string;
   categoryId?: number;
@@ -51,12 +53,14 @@ export interface AdminSupplier {
 }
 
 export interface AdminOrder {
+  orderId: number;
   id: string;
   customer: string;
   date: string;
   total: number;
   status: 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED';
   items: number;
+  transporterName?: string;
 }
 
 export interface AdminCategory {
@@ -115,6 +119,37 @@ export interface Shipment {
   shippingCost?: number;
   estimatedDeliveryDate?: string;
   deliveredAt?: string;
+}
+
+export interface AdminInvoice {
+  id_invoice: number;
+  billing_address: string;
+  created_at: string;
+  currency: string;
+  discount_amount: number;
+  due_date: string;
+  internal_notes: string;
+  invoice_number: string;
+  issue_date: string;
+  notes: string;
+  paid_date: string;
+  payment_method: string;
+  payment_reference: string;
+  pdf_generated: boolean;
+  pdf_path: string;
+  shipping_address: string;
+  shipping_cost: number;
+  status: 'DRAFT' | 'SENT' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+  subtotal: number;
+  tax_amount: number;
+  tax_rate: number;
+  tax_type: string;
+  total_amount: number;
+  updated_at: string;
+  order_id: number;
+  user_id: number;
+  customer_name?: string;
+  order_id_display?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -231,6 +266,8 @@ export class AdminService {
       description: p.description ?? '',
       sku: p.variants?.[0]?.sku ?? `PROD-${p.idProduct ?? p.id}`,
       price: parseFloat(p.price) || p.variants?.[0]?.totalPrice || 0,
+      color: p.color ?? '',
+      size: p.size ?? '',
       stock: totalStock,
       category: p.category?.name ?? 'Uncategorized',
       categoryId: p.category?.idCategory ?? p.category?.id,
@@ -370,17 +407,24 @@ export class AdminService {
   }
 
   private mapOrder(o: any): AdminOrder {
+    const orderId = o.id_order ?? o.idOrder ?? o.id;
     const customer = o.user?.fullname ?? o.user?.username ?? o.client?.name ?? `Client #${o.client_id ?? o.user_id}`;
     const mapped = {
-      id: `#ORD-${String(o.id_order ?? o.idOrder ?? o.id).padStart(3, '0')}`,
+      orderId,
+      id: `#ORD-${String(orderId).padStart(3, '0')}`,
       customer,
       date: o.date_order ?? o.dateOrder ?? o.date ?? '',
       total: parseFloat(o.total_amount ?? o.totalAmount ?? 0),
       status: o.status ?? 'PENDING',
       items: o.orderDetails?.length ?? o.items ?? 0,
+      transporterName: o.shipment?.carrier ?? '',
     };
     console.log('Mapped order:', mapped);
     return mapped;
+  }
+
+  updateOrderStatus(orderId: number, status: AdminOrder['status']): Observable<any> {
+    return this.http.put(`${this.base}/orders/${orderId}`, { status });
   }
 
   // ── CATEGORIES ─────────────────────────────────────────────
@@ -533,8 +577,22 @@ export class AdminService {
     );
   }
 
+  createShipment(shipment: Shipment): Observable<Shipment> {
+    return this.http.post<Shipment>(`${this.base}/shipments`, shipment).pipe(
+      map(s => this.mapShipment(s)),
+      catchError((error) => {
+        console.error('Error creating shipment:', error);
+        throw error;
+      })
+    );
+  }
+
   updateShipment(id: number, shipment: Shipment): Observable<any> {
     return this.http.put(`${this.base}/shipments/${id}`, shipment);
+  }
+
+  deleteShipment(id: number): Observable<any> {
+    return this.http.delete(`${this.base}/shipments/${id}`);
   }
 
   private mapShipment(s: any): Shipment {
@@ -550,6 +608,75 @@ export class AdminService {
       shippingCost: s.shippingCost ?? s.shipping_cost ?? 0,
       estimatedDeliveryDate: s.estimatedDeliveryDate ?? s.estimated_delivery_date,
       deliveredAt: s.deliveredAt ?? s.delivered_at,
+    };
+  }
+
+  // ── INVOICES ───────────────────────────────────────────────
+  getInvoices(): Observable<AdminInvoice[]> {
+    return forkJoin({
+      invoices: this.http.get<any[]>(`${this.base}/invoices`).pipe(catchError(() => of([]))),
+      orders: this.http.get<any[]>(`${this.base}/orders/all`).pipe(catchError(() => of([]))),
+      users: this.http.get<any[]>(`${this.base}/users`).pipe(catchError(() => of([])))
+    }).pipe(
+      map(({ invoices, orders, users }) => {
+        return invoices.map(inv => this.mapInvoice(inv, orders, users));
+      }),
+      catchError(() => of([]))
+    );
+  }
+
+  getInvoiceById(id: number): Observable<AdminInvoice> {
+    return this.http.get<any>(`${this.base}/invoices/${id}`).pipe(
+      map(inv => this.mapInvoice(inv, [], [])),
+      catchError(() => of({} as AdminInvoice))
+    );
+  }
+
+  createInvoice(invoice: any): Observable<any> {
+    return this.http.post(`${this.base}/invoices`, invoice);
+  }
+
+  updateInvoice(id: number, invoice: any): Observable<any> {
+    return this.http.put(`${this.base}/invoices/${id}`, invoice);
+  }
+
+  deleteInvoice(id: number): Observable<any> {
+    return this.http.delete(`${this.base}/invoices/${id}`);
+  }
+
+  private mapInvoice(inv: any, orders: any[], users: any[]): AdminInvoice {
+    const order = orders.find(o => (o.id_order ?? o.id) === inv.order_id);
+    const user = users.find(u => (u.idUser ?? u.id) === inv.user_id);
+
+    return {
+      id_invoice: inv.id_invoice ?? inv.id ?? 0,
+      billing_address: inv.billing_address ?? '',
+      created_at: inv.created_at ?? inv.createdAt ?? '',
+      currency: inv.currency ?? 'USD',
+      discount_amount: parseFloat(inv.discount_amount ?? inv.discountAmount ?? 0),
+      due_date: inv.due_date ?? inv.dueDate ?? '',
+      internal_notes: inv.internal_notes ?? inv.internalNotes ?? '',
+      invoice_number: inv.invoice_number ?? inv.invoiceNumber ?? `INV-${inv.id_invoice ?? inv.id}`,
+      issue_date: inv.issue_date ?? inv.issueDate ?? '',
+      notes: inv.notes ?? '',
+      paid_date: inv.paid_date ?? inv.paidDate ?? '',
+      payment_method: inv.payment_method ?? inv.paymentMethod ?? '',
+      payment_reference: inv.payment_reference ?? inv.paymentReference ?? '',
+      pdf_generated: inv.pdf_generated ?? inv.pdfGenerated ?? false,
+      pdf_path: inv.pdf_path ?? inv.pdfPath ?? '',
+      shipping_address: inv.shipping_address ?? inv.shippingAddress ?? '',
+      shipping_cost: parseFloat(inv.shipping_cost ?? inv.shippingCost ?? 0),
+      status: inv.status ?? 'DRAFT',
+      subtotal: parseFloat(inv.subtotal ?? 0),
+      tax_amount: parseFloat(inv.tax_amount ?? inv.taxAmount ?? 0),
+      tax_rate: parseFloat(inv.tax_rate ?? inv.taxRate ?? 0),
+      tax_type: inv.tax_type ?? inv.taxType ?? '',
+      total_amount: parseFloat(inv.total_amount ?? inv.totalAmount ?? 0),
+      updated_at: inv.updated_at ?? inv.updatedAt ?? '',
+      order_id: inv.order_id ?? inv.orderId ?? 0,
+      user_id: inv.user_id ?? inv.userId ?? 0,
+      customer_name: user?.fullname ?? user?.username ?? order?.user?.fullname ?? order?.user?.username ?? 'Unknown',
+      order_id_display: order ? `#ORD-${String(order.id_order ?? order.id).padStart(3, '0')}` : `#${inv.order_id}`
     };
   }
 }

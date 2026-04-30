@@ -38,6 +38,13 @@ public interface OrderRepository extends JpaRepository<Order, Long>,
             OrderStatus status
     );
 
+    @EntityGraph(attributePaths = {"orderDetails", "orderDetails.variant", "orderDetails.variant.product"})
+    List<Order> findByDateOrderBetweenAndStatusIn(
+            LocalDate startDate,
+            LocalDate endDate,
+            List<OrderStatus> statuses
+    );
+
     @Query("SELECT o FROM Order o LEFT JOIN FETCH o.orderDetails od LEFT JOIN FETCH od.variant v LEFT JOIN FETCH v.product p WHERE o.dateOrder BETWEEN :start AND :end")
     List<Order> findAllWithDetailsBetween(
             @Param("start") LocalDate start,

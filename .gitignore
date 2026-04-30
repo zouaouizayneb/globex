@@ -11,3 +11,11 @@ backend/target/
 # IDE
 .vscode/
 .idea/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Env file (VERY IMPORTANT)
+.env

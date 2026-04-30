@@ -25,6 +25,15 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "color")
+    private String color;
+
+    @Column(name = "size")
+    private String size;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @Column(precision = 10, scale = 2)
     private BigDecimal price;
 
@@ -84,6 +93,30 @@ public class Product {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public BigDecimal getPrice() {

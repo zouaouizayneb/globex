@@ -54,7 +54,7 @@ video {
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-direction: column; /* so text stacks vertically */
+    flex-direction: column; 
     text-align: center;
     z-index: 1;
     color: white;
@@ -81,7 +81,7 @@ h2 {
 .subtitle {
     font-size: 22px;
     margin-bottom: 15px;
-    color:#689284;
+    color:#d6c3a3;
     text-transform: capitalize;
     font-family: Delicious Handrawn, cursive;;
 }
@@ -105,7 +105,7 @@ h2 {
     cursor: pointer;
     overflow: hidden;
     background: #689284;
-    border: 2px solid #689284;
+    border: 2px solid#689284;
     z-index: 1;
     border-radius: 0;
     font-family: Gothic A1, sans-serif;

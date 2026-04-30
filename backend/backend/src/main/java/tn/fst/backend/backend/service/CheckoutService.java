@@ -33,6 +33,7 @@ public class CheckoutService {
     private final ShipmentRepository shipmentRepository;
     private final UserRepository userRepository;
     private final StockRepository stockRepository;
+    private final InvoiceService invoiceService;
 
     /**
      * Get checkout summary (before placing order)
@@ -191,6 +192,13 @@ public class CheckoutService {
         if (payment.isSuccessful()) {
             order.setStatus(OrderStatus.CONFIRMED);
             orderRepository.save(order);
+        }
+
+        // Automation: sale -> create invoice
+        try {
+            invoiceService.issueDate(order.getIdOrder());
+        } catch (Exception ignored) {
+            // Do not block checkout flow if invoice PDF generation fails.
         }
 
         // 9. Clear cart

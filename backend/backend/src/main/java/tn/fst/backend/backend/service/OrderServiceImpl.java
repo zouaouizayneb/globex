@@ -31,6 +31,8 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final StockRepository stockRepository;
     private final ClientRepository clientRepository;
+    private final TransporteurRepository transporteurRepository;
+    private final InvoiceService invoiceService;
 
     @Override
     @Transactional(readOnly = true)
@@ -275,7 +277,7 @@ public class OrderServiceImpl implements OrderService {
         if (userId != null) {
             user = userRepository.findById(userId).orElse(null);
         }
-        
+
         // If not found by ID (or userId was null), try by email from request
         if (user == null && request.getEmail() != null) {
             user = userRepository.findByEmail(request.getEmail()).orElse(null);
@@ -284,14 +286,14 @@ public class OrderServiceImpl implements OrderService {
         Client client = null;
         if (user != null) {
             client = clientRepository.findByUser(user).orElse(null);
-            
+
             // Link address/country to client if missing
             if (client != null) {
                 if (client.getAddress() == null) client.setAddress(request.getShippingAddress());
                 if (client.getCountry() == null) client.setCountry(request.getCountry());
                 clientRepository.save(client);
             } else {
-                // Create client for existing user
+                // Create a client record for this user
                 client = new Client();
                 client.setUser(user);
                 client.setName(user.getFullname());
@@ -301,53 +303,64 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
+        // Build the Order — now including shipping/tax breakdown and address
         Order order = Order.builder()
                 .user(user)
                 .client(client)
                 .dateOrder(LocalDate.now())
                 .status(OrderStatus.PENDING)
                 .totalAmount(request.getTotal() != null ? request.getTotal() : BigDecimal.ZERO)
+                .shippingCost(request.getShippingCost() != null ? request.getShippingCost() : BigDecimal.ZERO)
+                .taxAmount(request.getTaxes() != null ? request.getTaxes() : BigDecimal.ZERO)
+                .shippingAddress(request.getShippingAddress())
+                .shippingMethod(request.getShippingMethod())
+                .paymentMethodLabel(request.getPaymentMethod())
                 .build();
 
         order = orderRepository.save(order);
 
+        // Create order details — throw if a product can't be resolved (never silently drop)
         if (request.getItems() != null) {
             for (tn.fst.backend.backend.dto.FrontendOrderItem item : request.getItems()) {
+                // First try to find by variant ID, then fall back to product ID
                 ProductVariant variant = variantRepository.findById(item.getProductId()).orElse(null);
-                if (variant == null) {
-                    Product product = productRepository.findById(item.getProductId()).orElse(null);
-                    if (product != null && !product.getVariants().isEmpty()) {
+                Product product = null;
+
+                if (variant != null) {
+                    product = variant.getProduct();
+                } else {
+                    // productId is a Product ID — find the product and pick its first variant
+                    product = productRepository.findById(item.getProductId())
+                            .orElseThrow(() -> new ResourceNotFoundException("Product", item.getProductId()));
+                    if (!product.getVariants().isEmpty()) {
                         variant = product.getVariants().get(0);
                     }
                 }
 
                 OrderDetail detail = OrderDetail.builder()
                         .order(order)
-                        .product(variant != null ? variant.getProduct() : null)
+                        .product(product)
                         .variant(variant)
                         .quantity(item.getQuantity())
                         .price(item.getUnitPrice())
                         .build();
-                
-                if (detail.getProduct() != null) {
-                    orderDetailRepository.save(detail);
-                }
 
+                orderDetailRepository.save(detail);
+
+                // Deduct stock if variant is present
                 if (variant != null && variant.getStockQuantity() != null) {
                     variant.setStockQuantity(Math.max(0, variant.getStockQuantity() - item.getQuantity()));
                     variantRepository.save(variant);
 
-                    final Long varId = variant.getIdVariant();
-                    stockRepository.findByVariant(variant)
-                            .ifPresent(stock -> {
-                                stock.setQuantity(Math.max(0, stock.getQuantity() - item.getQuantity()));
-                                stockRepository.save(stock);
-                            });
+                    stockRepository.findByVariant(variant).ifPresent(stock -> {
+                        stock.setQuantity(Math.max(0, stock.getQuantity() - item.getQuantity()));
+                        stockRepository.save(stock);
+                    });
                 }
             }
         }
 
-        // Create Payment record
+        // Create a Payment record linked to the order
         Payment payment = Payment.builder()
                 .order(order)
                 .amount(order.getTotalAmount())
@@ -355,19 +368,57 @@ public class OrderServiceImpl implements OrderService {
                 .datePayment(LocalDate.now())
                 .modePayment(request.getPaymentMethod())
                 .build();
-        
-        // Try to map PaymentMethod enum if possible
-        try {
-            if (request.getPaymentMethod() != null) {
+
+        // Map the payment method string to the enum (now includes D17, FLOUCI)
+        if (request.getPaymentMethod() != null) {
+            try {
                 payment.setPaymentMethod(PaymentMethod.valueOf(request.getPaymentMethod().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                // Log unrecognised method — store it only as modePayment string
+                // This prevents the whole checkout from crashing on unknown methods
+                payment.setModePayment(request.getPaymentMethod());
             }
-        } catch (Exception e) {
-            // Ignored if direct mapping fails
         }
-        
+
         paymentRepository.save(payment);
 
+        // Automation: sale -> create invoice
+        try {
+            invoiceService.issueDate(order.getIdOrder());
+        } catch (Exception ignored) {
+            // Keep checkout/sale flow successful even if invoice generation fails.
+        }
+
         return order;
+    }
+
+    @Override
+    public Order adminUpdateOrder(Long orderId, OrderStatus status, Transporteur transporteur) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
+
+        if (status != null) {
+            order.setStatus(status);
+        }
+
+        Shipment shipment = shipmentRepository.findByOrder(order).orElse(null);
+        if (transporteur != null) {
+            if (shipment == null) {
+                shipment = Shipment.builder()
+                        .order(order)
+                        .status(order.getStatus())
+                        .dateShip(LocalDate.now())
+                        .build();
+            }
+            shipment.setCarrier(transporteur.getName());
+        }
+
+        if (shipment != null && order.getStatus() != null) {
+            shipment.setStatus(order.getStatus());
+            shipmentRepository.save(shipment);
+        }
+
+        return orderRepository.save(order);
     }
 
     // ==================== HELPER METHODS ====================
@@ -436,6 +487,16 @@ public class OrderServiceImpl implements OrderService {
         Shipment shipment = shipmentRepository.findByOrder(order).orElse(null);
         Payment payment = paymentRepository.findByOrder(order).orElse(null);
 
+        // Resolve payment method label safely — avoid NPE when enum value is null
+        String paymentMethodLabel = "UNKNOWN";
+        if (payment != null) {
+            if (payment.getPaymentMethod() != null) {
+                paymentMethodLabel = payment.getPaymentMethod().name();
+            } else if (payment.getModePayment() != null) {
+                paymentMethodLabel = payment.getModePayment();
+            }
+        }
+
         return OrderHistoryResponse.builder()
                 .orderId(order.getIdOrder())
                 .orderNumber(generateOrderNumber(order.getIdOrder()))
@@ -443,7 +504,7 @@ public class OrderServiceImpl implements OrderService {
                 .status(order.getStatus().name())
                 .totalAmount(order.getTotalAmount())
                 .itemCount(orderDetailRepository.findByOrder(order).size())
-                .paymentMethod(payment != null ? payment.getPaymentMethod().name() : "UNKNOWN")
+                .paymentMethod(paymentMethodLabel)
                 .shippingStatus(shipment != null ? shipment.getStatus().name() : "PENDING")
                 .canCancel(canCancelOrder(order))
                 .canReturn(canReturnOrder(order))
@@ -458,18 +519,58 @@ public class OrderServiceImpl implements OrderService {
         Shipment shipment = shipmentRepository.findByOrder(order).orElse(null);
         Payment payment = paymentRepository.findByOrder(order).orElse(null);
 
-        // Mapper les items
+        // Map order items — guard against missing variant or product (guest-checkout items)
         List<OrderItemDetails> items = details.stream()
-                .map(detail -> OrderItemDetails.builder()
-                        .productName(detail.getVariant().getProduct().getName())
-                        .variantDetails(detail.getVariant().getColor() + " - " + detail.getVariant().getSize())
-                        .quantity(detail.getQuantity())
-                        .unitPrice(detail.getPrice())
-                        .subtotal(detail.getPrice().multiply(BigDecimal.valueOf(detail.getQuantity())))
-                        .imageUrl(detail.getVariant().getProduct().getImages().isEmpty() ? null
-                                : detail.getVariant().getProduct().getImages().get(0).getImageUrl())
-                        .build())
+                .map(detail -> {
+                    String productName = "Unknown Product";
+                    String variantDetails = "";
+                    String imageUrl = null;
+
+                    if (detail.getVariant() != null && detail.getVariant().getProduct() != null) {
+                        Product p = detail.getVariant().getProduct();
+                        productName = p.getName();
+                        variantDetails = detail.getVariant().getColor() + " - " + detail.getVariant().getSize();
+                        imageUrl = (p.getImages() != null && !p.getImages().isEmpty())
+                                ? p.getImages().get(0).getImageUrl() : null;
+                    } else if (detail.getProduct() != null) {
+                        productName = detail.getProduct().getName();
+                        imageUrl = (detail.getProduct().getImages() != null && !detail.getProduct().getImages().isEmpty())
+                                ? detail.getProduct().getImages().get(0).getImageUrl() : null;
+                    }
+
+                    return OrderItemDetails.builder()
+                            .productName(productName)
+                            .variantDetails(variantDetails)
+                            .quantity(detail.getQuantity())
+                            .unitPrice(detail.getPrice())
+                            .subtotal(detail.getPrice().multiply(BigDecimal.valueOf(detail.getQuantity())))
+                            .imageUrl(imageUrl)
+                            .build();
+                })
                 .collect(Collectors.toList());
+
+        // Resolve payment method label safely
+        String paymentMethodLabel = "UNKNOWN";
+        if (payment != null) {
+            if (payment.getPaymentMethod() != null) {
+                paymentMethodLabel = payment.getPaymentMethod().name();
+            } else if (payment.getModePayment() != null) {
+                paymentMethodLabel = payment.getModePayment();
+            }
+        }
+
+        // Use the stored shippingCost / taxAmount from the Order itself when no Shipment exists yet
+        BigDecimal shippingCost = shipment != null ? shipment.getShippingCost()
+                : (order.getShippingCost() != null ? order.getShippingCost() : BigDecimal.ZERO);
+        BigDecimal taxAmount = order.getTaxAmount() != null ? order.getTaxAmount() : BigDecimal.ZERO;
+
+        // Resolve shipping address
+        String shippingAddress = null;
+        if (shipment != null && shipment.getShippingAddress() != null) {
+            shippingAddress = shipment.getShippingAddress().getFormattedAddress();
+        } else if (order.getShippingAddress() != null) {
+            shippingAddress = order.getShippingAddress();
+        }
 
         return OrderDetailsResponse.builder()
                 .orderId(order.getIdOrder())
@@ -478,12 +579,12 @@ public class OrderServiceImpl implements OrderService {
                 .status(order.getStatus().name())
                 .items(items)
                 .subtotal(calculateSubtotal(details))
-                .shippingCost(shipment != null ? shipment.getShippingCost() : BigDecimal.ZERO)
-                .taxAmount(BigDecimal.ZERO) // À calculer si stocké
+                .shippingCost(shippingCost)
+                .taxAmount(taxAmount)
                 .totalAmount(order.getTotalAmount())
-                .paymentMethod(payment != null ? payment.getPaymentMethod().name() : "UNKNOWN")
+                .paymentMethod(paymentMethodLabel)
                 .paymentStatus(payment != null ? payment.getStatus().name() : "UNKNOWN")
-                .shippingAddress(shipment != null ? shipment.getShippingAddress().getFormattedAddress() : null)
+                .shippingAddress(shippingAddress)
                 .trackingNumber(shipment != null ? shipment.getTrackingNumber() : null)
                 .estimatedDelivery(shipment != null ? shipment.getEstimatedDeliveryDate() : null)
                 .canCancel(canCancelOrder(order))

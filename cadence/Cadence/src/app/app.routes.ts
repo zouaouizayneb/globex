@@ -15,6 +15,7 @@ import { CartComponent } from './pages/cart/cart.component';
 import { LoginComponent } from './pages/login/login.component';
 import { CheckoutComponent } from './pages/checkout/checkout.component';
 import { ChatbotComponent } from './chatbot/chatbot.component';
+import { PaymentResultComponent } from './pages/payment-result/payment-result.component';
 import { adminRoutes } from './admin/admin.routes';
 import { loginGuard } from './guards/login.guard';
 import { adminGuard } from './guards/admin.guard';
@@ -36,6 +37,7 @@ export const appRoutes: Routes = [
   { path: 'shipping' , component: ShippingComponent},
   { path: 'cart', redirectTo: 'home', pathMatch: 'full' },
   { path: 'checkout', component: CheckoutComponent },
+  { path: 'payment-result', component: PaymentResultComponent },
   { path: 'chatbot', component: ChatbotComponent },
   { path: 'admin', children: adminRoutes, canActivate: [adminGuard] }
 ];

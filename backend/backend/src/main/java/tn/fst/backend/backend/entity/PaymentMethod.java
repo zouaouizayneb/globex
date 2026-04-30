@@ -6,6 +6,8 @@ public enum PaymentMethod {
     E_DINAR,
     PAYMEE,
     KONNECT,
+    D17,
+    FLOUCI,
 
     // Paiements internationaux
     STRIPE,

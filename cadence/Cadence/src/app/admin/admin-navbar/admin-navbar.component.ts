@@ -19,7 +19,6 @@ export class AdminNavbarComponent implements OnInit {
   @HostListener('document:mousedown', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    // If the click is not on a toggle button or inside a dropdown, close them
     if (!target.closest('.icon-btn') && !target.closest('.profile-btn') && !target.closest('.dropdown-menu')) {
       this.notificationDropdownOpen = false;
       this.profileDropdownOpen = false;

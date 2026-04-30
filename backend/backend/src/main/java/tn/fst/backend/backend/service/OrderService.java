@@ -3,6 +3,7 @@ package tn.fst.backend.backend.service;
 import tn.fst.backend.backend.dto.*;
 import tn.fst.backend.backend.entity.Order;
 import tn.fst.backend.backend.entity.OrderStatus;
+import tn.fst.backend.backend.entity.Transporteur;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -54,4 +55,7 @@ public interface OrderService {
 
     // Create order from frontend checkout
     Order createFrontendOrder(Long userId, FrontendOrderRequest request);
+
+    // Admin update: assign transporteur and/or update status
+    Order adminUpdateOrder(Long orderId, OrderStatus status, Transporteur transporteur);
 }

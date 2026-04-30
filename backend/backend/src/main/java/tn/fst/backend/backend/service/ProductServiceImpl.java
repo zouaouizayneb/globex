@@ -71,7 +71,7 @@ public class ProductServiceImpl implements ProductService {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (Exception e ) {
             System.err.println("Error during stock sync: " + e.getMessage());
         }
     }

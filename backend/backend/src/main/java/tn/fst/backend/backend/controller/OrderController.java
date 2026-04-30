@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import tn.fst.backend.backend.dto.*;
 import tn.fst.backend.backend.entity.Order;
 import tn.fst.backend.backend.entity.OrderStatus;
+import tn.fst.backend.backend.entity.Transporteur;
 import tn.fst.backend.backend.entity.User;
+import tn.fst.backend.backend.exeptions.ResourceNotFoundException;
+import tn.fst.backend.backend.repository.TransporteurRepository;
 import tn.fst.backend.backend.service.OrderService;
 
 import java.util.List;
@@ -21,6 +24,7 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final TransporteurRepository transporteurRepository;
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
@@ -81,12 +85,37 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<Order> createFrontendOrder(
+    public ResponseEntity<OrderCreatedResponse> createFrontendOrder(
             @RequestBody FrontendOrderRequest request,
             Authentication authentication) {
         Long userId = getCurrentUserId(authentication);
         Order order = orderService.createFrontendOrder(userId, request);
-        return ResponseEntity.ok(order);
+        OrderCreatedResponse response = OrderCreatedResponse.builder()
+                .id(order.getIdOrder())
+                .orderNumber("ORD-" + String.format("%06d", order.getIdOrder()))
+                .status(order.getStatus().name())
+                .message("Your order has been placed successfully.")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{orderId}/admin-update")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Order> adminUpdateOrder(
+            @PathVariable Long orderId,
+            @RequestBody AdminOrderUpdateRequest request) {
+        OrderStatus status = request.getStatus() != null
+                ? OrderStatus.valueOf(request.getStatus().toUpperCase())
+                : null;
+
+        Transporteur transporteur = null;
+        if (request.getTransporteurId() != null) {
+            transporteur = transporteurRepository.findById(request.getTransporteurId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Transporteur", request.getTransporteurId()));
+        }
+
+        Order updated = orderService.adminUpdateOrder(orderId, status, transporteur);
+        return ResponseEntity.ok(updated);
     }
 
     private Long getCurrentUserId(Authentication authentication) {

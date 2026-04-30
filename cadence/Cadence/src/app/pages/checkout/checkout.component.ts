@@ -196,21 +196,60 @@ export class CheckoutComponent implements OnInit {
 
     this.api.createOrder(orderPayload).subscribe({
       next: (res: any) => {
-        this.placedOrderId = res?.id || res?.orderId || ('ORD-' + Date.now());
-        this.shop.cart = [];
-        localStorage.removeItem('cart');
-        this.orderPlaced = true;
-        this.isPlacing = false;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const orderId = res?.id || res?.orderId || res?.orderNumber;
+        
+        // Decide if we need to initiate a payment gateway redirect
+        if (paymentMethod !== 'CASH_ON_DELIVERY' && paymentMethod !== 'BANK_TRANSFER') {
+          // It's an API payment (PayPal, Flouci, D17, etc.)
+          this.api.initiatePayment({
+            orderId: String(orderId),
+            amount: this.total,
+            currency: this.delivery.country === 'TN' ? 'TND' : 'USD', // Simple currency map
+            country: this.delivery.country,
+            paymentMethod: paymentMethod,
+            description: `Order ${orderId}`,
+            returnUrl: window.location.origin + '/payment-result',
+            cancelUrl: window.location.origin + '/payment-result'
+          }).subscribe({
+            next: (paymentRes: any) => {
+              if (paymentRes.paymentUrl) {
+                // Clear cart before redirecting
+                this.shop.cart = [];
+                localStorage.removeItem('cart');
+                
+                // Redirect user to the gateway (Flouci, PayPal, etc.) or our simulated D17 page
+                window.location.href = paymentRes.paymentUrl;
+              } else {
+                this.isPlacing = false;
+                this.errorMsg = 'Payment initiation failed: no URL returned.';
+              }
+            },
+            error: (payErr) => {
+              this.isPlacing = false;
+              this.errorMsg = 'Failed to connect to the payment provider. ' + (payErr.error?.message || '');
+            }
+          });
+        } else {
+          // Standard offline order
+          this.placedOrderId = orderId || ('ORD-' + Date.now());
+          this.shop.cart = [];
+          localStorage.removeItem('cart');
+          this.orderPlaced = true;
+          this.isPlacing = false;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       },
       error: (err) => {
-        // Still show success since payment was initiated (mock PayPal / local)
-        console.warn('Order API error (showing success anyway):', err);
-        this.placedOrderId = 'ORD-' + Date.now();
-        this.shop.cart = [];
-        localStorage.removeItem('cart');
-        this.orderPlaced = true;
         this.isPlacing = false;
+        if (err.status === 401 || err.status === 403) {
+          this.errorMsg = 'You must be logged in to place an order. Please sign in and try again.';
+        } else if (err.status === 400) {
+          this.errorMsg = err.error?.message || 'Invalid order information. Please review your details and try again.';
+        } else if (err.status === 404) {
+          this.errorMsg = 'One or more items in your cart are no longer available.';
+        } else {
+          this.errorMsg = 'Unable to place your order right now. Please try again in a moment.';
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     });

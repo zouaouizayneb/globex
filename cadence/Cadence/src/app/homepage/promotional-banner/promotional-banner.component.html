@@ -1,0 +1,15 @@
+<div class="slider-container">
+  <div class="slider-track">
+    <div class="slide" *ngFor="let supplier of suppliers">
+      <span class="logo-text" [ngClass]="supplier.style">
+        {{ supplier.name }}
+      </span>
+    </div>
+
+    <div class="slide" *ngFor="let supplier of suppliers">
+      <span class="logo-text" [ngClass]="supplier.style">
+        {{ supplier.name }}
+      </span>
+    </div>
+  </div>
+</div>

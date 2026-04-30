@@ -40,6 +40,9 @@ public interface InvoiceService {
     // Send invoice
     InvoiceResponse sendInvoice(Long invoiceId);
 
+    // Generate PDF if missing and return updated invoice
+    InvoiceResponse ensureInvoicePdf(Long invoiceId) throws Exception;
+
     // Cancel invoice
     InvoiceResponse cancelInvoice(Long invoiceId, String reason);
 

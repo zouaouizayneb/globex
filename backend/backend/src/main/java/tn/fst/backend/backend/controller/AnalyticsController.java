@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tn.fst.backend.backend.dto.*;
 import tn.fst.backend.backend.service.AnalyticsService;
@@ -57,6 +58,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/dashboard")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<DashboardData> getDashboard() {
         return ResponseEntity.ok(analyticsService.getDashboardData());
     }

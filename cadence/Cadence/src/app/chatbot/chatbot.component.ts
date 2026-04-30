@@ -17,6 +17,7 @@ interface ApiMessage {
 
 interface ChatResponse {
   reply: string;
+  database_context_used?: boolean;
 }
 
 @Component({
@@ -33,6 +34,8 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
   messages: ChatMessage[] = [];
   userInput: string = '';
   isLoading: boolean = false;
+  customerName: string = 'Guest';
+  customerId: number | null = null;
 
   // ── Change this to your production URL when you deploy ────────────────────
   private readonly API_URL = 'http://localhost:8000';
@@ -43,15 +46,51 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
   ) {}
 
   ngOnInit(): void {
+    // Check if user is logged in and get their info
+    this.loadCustomerInfo();
+    
+    // Add personalized greeting
+    const greeting = this.customerId 
+      ? `Hello ${this.customerName}! I'm your Globex AI assistant. How can I help you today?`
+      : "Hello! I'm your Globex AI assistant. How can I help you today?";
+    
     this.messages.push({
       role: 'bot',
-      text: "Hello! I'm your Globex AI assistant. How can I help you today?",
+      text: greeting,
       timestamp: new Date()
     });
+
+    // Optional: Check API health
+    this.checkApiHealth();
   }
 
   ngAfterViewChecked(): void {
     this.scrollToBottom();
+  }
+
+  /**
+   * Load customer info if logged in (integrate with your auth service)
+   */
+  private loadCustomerInfo(): void {
+    // TODO: Get from your authentication service
+    // Example: this.customerId = this.authService.getCurrentUserId();
+    // Example: this.customerName = this.authService.getCurrentUserName();
+  }
+
+  /**
+   * Optional: Verify API is running
+   */
+  private checkApiHealth(): void {
+    this.http.get(`${this.API_URL}/health`).subscribe({
+      next: (response: any) => {
+        if (response.database === 'connected') {
+          console.log('✅ Chatbot API healthy and database connected');
+        }
+      },
+      error: (err) => {
+        console.warn('⚠️ Chatbot API unavailable:', err.message);
+      }
+    });
   }
 
   goBack(): void {
@@ -76,8 +115,13 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
         text: m.text
       }));
 
+    // Send request with optional customer ID for personalization
     this.http
-      .post<ChatResponse>(`${this.API_URL}/chat`, { message: text, history })
+      .post<ChatResponse>(`${this.API_URL}/chat`, {
+        message: text,
+        history,
+        customer_id: this.customerId // Enables personalized responses
+      })
       .subscribe({
         next: (res) => {
           this.messages.push({
@@ -89,12 +133,53 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
         },
         error: (err) => {
           console.error('Chatbot API error:', err);
+          const errorMessage = err.error?.detail 
+            ? `Error: ${err.error.detail}`
+            : 'Sorry, I encountered an error. Please try again in a moment.';
+          
           this.messages.push({
             role: 'bot',
-            text: 'Sorry, I encountered an error. Please try again in a moment.',
+            text: errorMessage,
             timestamp: new Date()
           });
           this.isLoading = false;
+        }
+      });
+  }
+
+  /**
+   * Optional: Search products directly
+   */
+  searchProducts(searchTerm: string): void {
+    this.http
+      .post<any>(`${this.API_URL}/products/search`, {
+        search_term: searchTerm,
+        limit: 5
+      })
+      .subscribe({
+        next: (res) => {
+          console.log('Products found:', res.products);
+        },
+        error: (err) => {
+          console.error('Search error:', err);
+        }
+      });
+  }
+
+  /**
+   * Optional: Track order directly
+   */
+  trackOrder(orderId: number): void {
+    this.http
+      .post<any>(`${this.API_URL}/orders/track`, {
+        order_id: orderId
+      })
+      .subscribe({
+        next: (res) => {
+          console.log('Order status:', res.status);
+        },
+        error: (err) => {
+          console.error('Tracking error:', err);
         }
       });
   }

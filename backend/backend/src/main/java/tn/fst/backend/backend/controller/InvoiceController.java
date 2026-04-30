@@ -82,7 +82,12 @@ public class InvoiceController {
 
     @GetMapping("/{invoiceId}/download")
     public ResponseEntity<Resource> downloadInvoicePDF(@PathVariable Long invoiceId) {
-        InvoiceResponse invoice = invoiceService.getInvoice(invoiceId);
+        InvoiceResponse invoice;
+        try {
+            invoice = invoiceService.ensureInvoicePdf(invoiceId);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
 
         if (!invoice.getPdfGenerated() || invoice.getPdfPath() == null) {
             return ResponseEntity.notFound().build();

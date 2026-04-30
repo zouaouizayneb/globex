@@ -224,8 +224,8 @@
                       <h3><a>{{ selectedProduct.title }}</a></h3>
                     </div>
                     <div class="no-js-hidden qv-price price" role="status">
-                      <ins class="price-item--regular">${{ selectedProduct.price - (selectedProduct.price * selectedProduct.remise / 100) | number:'1.2-2' }}</ins>
-                      <del class="price-item--sale" *ngIf="selectedProduct.remise > 0">${{ selectedProduct.price | number:'1.2-2' }}</del>
+                      <ins class="price-item--regular">{{ formatPrice(selectedProduct.price - (selectedProduct.price * selectedProduct.remise / 100)) }}</ins>
+                      <del class="price-item--sale" *ngIf="selectedProduct.remise > 0">{{ formatPrice(selectedProduct.price) }}</del>
                     </div>
                     <div class="quick-product-dis">{{ selectedProduct.description }}</div>
                     <div class="product-actions">
@@ -254,8 +254,8 @@
         </div>
 
         <div class="no-js-hidden price" role="status" style="padding-top:12px; padding-right:5px;">
-          <ins class="price-item--regular">${{ item.price - (item.price * item.remise / 100) | number:'1.2-2' }}</ins>
-          <del class="price-item--sale" *ngIf="item.remise > 0">${{ item.price | number:'1.2-2' }}</del>
+          <ins class="price-item--regular">{{ formatPrice(item.price - (item.price * item.remise / 100)) }}</ins>
+          <del class="price-item--sale" *ngIf="item.remise > 0">{{ formatPrice(item.price) }}</del>
         </div>
 
         <button (click)="addToCart(item)" [routerLink]="'/cart'"

@@ -32,6 +32,8 @@ export class ProductsComponent implements OnInit {
   formCategoryId: number | '' = '';
   formSupplierId: number | '' = '';
   formPrice: number = 0;
+  formColor: string = '';
+  formSize: string = '';
   formStock: number = 0;
   formStatus: 'active' | 'inactive' | 'draft' = 'active';
   formVariants: { sku: string; additionalPrice: number; color: string; size: string; stockQuantity: number; imageUrl: string }[] = [];
@@ -96,6 +98,8 @@ export class ProductsComponent implements OnInit {
     this.formCategoryId = '';
     this.formSupplierId = '';
     this.formPrice = 0;
+    this.formColor = '';
+    this.formSize = '';
     this.formStock = 0;
     this.formStatus = 'active';
     this.formVariants = [{ sku: `PROD-${Date.now()}`, additionalPrice: 0, color: '', size: '', stockQuantity: 0, imageUrl: '' }];
@@ -112,6 +116,8 @@ export class ProductsComponent implements OnInit {
     this.formCategoryId = p.categoryId || '';
     this.formSupplierId = p.supplierId || '';
     this.formPrice = p.price || 0;
+    this.formColor = p.color || '';
+    this.formSize = p.size || '';
     this.formStock = p.stock || 0;
     this.formStatus = p.status || 'active';
     this.formVariants = [{ sku: p.sku || '', additionalPrice: 0, color: '', size: '', stockQuantity: p.stock, imageUrl: p.imageUrl || '' }];
@@ -150,6 +156,8 @@ export class ProductsComponent implements OnInit {
       name: this.formName.trim(),
       description: this.formDescription.trim(),
       price: this.formPrice,
+      color: this.formColor.trim(),
+      size: this.formSize.trim(),
       stock: this.formStock,
       status: this.formStatus,
       category: this.formCategoryId ? { idCategory: this.formCategoryId } : null,

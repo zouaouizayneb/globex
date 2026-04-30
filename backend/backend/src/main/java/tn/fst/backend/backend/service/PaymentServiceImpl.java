@@ -4,6 +4,7 @@ import tn.fst.backend.backend.entity.Payment;
 import tn.fst.backend.backend.entity.Order;
 import tn.fst.backend.backend.repository.PaymentRepository;
 import tn.fst.backend.backend.repository.OrderRepository;
+import tn.fst.backend.backend.repository.InvoiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.stripe.Stripe;
@@ -44,7 +45,9 @@ public class PaymentServiceImpl implements PaymentService {
             orderRepository.findById(payment.getOrder().getIdOrder())
                     .ifPresent(payment::setOrder);
         }
-        return paymentRepository.save(payment);
+        Payment saved = paymentRepository.save(payment);
+        syncInvoiceStatusFromPayment(saved);
+        return saved;
     }
 
     @Override
@@ -62,7 +65,9 @@ public class PaymentServiceImpl implements PaymentService {
             orderRepository.findById(paymentDetails.getOrder().getIdOrder())
                     .ifPresent(payment::setOrder);
 
-        return paymentRepository.save(payment);
+        Payment saved = paymentRepository.save(payment);
+        syncInvoiceStatusFromPayment(saved);
+        return saved;
     }
 
     @Override
@@ -74,6 +79,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final InvoiceRepository invoiceRepository;
+    private final InvoiceService invoiceService;
+    private final AccountingAutomationService accountingAutomationService;
 
     @Value("${stripe.api.key:sk_test_default}")
     private String stripeApiKey;
@@ -135,7 +143,9 @@ public class PaymentServiceImpl implements PaymentService {
                     .paidAt(java.time.LocalDateTime.now())
                     .build();
 
-            return paymentRepository.save(payment);
+            Payment saved = paymentRepository.save(payment);
+            syncInvoiceStatusFromPayment(saved);
+            return saved;
 
         } catch (StripeException e) {
             // Payment verification failed
@@ -149,7 +159,9 @@ public class PaymentServiceImpl implements PaymentService {
                     .failureReason(e.getMessage())
                     .build();
 
-            return paymentRepository.save(payment);
+            Payment saved = paymentRepository.save(payment);
+            syncInvoiceStatusFromPayment(saved);
+            return saved;
         }
     }
 
@@ -168,7 +180,9 @@ public class PaymentServiceImpl implements PaymentService {
                 .currency("USD")
                 .build();
 
-        return paymentRepository.save(payment);
+        Payment saved = paymentRepository.save(payment);
+        syncInvoiceStatusFromPayment(saved);
+        return saved;
     }
 
     /**
@@ -199,10 +213,56 @@ public class PaymentServiceImpl implements PaymentService {
 
             if ("succeeded".equals(refund.getStatus())) {
                 payment.setStatus(PaymentStatus.REFUNDED);
-                return paymentRepository.save(payment);
+                Payment saved = paymentRepository.save(payment);
+                syncInvoiceStatusFromPayment(saved);
+                return saved;
             }
         }
 
         throw new IllegalStateException("Cannot refund this payment");
+    }
+
+    private void syncInvoiceStatusFromPayment(Payment payment) {
+        if (payment == null || payment.getOrder() == null) {
+            return;
+        }
+
+        Order order = payment.getOrder();
+
+        Invoice invoice = invoiceRepository.findByOrder(order).orElseGet(() -> {
+            try {
+                invoiceService.issueDate(order.getIdOrder());
+            } catch (Exception ignored) {
+                // Keep payment flow resilient; invoice automation can be retried.
+            }
+            return invoiceRepository.findByOrder(order).orElse(null);
+        });
+
+        if (invoice == null) {
+            return;
+        }
+
+        InvoiceStatus previousStatus = invoice.getStatus();
+
+        if (payment.getStatus() == PaymentStatus.COMPLETED) {
+            invoice.setStatus(InvoiceStatus.PAID);
+            if (invoice.getPaidDate() == null) {
+                invoice.setPaidDate(java.time.LocalDate.now());
+            }
+        } else if (payment.getStatus() == PaymentStatus.REFUNDED) {
+            invoice.setStatus(InvoiceStatus.REFUNDED);
+        } else if (payment.getStatus() == PaymentStatus.FAILED) {
+            invoice.setStatus(InvoiceStatus.ISSUED);
+        }
+
+        invoice = invoiceRepository.save(invoice);
+
+        if (previousStatus != invoice.getStatus()) {
+            if (invoice.getStatus() == InvoiceStatus.PAID) {
+                accountingAutomationService.recordInvoicePaid(invoice);
+            } else if (invoice.getStatus() == InvoiceStatus.REFUNDED) {
+                accountingAutomationService.recordInvoiceRefunded(invoice);
+            }
+        }
     }
 }

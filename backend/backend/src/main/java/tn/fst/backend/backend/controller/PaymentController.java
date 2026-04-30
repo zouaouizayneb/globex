@@ -1,9 +1,7 @@
 package tn.fst.backend.backend.controller;
 
 import tn.fst.backend.backend.entity.Payment;
-import tn.fst.backend.backend.entity.Order;
-import tn.fst.backend.backend.repository.PaymentRepository;
-import tn.fst.backend.backend.repository.OrderRepository;
+import tn.fst.backend.backend.service.PaymentService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,68 +16,50 @@ import java.util.Optional;
 public class PaymentController {
 
     @Autowired
-    private PaymentRepository paymentRepository;
-
-    @Autowired
-    private OrderRepository orderRepository;
+    private PaymentService paymentService;
 
     @GetMapping
     public List<Payment> getAllPayments() {
-        return paymentRepository.findAll();
+        return paymentService.getAllPayments();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Payment> getPaymentById(@PathVariable Long id) {
-        Optional<Payment> payment = paymentRepository.findById(id);
+        Optional<Payment> payment = paymentService.getPaymentById(id);
         return payment.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<Payment> createPayment(@RequestBody Payment payment) {
-        if (payment.getOrder() != null) {
-            Optional<Order> order = orderRepository.findById(payment.getOrder().getIdOrder());
-            if (order.isPresent()) {
-                payment.setOrder(order.get());
-            } else {
-                return ResponseEntity.badRequest().build();
-            }
-        } else {
+        try {
+            Payment savedPayment = paymentService.createPayment(payment);
+            return ResponseEntity.ok(savedPayment);
+        } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().build();
         }
-
-        Payment savedPayment = paymentRepository.save(payment);
-        return ResponseEntity.ok(savedPayment);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Payment> updatePayment(@PathVariable Long id, @RequestBody Payment paymentDetails) {
-        Optional<Payment> optionalPayment = paymentRepository.findById(id);
-        if (!optionalPayment.isPresent()) {
-            return ResponseEntity.notFound().build();
+        try {
+            Payment updatedPayment = paymentService.updatePayment(id, paymentDetails);
+            return ResponseEntity.ok(updatedPayment);
+        } catch (RuntimeException ex) {
+            if (ex.getMessage() != null && ex.getMessage().contains("not found")) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.badRequest().build();
         }
-
-        Payment payment = optionalPayment.get();
-        payment.setPaymentMethod(paymentDetails.getPaymentMethod());
-        payment.setStatus(paymentDetails.getStatus());
-        payment.setDatePayment(paymentDetails.getDatePayment());
-
-        if (paymentDetails.getOrder() != null) {
-            Optional<Order> order = orderRepository.findById(paymentDetails.getOrder().getIdOrder());
-            order.ifPresent(payment::setOrder);
-        }
-
-        Payment updatedPayment = paymentRepository.save(payment);
-        return ResponseEntity.ok(updatedPayment);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePayment(@PathVariable Long id) {
-        if (!paymentRepository.existsById(id)) {
+        try {
+            paymentService.deletePayment(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException ex) {
             return ResponseEntity.notFound().build();
         }
-
-        paymentRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
     }
 }

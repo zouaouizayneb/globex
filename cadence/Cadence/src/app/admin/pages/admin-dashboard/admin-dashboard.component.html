@@ -1,118 +1,99 @@
 <div class="dashboard-wrapper">
-  
-  <div class="page-intro">
-    <div class="intro-text">
-       <h1>Management Overview</h1>
-       <p class="text-muted">Welcome back, admin! Here's what's happening today.</p>
-    </div>
-    <div class="intro-date">
-       <span class="date-badge">{{ today }}</span>
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Syncing analytics...</p>
+  </div>
+
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1>Management Overview</h1>
+      <p class="subtitle">Welcome back, admin! Here's what's happening today.</p>
     </div>
   </div>
 
-  <div *ngIf="error" class="premium-alert error" style="margin-bottom: 30px;">
-    <div class="alert-icon">⚠️</div>
-    <div class="alert-body">
-      <b>Data Sync Issue:</b> {{ error }}
-      <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.9;">Ensure the Spring Boot backend is active at http://localhost:8080</p>
+  <div *ngIf="error" class="alert-banner error">
+    <div class="alert-content">
+      <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <div class="alert-text">
+        <strong>Data Sync Issue</strong>
+        <span>{{ error }}</span>
+      </div>
     </div>
-    <button class="alert-btn" (click)="loadDashboard()">Retry Sync</button>
+    <button class="alert-action" (click)="loadDashboard()">Retry Sync</button>
   </div>
 
-  <!-- KPI Grid -->
-  <div class="kpi-hub" *ngIf="!isLoading && kpiCards.length > 0">
-    <div *ngFor="let card of kpiCards; let i = index" 
-         class="stats-card" 
-         [style.animation-delay]="i * 0.1 + 's'">
-      <div class="card-bg-glow"></div>
-      <div class="card-inner">
-        <div class="stats-header">
-          <div class="stats-icon">
-            <svg *ngIf="card.icon === 'revenue'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            <svg *ngIf="card.icon === 'orders'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-            <svg *ngIf="card.icon === 'stock'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
-            <svg *ngIf="card.icon === 'clients'" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-          </div>
-          <div class="stats-trend positive">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-            System Active
-          </div>
-        </div>
-        <div class="stats-body">
-          <span class="stats-label">{{ card.label }}</span>
-          <h2 class="stats-value">{{ card.value }}</h2>
-        </div>
-        <div class="stats-footer">
-          <div class="trend-text">{{ card.trend }}</div>
-          <div class="progress-bar-mini"><div class="progress-fill" [style.width]="'100%'"></div></div>
-        </div>
+  <div class="kpi-grid" *ngIf="!isLoading && kpiCards.length > 0">
+    <div *ngFor="let card of kpiCards" class="kpi-card">
+      <div class="kpi-icon">
+        <svg *ngIf="card.icon === 'revenue'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        <svg *ngIf="card.icon === 'orders'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+        <svg *ngIf="card.icon === 'stock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
+        <svg *ngIf="card.icon === 'clients'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-label">{{ card.label }}</div>
+        <div class="kpi-value">{{ card.value }}</div>
+        <div class="kpi-trend">{{ card.trend }}</div>
       </div>
     </div>
   </div>
 
-  <div *ngIf="!isLoading && kpiCards.length === 0 && !error" class="empty-dashboard-state">
-    <div class="empty-icon">📊</div>
+  <div *ngIf="!isLoading && kpiCards.length === 0 && !error" class="empty-state">
+    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M3 3v18h18"></path>
+      <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
+    </svg>
     <h3>No Analytics Data Found</h3>
     <p>We couldn't retrieve any business data. Try re-syncing or check your database connectivity.</p>
-    <button class="launch-btn" (click)="loadDashboard()">Re-Sync Now</button>
+    <button class="btn-primary" (click)="loadDashboard()">Retry Sync</button>
   </div>
 
-  <!-- Main Analytics Grid -->
-  <div class="analytics-mesh" *ngIf="!isLoading && kpiCards.length > 0">
-    
-    <!-- Primary Chart: Sales Trend -->
-    <div class="mesh-item major">
-      <div class="premium-card">
-        <div class="card-head">
-          <div class="title-group">
-            <h3>Revenue Dynamics</h3>
-            <p>Real-time financial performance tracking</p>
-          </div>
-          <div class="head-actions">
-            <span class="status-indicator live">Live Engine</span>
-          </div>
-        </div>
-        <div class="card-body chart-wrap">
-          <canvas *ngIf="salesLineChartData.datasets[0].data.length > 0"
-                  baseChart
+  <div class="analytics-grid" *ngIf="!isLoading">
+    <div class="chart-card large">
+      <div class="card-header">
+        <h3>Sales Evolution</h3>
+      </div>
+      <div class="card-body">
+        <div *ngIf="salesLineChartData.datasets[0].data.length > 0" style="height: 300px;">
+          <canvas baseChart
                   [type]="salesLineChartType"
                   [data]="salesLineChartData"
                   [options]="salesLineChartOptions"></canvas>
-          <div *ngIf="salesLineChartData.datasets[0].data.length === 0" class="chart-empty-state">
-             <div class="empty-chart-icon">📉</div>
-             <p>No sales data recorded in the last 30 days</p>
-          </div>
+        </div>
+        <div *ngIf="salesLineChartData.datasets[0].data.length === 0" class="chart-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 3v18h18"></path>
+            <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
+          </svg>
+          <p>No sales data recorded in the last 30 days</p>
         </div>
       </div>
     </div>
 
-    <!-- Secondary Chart: Category Pie -->
-    <div class="mesh-item">
-      <div class="premium-card">
-        <div class="card-head">
-          <h3>Market Share</h3>
-        </div>
-        <div class="card-body chart-wrap">
+    <div class="chart-card">
+      <div class="card-header">
+        <h3>Order Status Distribution</h3>
+      </div>
+      <div class="card-body">
+        <div style="height: 250px;">
           <canvas baseChart
                   [type]="productPieChartType"
                   [data]="productPieChartData"
                   [options]="productPieChartOptions"></canvas>
         </div>
-        <div class="card-foot mini-stats">
-          <div *ngFor="let cat of (kpiCards[0]?.label === 'Yearly Revenue' ? [] : [])" class="mini-cat">
-            <!-- Dynamic legends could go here -->
-          </div>
-        </div>
       </div>
     </div>
 
-    <!-- Tertiary: ERP Status -->
-    <div class="mesh-item">
-      <div class="premium-card">
-        <div class="card-head">
-          <h3>Operational Status</h3>
-        </div>
-        <div class="card-body chart-wrap">
+    <div class="chart-card">
+      <div class="card-header">
+        <h3>Top Categories by Orders</h3>
+      </div>
+      <div class="card-body">
+        <div style="height: 250px;">
           <canvas baseChart
                   [type]="categoryBarChartType"
                   [data]="categoryBarChartData"
@@ -121,105 +102,93 @@
       </div>
     </div>
 
-    <!-- Recent Activity Table -->
-    <div class="mesh-item broad">
-      <div class="premium-card">
-        <div class="card-head">
-          <h3>Recent Transactions</h3>
-          <button routerLink="/admin/orders" class="text-link">Full Registry →</button>
-        </div>
-        <div class="card-body no-padding">
-          <div *ngIf="recentOrders.length === 0" class="empty-state">
-            <div class="empty-icon">📂</div>
-            <p>No transactions detected today</p>
-          </div>
-          
-          <div class="table-responsive" *ngIf="recentOrders.length > 0">
-            <table class="fancy-table">
-              <thead>
-                <tr>
-                  <th>Order Ref</th>
-                  <th>Customer</th>
-                  <th>Execution Phase</th>
-                  <th>Total Amount</th>
-                  <th>Log Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let order of recentOrders">
-                  <td class="ref-cell">{{ order.id }}</td>
-                  <td>
-                    <div class="user-cell">
-                      <div class="avatar-sm">{{ order.customer.charAt(0) }}</div>
-                      <span>{{ order.customer }}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span [ngClass]="getStatusClass(order.status)" class="phase-badge">
-                      {{ order.status }}
-                    </span>
-                  </td>
-                  <td class="amount-cell">{{ order.total | number:'1.2-2' }}</td>
-                  <td class="date-cell">{{ order.date | date:'MMM d, HH:mm' }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+    <div class="table-card">
+      <div class="card-header">
+        <h3>Recent Orders</h3>
+        <button class="btn-link" routerLink="/admin/orders">View All</button>
+      </div>
+      <div class="card-body">
+        <div *ngIf="recentOrders.length === 0" class="table-empty">No recent orders found.</div>
+        <table class="data-table" *ngIf="recentOrders.length > 0">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Client</th>
+              <th>Status</th>
+              <th>Total</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let order of recentOrders">
+              <td class="mono">{{ order.id }}</td>
+              <td>{{ order.customer }}</td>
+              <td>
+                <span [ngClass]="'status-' + order.status.toLowerCase()" class="status-badge">
+                  {{ order.status }}
+                </span>
+              </td>
+              <td class="mono">${{ order.total | number:'1.2-2' }}</td>
+              <td class="text-muted">{{ order.date }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="actions-card">
+      <div class="card-header">
+        <h3>Quick Actions</h3>
+      </div>
+      <div class="card-body">
+        <div class="action-list">
+          <a routerLink="/admin/products" class="action-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 5V19M19 12H5"></path>
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            </svg>
+            Add New Product
+          </a>
+          <a routerLink="/admin/orders" class="action-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9 2L5 6H3C1.9 6 1 6.9 1 8V20C1 21.1 1.9 22 3 22H21C22.1 22 23 21.1 23 20V8C23 6.9 22.1 6 21 6H19L15 2M9 2H15M9 2L7 6M15 2L17 6M12 11V17M9 14H15"></path>
+            </svg>
+            View Orders
+          </a>
+          <a routerLink="/admin/clients" class="action-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="8" r="4"></circle>
+              <path d="M6 20.5C6 16.9 8.9 14 12.5 14S19 16.9 19 20.5"></path>
+            </svg>
+            Manage Clients
+          </a>
+          <a routerLink="/admin/categories" class="action-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h5a2 2 0 0 1 2 2z"></path>
+            </svg>
+            Manage Categories
+          </a>
         </div>
       </div>
     </div>
 
-    <!-- Right Sidebar Content -->
-    <div class="mesh-item sidebar-col">
-      
-      <!-- Quick Actions -->
-      <div class="premium-card action-card">
-        <div class="card-head"><h3>Actions</h3></div>
-        <div class="action-grid">
-          <button routerLink="/admin/products" class="launch-btn">
-            <div class="btn-icon">✨</div>
-            <span>New Item</span>
-          </button>
-          <button routerLink="/admin/orders" class="launch-btn">
-            <div class="btn-icon">📁</div>
-            <span>Orders</span>
-          </button>
-          <button routerLink="/admin/clients" class="launch-btn">
-            <div class="btn-icon">👤</div>
-            <span>Clients</span>
-          </button>
-          <button routerLink="/admin/stock-management" class="launch-btn">
-            <div class="btn-icon">📦</div>
-            <span>Inventory</span>
-          </button>
-        </div>
+    <div class="alerts-card" *ngIf="stockAlerts.length > 0">
+      <div class="card-header">
+        <h3>Low Stock Alerts</h3>
       </div>
-
-      <!-- Critical Alerts -->
-      <div class="premium-card alert-panel" *ngIf="stockAlerts.length > 0">
-        <div class="card-head"><h3>System Alerts</h3></div>
-        <div class="alert-list">
-          <div *ngFor="let alert of stockAlerts" class="alert-item urgent">
-            <div class="alert-marker"></div>
-            <div class="alert-info">
-              <b>{{ alert.product }}</b>
-              <p>Critical Level: {{ alert.current }} units</p>
-            </div>
-            <div class="alert-action">Refill</div>
+      <div class="card-body">
+        <div *ngFor="let alert of stockAlerts" class="alert-item">
+          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <div class="alert-text">
+            <strong>{{ alert.product }}</strong>
+            <span>{{ alert.current }} / {{ alert.minimum }} units</span>
           </div>
         </div>
       </div>
-
     </div>
   </div>
-
-  <!-- Fullscreen Loading -->
-  <div *ngIf="isLoading" class="portal-loader">
-    <div class="nexus-spinner">
-      <div class="orbit"></div>
-      <div class="core"></div>
-    </div>
-    <p>Synchronizing Real-Time Business Intelligence...</p>
-  </div>
-
 </div>

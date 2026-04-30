@@ -32,8 +32,9 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final OrderDetailRepository orderDetailRepository;
     private final PaymentRepository paymentRepository;
     private final TaxService taxService;
+    private final AccountingAutomationService accountingAutomationService;
 
-    private static final String INVOICE_PDF_DIR = "/mnt/user-data/outputs/invoices/";
+    private static final String INVOICE_PDF_DIR = "generated-invoices/";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     /**
@@ -91,12 +92,32 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .build();
 
         invoice = invoiceRepository.save(invoice);
+        accountingAutomationService.recordInvoiceIssued(invoice);
 
+        // Keep sale flow fast: generate PDF lazily on preview/download.
+        invoice.setPdfGenerated(false);
+        invoice.setPdfPath(null);
+        invoice = invoiceRepository.save(invoice);
+
+        return mapToInvoiceResponse(invoice);
+    }
+
+    @Override
+    public InvoiceResponse ensureInvoicePdf(Long invoiceId) throws Exception {
+        Invoice invoice = findInvoiceEntityById(invoiceId);
+
+        if (Boolean.TRUE.equals(invoice.getPdfGenerated()) && invoice.getPdfPath() != null) {
+            Path existing = Paths.get(invoice.getPdfPath());
+            if (Files.exists(existing)) {
+                return mapToInvoiceResponse(invoice);
+            }
+        }
+
+        List<OrderDetail> orderDetails = orderDetailRepository.findByOrder(invoice.getOrder());
         String pdfPath = generateInvoicePDF(invoice, orderDetails);
         invoice.setPdfPath(pdfPath);
         invoice.setPdfGenerated(true);
         invoice = invoiceRepository.save(invoice);
-
         return mapToInvoiceResponse(invoice);
     }
 
@@ -170,6 +191,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         invoice.setPaidDate(paidDate != null ? paidDate : LocalDate.now());
 
         invoice = invoiceRepository.save(invoice);
+        accountingAutomationService.recordInvoicePaid(invoice);
         return mapToInvoiceResponse(invoice);
     }
 
@@ -205,6 +227,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                         "CANCELLED: " + reason);
 
         invoice = invoiceRepository.save(invoice);
+        accountingAutomationService.recordInvoiceCancelled(invoice);
         return mapToInvoiceResponse(invoice);
     }
 

@@ -1,0 +1,67 @@
+<div class="h-screen flex items-center justify-center bg-[#111111] font-sans">
+    <div class="max-w-md w-full bg-[#1A1A1A] rounded-2xl p-8 shadow-2xl border border-white/10 text-center relative overflow-hidden">
+      
+      <!-- Background glow effect -->
+      <div class="absolute inset-0 bg-gradient-to-b from-[#bfff00]/5 to-transparent pointer-events-none"></div>
+  
+      <!-- Animation / Icon states -->
+      <div class="flex justify-center mb-6">
+        
+        <!-- Loading State -->
+        <div *ngIf="status === 'loading'" class="relative">
+          <div class="w-20 h-20 border-4 border-white/10 border-t-[#bfff00] rounded-full animate-spin"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <svg class="w-8 h-8 text-[#bfff00] animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+  
+        <!-- Success State -->
+        <div *ngIf="status === 'success'" class="w-20 h-20 bg-[#bfff00]/20 rounded-full flex items-center justify-center animate-bounce-short">
+          <svg class="w-10 h-10 text-[#bfff00]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+  
+        <!-- Error State -->
+        <div *ngIf="status === 'error'" class="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center">
+          <svg class="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+      </div>
+  
+      <!-- Content -->
+      <h2 class="text-2xl font-bold text-white mb-2 tracking-tight">
+        {{ status === 'loading' ? 'Processing Transaction' : 
+           status === 'success' ? 'Payment Successful' : 'Payment Failed' }}
+      </h2>
+      
+      <p class="text-gray-400 mb-8 text-sm">
+        {{ message }}
+      </p>
+  
+      <div *ngIf="status === 'success' && orderId" class="bg-black/50 rounded-lg p-4 mb-8 border border-white/5">
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Transaction Reference</p>
+        <p class="text-white font-mono text-sm break-all">{{ orderId }}</p>
+      </div>
+  
+      <!-- Action Buttons -->
+      <div class="space-y-3">
+        <button 
+          *ngIf="status !== 'loading'"
+          (click)="goToHome()"
+          class="w-full bg-[#bfff00] text-black font-semibold py-3.5 px-6 rounded-xl hover:bg-[#a6e600] transition-all duration-300 transform active:scale-[0.98]">
+          Back to Home
+        </button>
+        
+        <button 
+          *ngIf="status === 'error'"
+          routerLink="/checkout"
+          class="w-full bg-transparent border border-white/20 text-white font-semibold py-3.5 px-6 rounded-xl hover:bg-white/5 transition-all duration-300">
+          Try Again
+        </button>
+      </div>
+    </div>
+  </div>

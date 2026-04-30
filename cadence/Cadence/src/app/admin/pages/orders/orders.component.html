@@ -51,6 +51,7 @@
             <th>Items</th>
             <th>Total</th>
             <th>Status</th>
+            <th>Transporteur</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -67,11 +68,20 @@
             <td><span class="items-count">{{ order.items }} items</span></td>
             <td><span class="total">${{ order.total | number:'1.2-2' }}</span></td>
             <td>
-              <span class="status-badge"
-                    [style.background]="getStatusColor(order.status) + '20'"
-                    [style.color]="getStatusColor(order.status)">
-                {{ getStatusIcon(order.status) }} {{ order.status | titlecase }}
-              </span>
+              <select class="filter-select" [(ngModel)]="selectedStatusByOrder[order.orderId]">
+                <option *ngFor="let status of statuses" [value]="status">{{ status | titlecase }}</option>
+              </select>
+            </td>
+            <td>
+              <select class="filter-select" [(ngModel)]="selectedTransporterByOrder[order.orderId]">
+                <option [ngValue]="null">Select transporteur</option>
+                <option *ngFor="let transporter of transporters" [ngValue]="transporter.id">
+                  {{ transporter.name }}
+                </option>
+              </select>
+              <div *ngIf="order.transporterName" style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+                Current: {{ order.transporterName }}
+              </div>
             </td>
             <td>
               <div class="action-buttons">
@@ -81,16 +91,10 @@
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
                 </button>
-                <button class="action-btn download" 
-                        (click)="generateInvoicePDF(order)" 
-                        [disabled]="generatingInvoice[order.id]"
-                        title="Download PDF Invoice">
-                  <svg *ngIf="!generatingInvoice[order.id]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                  <span *ngIf="generatingInvoice[order.id]" class="spinner-mini"></span>
+                <button class="action-btn download"
+                        (click)="saveOrderUpdates(order)"
+                        title="Save status and transporteur">
+                  Save
                 </button>
               </div>
             </td>

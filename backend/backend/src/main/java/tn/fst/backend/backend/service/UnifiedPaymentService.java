@@ -16,6 +16,8 @@ public class UnifiedPaymentService {
 
     private final SMTPaymentService smtService;
     private final PayPalPaymentService paypalService;
+    private final FlouciPaymentService flouciService;
+    private final D17PaymentService d17Service;
 
     /**
      * Initier un paiement selon le pays et la méthode choisie
@@ -31,9 +33,16 @@ public class UnifiedPaymentService {
                 case SMT_MONETIQUE:
                 case E_DINAR:
                     return processSMTPayment(request);
-
+                case FLOUCI:
+                case PAYMEE:
+                    return processFlouciPayment(request);
+                case D17:
+                case KONNECT:
+                    return processD17Payment(request);
                 case CASH_ON_DELIVERY:
                     return processCODPayment(request);
+                case BANK_TRANSFER:
+                    return processBankTransferPayment(request);
 
                 default:
                     throw new IllegalArgumentException("Méthode non supportée en Tunisie: " + method);
@@ -70,6 +79,23 @@ public class UnifiedPaymentService {
                 .paymentMethod("SMT_MONETIQUE")
                 .status("PENDING")
                 .message("Redirection vers SMT Monétique pour paiement sécurisé")
+                .currency("TND")
+                .build();
+    }
+
+    private PaymentInitiateResponse processFlouciPayment(PaymentInitiateRequest request) {
+        return flouciService.createPayment(request);
+    }
+
+    private PaymentInitiateResponse processD17Payment(PaymentInitiateRequest request) {
+        return d17Service.createPayment(request);
+    }
+    
+    private PaymentInitiateResponse processBankTransferPayment(PaymentInitiateRequest request) {
+        return PaymentInitiateResponse.builder()
+                .paymentMethod("BANK_TRANSFER")
+                .status("PENDING")
+                .message("Veuillez effectuer un virement bancaire pour valider votre commande.")
                 .currency("TND")
                 .build();
     }
@@ -118,11 +144,17 @@ public class UnifiedPaymentService {
      */
     public Object checkPaymentStatus(String transactionId, String paymentMethod) {
 
-        if ("SMT_MONETIQUE".equals(paymentMethod)) {
+        if ("SMT_MONETIQUE".equals(paymentMethod) || "E_DINAR".equals(paymentMethod)) {
             return smtService.verifyPayment(transactionId);
         }
         else if ("PAYPAL".equals(paymentMethod)) {
             return paypalService.verifyPayment(transactionId);
+        }
+        else if ("FLOUCI".equals(paymentMethod) || "PAYMEE".equals(paymentMethod)) {
+            return flouciService.verifyPayment(transactionId);
+        }
+        else if ("D17".equals(paymentMethod) || "KONNECT".equals(paymentMethod)) {
+            return d17Service.verifyPayment(transactionId);
         }
 
         return "UNKNOWN";

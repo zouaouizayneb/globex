@@ -1,6 +1,7 @@
 import { Component, ViewChild, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { ServicesService } from '../services/services.service';
 import { ShopService } from '../pages/shared/shop.services';
 import { CartComponent } from '../pages/cart/cart.component';
@@ -9,7 +10,7 @@ import { CurrencyService } from '../services/currency.service';
 @Component({
   selector: 'app-nav-bar',
   standalone: true,
-  imports: [RouterModule, CommonModule, CartComponent],
+  imports: [RouterModule, CommonModule, CartComponent, FormsModule],
   templateUrl: './nav-bar.component.html',
   styleUrl: './nav-bar.component.css'
 })
@@ -18,6 +19,18 @@ export class NavBarComponent implements OnInit {
 
   isHomeVisible: boolean = false;
   categories: any[] = [];
+  searchOpen = false;
+  searchQuery = '';
+  searchResults: any[] = [];
+  isSearching = false;
+
+  allProducts: any[] = [];
+  allCategories: any[] = [];
+
+  categorizedSearchResults = {
+    products: [] as any[],
+    categories: [] as any[]
+  };
 
   private homeCloseTimer: any;
   private shopAllCloseTimer: any;
@@ -25,7 +38,6 @@ export class NavBarComponent implements OnInit {
   private pagesCloseTimer: any;
   private blogsCloseTimer: any;
 
-  // International bar properties
   currencyDropdownOpen: boolean = false;
   languageDropdownOpen: boolean = false;
   selectedCurrency: string = 'USD';
@@ -48,17 +60,20 @@ export class NavBarComponent implements OnInit {
     { name: 'Français', flagCode: 'fr' }
   ];
 
-  constructor(public services: ServicesService, public shop: ShopService, private currencyService: CurrencyService) {
+  constructor(
+    public services: ServicesService, 
+    public shop: ShopService, 
+    private currencyService: CurrencyService,
+    private router: Router
+  ) {
     this.getCategories();
   }
 
   ngOnInit() {
-    // Subscribe to currency service changes
     this.currencyService.getSelectedCurrency().subscribe(currency => {
       this.selectedCurrency = currency;
     });
 
-    // Load saved language preference
     const savedLanguage = localStorage.getItem('selectedLanguage');
     if (savedLanguage) {
       this.selectedLanguage = savedLanguage;
@@ -67,16 +82,20 @@ export class NavBarComponent implements OnInit {
     this.shop.cartOpen$.subscribe(isOpen => {
       if (isOpen && this.cartDrawer) {
         this.openCart();
-        // Reset the trigger so it can fire again
         this.shop.cartOpen$.next(false);
       }
     });
+
+    this.loadSearchData();
   }
 
-  searchOpen = false;
-
-  toggleSearch() {
-    this.searchOpen = !this.searchOpen;
+  loadSearchData() {
+    this.services.getAllProducts().subscribe(products => {
+      this.allProducts = products;
+    });
+    this.services.getAllCategories().subscribe(categories => {
+      this.allCategories = categories;
+    });
   }
 
   get isLoggedIn(): boolean {
@@ -231,7 +250,6 @@ export class NavBarComponent implements OnInit {
     this.hideBlogs();
   }
 
-  // International bar methods
   toggleCurrencyDropdown() {
     this.currencyDropdownOpen = !this.currencyDropdownOpen;
     this.languageDropdownOpen = false;
@@ -250,13 +268,11 @@ export class NavBarComponent implements OnInit {
   selectLanguage(language: any) {
     this.selectedLanguage = language.name;
     this.languageDropdownOpen = false;
-    // Store selected language
     localStorage.setItem('selectedLanguage', language.name);
   }
 
   updateCurrencyDisplay(currency: any) {
-    // This method will be used to update product prices across the app
-    // You can implement a service or event emitter to handle this
+
     console.log(`Currency changed to ${currency.code} with rate ${currency.rate}`);
   }
 
@@ -278,5 +294,93 @@ export class NavBarComponent implements OnInit {
   getCurrentLanguageFlagCode(): string {
     const language = this.languages.find(l => l.name === this.selectedLanguage);
     return language?.flagCode || this.languages[0]?.flagCode || 'gb';
+  }
+
+  toggleSearch() {
+    this.searchOpen = !this.searchOpen;
+    if (!this.searchOpen) {
+      this.searchQuery = '';
+      this.searchResults = [];
+      this.categorizedSearchResults.products = [];
+      this.categorizedSearchResults.categories = [];
+    }
+  }
+
+  onSearch() {
+    if (!this.searchQuery.trim()) {
+      this.categorizedSearchResults.products = [];
+      this.categorizedSearchResults.categories = [];
+      this.searchResults = [];
+      return;
+    }
+
+    this.isSearching = true;
+
+    const q = this.searchQuery.toLowerCase();
+    
+    this.categorizedSearchResults.products = this.allProducts.filter(p => {
+      const nameMatch = p.name && p.name.toLowerCase().includes(q);
+      const skuMatch = p.sku && p.sku.toLowerCase().includes(q);
+      const descMatch = p.description && p.description.toLowerCase().includes(q);
+      return nameMatch || skuMatch || descMatch;
+    }).slice(0, 5);
+
+    this.categorizedSearchResults.categories = this.allCategories.filter(c => {
+      const nameMatch = c.name && c.name.toLowerCase().includes(q);
+      const labelMatch = c.label && c.label.toLowerCase().includes(q);
+      return nameMatch || labelMatch;
+    }).slice(0, 3);
+
+    this.searchResults = this.categorizedSearchResults.products;
+    
+    this.isSearching = false;
+  }
+
+  onSearchKeyPress(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      this.performSearch();
+    }
+  }
+
+  performSearch() {
+    if (this.searchQuery.trim()) {
+      if (this.categorizedSearchResults.products.length > 0) {
+        const product = this.categorizedSearchResults.products[0];
+        const categoryId = product.category?.idCategory || product.category?.id || product.category_id || product.category;
+        if (categoryId) {
+          this.router.navigate(['/list-article', categoryId]);
+          this.toggleSearch();
+        } else {
+          this.navigateToProduct(product);
+        }
+      }
+      else if (this.categorizedSearchResults.categories.length > 0) {
+        this.navigateToCategory(this.categorizedSearchResults.categories[0]);
+      }
+      else {
+        this.router.navigate(['/collections'], {
+          queryParams: { search: this.searchQuery }
+        });
+        this.toggleSearch();
+      }
+    }
+  }
+
+  navigateToProduct(product: any) {
+    this.router.navigate(['/product', product.id]);
+    this.toggleSearch();
+  }
+
+  navigateToCategory(category: any) {
+    const categoryId = category.id || category.idCategory;
+    this.router.navigate(['/list-article', categoryId]);
+    this.toggleSearch();
+  }
+
+  goToSearch(path: string): void {
+    this.router.navigate([path]);
+    this.searchQuery = '';
+    this.categorizedSearchResults.products = [];
+    this.categorizedSearchResults.categories = [];
   }
 }
