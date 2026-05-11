@@ -7,6 +7,7 @@ import { CurrencyService } from '../../services/currency.service';
 import { Subscription } from 'rxjs';
 
 interface BestSellerProduct extends Product {
+  description?: string;
   category: string;
   badge: 'trend' | 'hot' | 'sale';
   soldCount: number;
@@ -27,7 +28,7 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
   products: BestSellerProduct[] = [];
   loading: boolean = true;
   error: string = '';
-  
+
   activeFilter: string = 'all';
   toastVisible: boolean = false;
   toastMessage: string = '';
@@ -49,7 +50,7 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.animateEntrance();
+    // Initial animation runs after products load
   }
 
   ngOnDestroy(): void {
@@ -61,31 +62,32 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loading = true;
     this.error = '';
 
-    console.log('Loading best selling products...');
-
     const sub = this.servicesService.getAllProducts().subscribe({
       next: (dbProducts) => {
-        console.log('Products received from backend:', dbProducts);
-        console.log('Number of products:', dbProducts?.length);
-        
-        const mappedProducts = this.mapDatabaseProducts(dbProducts);
-        console.log('Mapped products:', mappedProducts);
-        
-        const shuffled = mappedProducts.sort(() => Math.random() - 0.5);
-        this.products = shuffled.slice(0, 5);
-        
-        console.log('Final products to display:', this.products);
-        
+        if (!dbProducts || dbProducts.length === 0) {
+          this.error = 'No products available at the moment.';
+          this.loading = false;
+          return;
+        }
+
+        // Sort by rating as fallback to determine "best sellers"
+        const sorted = [...dbProducts].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        const top = sorted.slice(0, 8);
+
+        this.products = this.mapDatabaseProducts(top);
+
         if (this.products.length > 0) {
           this.products[0].isHero = true;
         }
 
         this.loading = false;
-        
-        setTimeout(() => this.animateSoldCounts(), 1000);
+        setTimeout(() => {
+          this.animateEntrance();
+          this.animateSoldCounts();
+        }, 100);
       },
-      error: (error) => {
-        console.error('Error loading best selling products:', error);
+      error: (err) => {
+        console.error('Error loading products:', err);
         this.error = 'Unable to load products. Please make sure the backend is running.';
         this.loading = false;
       }
@@ -94,120 +96,84 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.add(sub);
   }
 
+  /** Fallback mapper for plain products without sold data */
   mapDatabaseProducts(dbProducts: any[]): BestSellerProduct[] {
-    if (!dbProducts || dbProducts.length === 0) {
-      return [];
-    }
+    if (!dbProducts || dbProducts.length === 0) return [];
+
+    const badgeTypes: ('trend' | 'hot' | 'sale')[] = ['trend', 'hot', 'sale'];
+    const maxRating = Math.max(...dbProducts.map(p => p.rating || 0), 1);
 
     return dbProducts.map((dbProduct: any, index: number) => {
       const price = this.extractPrice(dbProduct);
-      const badgeTypes: ('trend' | 'hot' | 'sale')[] = ['trend', 'hot', 'sale'];
-      
+      const rating = dbProduct.rating || 4;
+      const soldCount = Math.round(rating * 25);
+      const soldPercentage = Math.round((rating / maxRating) * 100);
+
       const product: BestSellerProduct = {
         id: dbProduct.idProduct,
         name: dbProduct.name,
+        description: dbProduct.description,
         price: price || 0,
-        image: this.getPrimaryImage(dbProduct.images),
-        rating: Math.floor(dbProduct.rating || 4),
+        image: this.getPrimaryImage(dbProduct.images, dbProduct.imageUrl),
+        rating: Math.floor(rating),
         colors: this.getColors(dbProduct.variants),
         category: dbProduct.category?.name || 'Collection',
         badge: badgeTypes[index % badgeTypes.length],
-        soldCount: Math.floor(Math.random() * 300) + 100,
-        soldPercentage: Math.floor(Math.random() * 50) + 50,
-        reviews: Math.floor(Math.random() * 400) + 100
+        soldCount,
+        soldPercentage,
+        reviews: Math.floor(rating * 18)
       };
 
       const oldPrice = this.getOldPrice(dbProduct.variants);
-      if (oldPrice !== undefined) {
-        product.oldPrice = oldPrice;
-      }
+      if (oldPrice !== undefined) product.oldPrice = oldPrice;
 
       const discount = this.calculateDiscount(dbProduct.variants);
-      if (discount !== undefined) {
-        product.discount = discount;
-      }
+      if (discount !== undefined) product.discount = discount;
 
-      if (this.isNewProduct(dbProduct.createdAt)) {
-        product.isNew = true;
-      }
+      if (this.isNewProduct(dbProduct.createdAt)) product.isNew = true;
 
       return product;
     });
   }
 
-  extractCategory(dbProduct: any): string {
-    // Try to extract category from product data
-    if (dbProduct.category) return dbProduct.category;
-    if (dbProduct.categoryName) return dbProduct.categoryName;
-    if (dbProduct.category_name) return dbProduct.category_name;
-    return 'Collection';
-  }
-
   extractPrice(p: any): number {
-    // Handle BigDecimal from backend
     if (p.price !== undefined && p.price !== null) {
-      if (typeof p.price === 'number') {
-        return p.price;
-      }
-      if (typeof p.price === 'object' && p.price.toNumber) {
-        return p.price.toNumber();
-      }
-      if (typeof p.price === 'string') {
-        return parseFloat(p.price.replace(',', '.'));
-      }
+      if (typeof p.price === 'number') return p.price;
+      if (typeof p.price === 'object' && p.price.toNumber) return p.price.toNumber();
+      if (typeof p.price === 'string') return parseFloat(p.price.replace(',', '.'));
     }
-    
-    // Fallback to variant prices
     const variantPrice = this.getMinPrice(p.variants);
     if (variantPrice > 0) return variantPrice;
-
     return 0;
   }
 
-  getPrimaryImage(images: any[]): string {
-    if (!images || images.length === 0) {
-      return 'assets/images/no-product-image.jpg';
+  getPrimaryImage(images: any[], fallbackUrl?: string): string {
+    if (images && images.length > 0) {
+      const primary = images.find(img => img.isPrimary === true || img.is_primary === true);
+      if (primary?.imageUrl) return primary.imageUrl;
+      if (images[0]?.imageUrl) return images[0].imageUrl;
     }
-
-    const primaryImage = images.find(img => img.isPrimary === true || img.is_primary === true);
-    if (primaryImage?.imageUrl) {
-      return primaryImage.imageUrl;
-    }
-
-    if (images[0]?.imageUrl) {
-      return images[0].imageUrl;
-    }
-
+    if (fallbackUrl) return fallbackUrl;
     return 'assets/images/no-product-image.jpg';
   }
 
   getMinPrice(variants: any[]): number {
     if (!variants || variants.length === 0) return 0;
-
     const prices = variants
       .map(v => parseFloat(v.totalPrice) || parseFloat(v.price))
       .filter(p => !isNaN(p) && p > 0);
-
     return prices.length > 0 ? Math.min(...prices) : 0;
   }
 
   getOldPrice(variants: any[]): number | undefined {
     if (!variants || variants.length === 0) return undefined;
-
-    const v = variants.find(v =>
-      v.oldPrice && parseFloat(v.oldPrice) > parseFloat(v.price)
-    );
-
+    const v = variants.find(v => v.oldPrice && parseFloat(v.oldPrice) > parseFloat(v.price));
     return v ? parseFloat(v.oldPrice) : undefined;
   }
 
   getColors(variants: any[]): string[] {
     if (!variants || variants.length === 0) return ['#CCCCCC'];
-
-    const uniqueColors = [...new Set(
-      variants.map(v => v.color).filter(c => !!c)
-    )];
-
+    const uniqueColors = [...new Set(variants.map(v => v.color).filter(c => !!c))];
     return uniqueColors.length > 0
       ? uniqueColors.map(color => this.colorNameToHex(color))
       : ['#CCCCCC'];
@@ -224,7 +190,6 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
       'Olive': '#808000', 'Lime': '#00FF00', 'Aqua': '#00FFFF',
       'Teal': '#008080', 'Fuchsia': '#FF00FF', 'Khaki': '#C3B091'
     };
-
     return colorMap[colorName]
       || colorMap[colorName.charAt(0).toUpperCase() + colorName.slice(1).toLowerCase()]
       || colorName
@@ -233,23 +198,17 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
 
   calculateDiscount(variants: any[]): number | undefined {
     if (!variants || variants.length === 0) return undefined;
-
-    const v = variants.find(v =>
-      v.oldPrice && parseFloat(v.oldPrice) > parseFloat(v.price)
-    );
-
+    const v = variants.find(v => v.oldPrice && parseFloat(v.oldPrice) > parseFloat(v.price));
     if (v) {
       const oldPrice = parseFloat(v.oldPrice);
       const currentPrice = parseFloat(v.price);
       return Math.round(((oldPrice - currentPrice) / oldPrice) * 100);
     }
-
     return undefined;
   }
 
   isNewProduct(createdAt: string | Date): boolean {
     if (!createdAt) return false;
-
     try {
       const productDate = new Date(createdAt);
       const thirtyDaysAgo = new Date();
@@ -302,9 +261,7 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getFilteredProducts(): BestSellerProduct[] {
-    if (this.activeFilter === 'all') {
-      return this.products;
-    }
+    if (this.activeFilter === 'all') return this.products;
     return this.products.filter(p => p.badge === this.activeFilter);
   }
 
@@ -315,9 +272,7 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
   showToast(message: string): void {
     this.toastMessage = message;
     this.toastVisible = true;
-    setTimeout(() => {
-      this.toastVisible = false;
-    }, 2800);
+    setTimeout(() => { this.toastVisible = false; }, 2800);
   }
 
   animateEntrance(): void {
@@ -326,23 +281,27 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
       (card as HTMLElement).style.setProperty('--stagger', `${index * 0.1}s`);
       setTimeout(() => {
         card.classList.add('is-visible');
-      }, 100);
+      }, 50 + index * 80);
     });
   }
 
   animateSoldCounts(): void {
-    this.products.forEach((product, index) => {
+    this.products.forEach((product) => {
       const interval = setInterval(() => {
-        const delta = Math.random() < 0.15 ? Math.floor(Math.random() * 3) : 0;
-        if (delta > 0) {
-          product.soldCount += delta;
+        // Gently tick up sold counts every 10–15s for engagement
+        if (Math.random() < 0.12) {
+          product.soldCount += 1;
         }
-      }, 8000 + Math.random() * 4000);
+      }, 10000 + Math.random() * 5000);
       this.soldCountIntervals.push(interval);
     });
   }
 
   viewAllProducts(): void {
     this.router.navigate(['/list-article', 'all']);
+  }
+
+  viewProduct(product: BestSellerProduct): void {
+    this.router.navigate(['/article', product.id]);
   }
 }

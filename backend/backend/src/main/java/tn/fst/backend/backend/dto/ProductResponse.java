@@ -10,6 +10,9 @@ public class ProductResponse {
     private Long idProduct;
     private String name;
     private String description;
+    private String color;
+    private String size;
+    private String imageUrl;
     private CategoryResponse category;
     private List<ProductVariantResponse> variants;
     private List<ProductImageResponse> images;
@@ -63,12 +66,15 @@ public class ProductResponse {
 
         if (product.getCategory() != null) {
             var cat = product.getCategory();
-            response.setCategory(CategoryResponse.of(cat.getIdCategory(), cat.getName(), cat.getDescription()));
+            response.setCategory(CategoryResponse.of(cat.getIdCategory(), cat.getName(), cat.getDescription(), cat.getImage()));
         }
         response.setCreatedAt(product.getCreatedAt());
         response.setRating(product.getRating());
         response.setPrice(product.getPrice());
         response.setStock(product.getStock());
+        response.setColor(product.getColor());
+        response.setSize(product.getSize());
+        response.setImageUrl(product.getImageUrl());
         return response;
     }
 
@@ -150,5 +156,29 @@ public class ProductResponse {
 
     public void setStock(Integer stock) {
         this.stock = stock;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

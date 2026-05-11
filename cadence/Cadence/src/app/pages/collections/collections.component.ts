@@ -26,12 +26,14 @@ export class CollectionsComponent implements OnInit {
     this.loading = true;
     this.services.getAllCategories().subscribe({
       next: (data: any[]) => {
-        console.log('✅ Categories:', data);
+        console.log(' Categories:', data);
         const imageMap: { [key: number]: string } = {
-          4: 'https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=800&h=600&fit=crop',
-          3: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=800&h=600&fit=crop',
-          2: 'https://images.unsplash.com/photo-1445205170230-053b83016050',
-          1: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&h=600&fit=crop'
+          9: 'https://i.imgur.com/hybotyb_d.jpeg?maxwidth=520&shape=thumb&fidelity=high',
+          5: 'https://i.imgur.com/Mopl9DD_d.jpeg?maxwidth=520&shape=thumb&fidelity=high',
+          4: 'https://i.imgur.com/5lqvCZt.jpeg',
+          8: 'https://i.imgur.com/otXElq0.jpeg',
+          2: 'https://i.imgur.com/Rf1IdQB.jpeg',
+          1: 'https://i.imgur.com/8jcPbrF.jpeg'
         };
 
         this.categories = data.map(cat => {
@@ -45,7 +47,7 @@ export class CollectionsComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        console.error('❌ Error loading categories:', err);
+        console.error('Error loading categories:', err);
         this.error = 'Unable to load categories.';
         this.loading = false;
       }

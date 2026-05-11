@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import tn.fst.backend.backend.dto.BestSellerResponse;
 import tn.fst.backend.backend.dto.ProductResponse;
 import tn.fst.backend.backend.entity.Product;
 import tn.fst.backend.backend.service.ProductService;
@@ -61,6 +62,12 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/best-sellers")
+    public ResponseEntity<List<BestSellerResponse>> getBestSellers(
+            @RequestParam(defaultValue = "8") int limit) {
+        return ResponseEntity.ok(productService.getBestSellers(limit));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
         Product product = productService.getProductById(id);
@@ -69,21 +76,18 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> createProduct(@RequestBody Product product) {
         Product created = productService.createProduct(product);
         return ResponseEntity.ok(ProductResponse.fromEntity(created));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id, @RequestBody Product product) {
         Product updated = productService.updateProduct(id, product);
         return ResponseEntity.ok(ProductResponse.fromEntity(updated));

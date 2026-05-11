@@ -23,6 +23,8 @@ export class OrdersComponent implements OnInit {
   shipments: Shipment[] = [];
   selectedStatusByOrder: Record<number, AdminOrder['status']> = {};
   selectedTransporterByOrder: Record<number, number | null> = {};
+  isSaving: Record<number, boolean> = {};
+  showSuccess: Record<number, boolean> = {};
 
   isPreviewOpen = false;
   selectedOrder: AdminOrder | null = null;
@@ -43,6 +45,12 @@ export class OrdersComponent implements OnInit {
         this.orders = orders;
         this.orders.forEach(order => {
           this.selectedStatusByOrder[order.orderId] = order.status;
+          if (order.transporterName && this.transporters.length) {
+            const transporter = this.transporters.find(t => t.name === order.transporterName);
+            if (transporter) {
+              this.selectedTransporterByOrder[order.orderId] = transporter.id;
+            }
+          }
         });
         this.isLoading = false;
       },
@@ -57,6 +65,20 @@ export class OrdersComponent implements OnInit {
     this.adminService.getTransporters().subscribe({
       next: (transporters) => {
         this.transporters = transporters.filter(t => t.status !== 'inactive');
+        
+        // Sync with already loaded orders
+        if (this.orders.length) {
+          this.orders.forEach(order => {
+            if (order.transporterName) {
+              const transporter = this.transporters.find(t => t.name === order.transporterName);
+              if (transporter) {
+                this.selectedTransporterByOrder[order.orderId] = transporter.id;
+              }
+            }
+          });
+        }
+        
+        this.syncTransporterSelection();
       }
     });
   }
@@ -65,6 +87,20 @@ export class OrdersComponent implements OnInit {
     this.adminService.getShipments().subscribe({
       next: (shipments) => {
         this.shipments = shipments;
+        this.syncTransporterSelection();
+      }
+    });
+  }
+
+  syncTransporterSelection(): void {
+    if (!this.transporters.length || !this.shipments.length) return;
+    
+    this.shipments.forEach(s => {
+      if (s.orderId && s.carrier) {
+        const transporter = this.transporters.find(t => t.name === s.carrier);
+        if (transporter) {
+          this.selectedTransporterByOrder[s.orderId] = transporter.id;
+        }
       }
     });
   }
@@ -91,37 +127,25 @@ export class OrdersComponent implements OnInit {
     const transporter = this.transporters.find(t => t.id === selectedTransporterId);
     const existingShipment = this.shipments.find(s => s.orderId === order.orderId);
 
-    this.adminService.updateOrderStatus(order.orderId, selectedStatus).subscribe({
-      next: () => {
+    this.isSaving[order.orderId] = true;
+    this.adminService.adminUpdateOrder(order.orderId, selectedStatus, selectedTransporterId).subscribe({
+      next: (updatedOrder) => {
         order.status = selectedStatus;
-
-        if (!transporter) {
-          return;
+        order.transporterName = updatedOrder.shipment?.carrier || transporter?.name || order.transporterName;
+        
+        // Update selection state explicitly
+        if (selectedTransporterId) {
+          this.selectedTransporterByOrder[order.orderId] = selectedTransporterId;
         }
 
-        const shipmentPayload: any = {
-          carrier: transporter.name,
-          status: selectedStatus,
-          dateShip: new Date().toISOString().split('T')[0],
-          shippingMethod: 'STANDARD',
-          order: { idOrder: order.orderId }
-        };
-
-        const shipmentRequest = existingShipment
-          ? this.adminService.updateShipment(existingShipment.idShip, shipmentPayload)
-          : this.adminService.createShipment(shipmentPayload);
-
-        shipmentRequest.subscribe({
-          next: () => {
-            order.transporterName = transporter.name;
-            this.loadShipments();
-          },
-          error: () => {
-            this.error = 'Order status updated, but transporter assignment failed.';
-          }
-        });
+        this.isSaving[order.orderId] = false;
+        this.showSuccess[order.orderId] = true;
+        setTimeout(() => this.showSuccess[order.orderId] = false, 3000);
+        
+        this.loadShipments(); // Refresh shipments list to stay in sync
       },
       error: () => {
+        this.isSaving[order.orderId] = false;
         this.error = `Could not update ${order.id}.`;
       }
     });

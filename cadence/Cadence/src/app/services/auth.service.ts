@@ -39,6 +39,8 @@ export class AuthService {
     }
 
     const decoded = this.decodeToken(token);
+    console.log('Decoded token:', decoded);
+    console.log('Role from token:', decoded?.role);
     return decoded?.role || null;
   }
 

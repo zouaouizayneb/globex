@@ -173,13 +173,16 @@ export class LoginComponent implements OnInit {
   private validateRegisterForm(): boolean {
     const checks: { condition: boolean; message: string }[] = [
       { condition: !this.regFullname.trim(),                          message: 'Please enter your full name.' },
+      { condition: !this.regUsername.trim(),                          message: 'Please enter a username.' },
+      { condition: this.regUsername.trim().length < 3,                message: 'Username must be at least 3 characters.' },
+      { condition: this.regUsername.trim().length > 20,               message: 'Username must be less than 20 characters.' },
       { condition: !this.regEmail.trim(),                             message: 'Please enter your email address.' },
       { condition: !this.isValidEmail(this.regEmail),                 message: 'Please enter a valid email address.' },
       { condition: !this.regPhone.trim(),                             message: 'Please enter your phone number.' },
       { condition: !this.isValidPhone(this.regPhone),                 message: 'Please enter a valid phone number.' },
       { condition: !this.regAddress.trim(),                           message: 'Please enter your address.' },
       { condition: !this.regCountry.trim(),                           message: 'Please enter your country.' },
-      { condition: !this.regPassword,                                 message: 'Please enter a password.' },
+      { condition: !this.regPassword,                                 message: 'Please enter your password.' },
       { condition: !this.isStrongPassword(this.regPassword),          message: 'Password must be at least 6 characters.' },
       { condition: !this.regConfirmPassword,                          message: 'Please confirm your password.' },
       { condition: this.regPassword !== this.regConfirmPassword,      message: 'Passwords do not match.' },

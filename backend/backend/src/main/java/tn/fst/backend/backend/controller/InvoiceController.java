@@ -89,7 +89,7 @@ public class InvoiceController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
-        if (!invoice.getPdfGenerated() || invoice.getPdfPath() == null) {
+        if (invoice.getPdfPath() == null) {
             return ResponseEntity.notFound().build();
         }
 

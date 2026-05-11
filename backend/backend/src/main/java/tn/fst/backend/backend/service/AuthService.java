@@ -34,12 +34,19 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+    private final EmailValidationService emailValidationService;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
+        // Validate email format and check if domain has valid MX records
+        // Temporarily disabled MX validation to prevent blocking legitimate registrations
+        // if (!emailValidationService.isValidEmail(request.getEmail())) {
+        //     throw new IllegalArgumentException("Invalid email address or email domain does not exist");
+        // }
+
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
@@ -80,7 +87,15 @@ public class AuthService {
         }
 
         String verificationLink = baseUrl + "/api/auth/verify-email?token=" + verificationToken;
-        emailService.sendVerificationEmail(user.getEmail(), verificationLink);
+        System.out.println("Sending verification email to: " + user.getEmail());
+        System.out.println("Verification link: " + verificationLink);
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), verificationLink);
+            System.out.println("Verification email sent successfully");
+        } catch (Exception e) {
+            System.err.println("Failed to send verification email: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         String token = jwtUtil.generateToken(user);
         return AuthResponse.builder()

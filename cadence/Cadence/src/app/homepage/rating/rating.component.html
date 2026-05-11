@@ -1,51 +1,82 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Client Testimonials</title>
-</head>
-<body>
-  <section class="testimonial-section">
-    <div class="testimonial-content">
-      <p class="subtitle">Client Testimonials</p>
-      <h2 class="title">Customer Stories: Hear What Our Clients Say</h2>
-      <div class="underline"></div>
-      <p class="description">
-        Discover firsthand experiences from our satisfied customers.
-        Read testimonials that showcase the impact of our candles on their lives and spaces.
-      </p>
-    </div>
+<section class="testimonial-section">
 
-    <div class="testimonial-cards">
-      <div class="card card-top">
-        <div class="card-header">
-          <img src="//cadence-workdo.myshopify.com/cdn/shop/files/testimonial-1.png?v=1717672800" alt="Client Photo">
-          <div class="client-info">
-            <h3>Harper & Co. Interior Design</h3>
-            <div class="stars">★ ★ ★ ★ ☆</div>
-          </div>
-        </div>
-        <p class="testimonial-text">
-          "The range of products available is extensive, and the detailed product descriptions and specifications provided helped me make an..."
-        </p>
-      </div>
+  <!-- Left panel -->
+  <div class="left-panel">
+    <div class="left-top">
+      <span class="eyebrow">Verified Reviews</span>
+      <h2 class="heading">Loved by<br><em>thousands</em><br>of shoppers.</h2>
 
-      <div class="card card-bottom">
-        <div class="card-header">
-          <img src="//cadence-workdo.myshopify.com/cdn/shop/files/testimonial-2.png?v=1717672800" alt="Client Photo">
-          <div class="client-info">
-            <h3>Home Decor Enthusiast</h3>
-            <div class="stars">★ ★ ★ ★ ☆</div>
-          </div>
+      <div class="stat-row">
+        <div class="stat">
+          <span class="stat-number">4.9</span>
+          <span class="stat-label">Average Rating</span>
         </div>
-        <p class="testimonial-text">
-          "The website’s layout is intuitive, making it easy to find the latest gadgets and electronics. I recently purchased a speaker from Techno, and I was..."
-        </p>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-number">2k+</span>
+          <span class="stat-label">Happy Clients</span>
+        </div>
       </div>
     </div>
-  </section>
-</body>
-</html>
+
+    <!-- Dot navigation -->
+    <div class="dot-nav">
+      <button
+        *ngFor="let t of testimonials; let i = index"
+        class="dot"
+        [class.active]="i === activeIndex"
+        (click)="goTo(i)"
+        [attr.aria-label]="'Go to review ' + (i + 1)"
+      ></button>
+      <span class="counter">{{ activeIndex + 1 }}&nbsp;/&nbsp;{{ testimonials.length }}</span>
+    </div>
+  </div>
+
+  <!-- Right panel: carousel -->
+  <div class="right-panel">
+    <div class="testimonial-track">
+      <div
+        *ngFor="let t of testimonials; let i = index"
+        class="testimonial-slide"
+        [class.visible]="i === activeIndex"
+        [class.exit]="i === exitIndex"
+      >
+        <!-- Category badge -->
+        <div class="category-badge">
+          <span class="category-icon">{{ t.categoryIcon }}</span>
+          <span class="category-label">{{ t.category }}</span>
+        </div>
+
+        <!-- Stars -->
+        <div class="star-row">
+          <span *ngFor="let s of getStars(t.rating)"     class="star filled">★</span>
+          <span *ngFor="let s of getEmptyStars(t.rating)" class="star empty">★</span>
+        </div>
+
+        <!-- Quote -->
+        <p class="quote-text">"{{ t.text }}"</p>
+
+        <!-- Author -->
+        <div class="author-row">
+          <div class="monogram">{{ t.initials }}</div>
+          <div class="author-info">
+            <span class="author-name">{{ t.name }}</span>
+            <span class="author-meta">Verified Purchase &middot; {{ t.date }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-bar">
+      <div
+        class="progress-fill"
+        [style.animation-duration]="intervalMs + 'ms'"
+        [class.running]="isRunning"
+      ></div>
+    </div>
+  </div>
+
+</section>
 
 

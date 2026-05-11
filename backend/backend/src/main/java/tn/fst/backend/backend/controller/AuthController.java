@@ -1,14 +1,18 @@
 package tn.fst.backend.backend.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import tn.fst.backend.backend.config.RateLimiterConfig;
 import tn.fst.backend.backend.dto.*;
 import tn.fst.backend.backend.entity.User;
 import tn.fst.backend.backend.service.AuthService;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -17,6 +21,7 @@ import tn.fst.backend.backend.service.AuthService;
 public class AuthController {
 
     private final AuthService authService;
+    private final RateLimiterConfig rateLimiterConfig;
 
     /**
      * Returns the currently authenticated user (requires valid JWT).
@@ -37,7 +42,19 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        // Get client IP address for rate limiting
+        String clientIp = getClientIp(httpRequest);
+        
+        // Check rate limit: 5 attempts per 15 minutes per IP
+        if (!rateLimiterConfig.tryConsume(clientIp)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(Map.of(
+                            "message", "Too many login attempts. Please try again after 15 minutes.",
+                            "remainingAttempts", rateLimiterConfig.getRemainingTokens(clientIp)
+                    ));
+        }
+        
         return ResponseEntity.ok(authService.login(request));
     }
 
@@ -57,5 +74,26 @@ public class AuthController {
     public ResponseEntity<MessageResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         MessageResponse response = authService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Extract client IP address from HttpServletRequest
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        // For multiple proxies, take the first IP
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip;
     }
 }

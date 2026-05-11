@@ -54,7 +54,7 @@ public class AccountingAutomationService {
                         .referenceType("INVOICE")
                         .referenceId(invoice.getIdInvoice())
                         .amount(invoice.getTotalAmount())
-                        .currency(invoice.getCurrency() != null ? invoice.getCurrency() : "TND")
+                        .currency("TND")
                         .description(description)
                         .build()
         );

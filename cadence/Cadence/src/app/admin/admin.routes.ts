@@ -10,6 +10,7 @@ import { ShipmentsComponent } from './pages/shipments/shipments.component';
 import { TransporteursComponent } from './pages/transporteurs/transporteurs.component';
 import { SuppliersComponent } from './pages/suppliers/suppliers.component';
 import { InvoicesComponent } from './pages/invoices/invoices.component';
+import { AdminAccountComponent } from './pages/admin-account/admin-account.component';
 
 export const adminRoutes: Routes = [
   {
@@ -26,7 +27,8 @@ export const adminRoutes: Routes = [
       { path: 'categories', component: CategoriesComponent },
       { path: 'stock-management', component: StockManagementComponent },
       { path: 'transporteurs', component: TransporteursComponent },
-      { path: 'suppliers', component: SuppliersComponent }
+      { path: 'suppliers', component: SuppliersComponent },
+      { path: 'account', component: AdminAccountComponent }
     ]
   }
 ];

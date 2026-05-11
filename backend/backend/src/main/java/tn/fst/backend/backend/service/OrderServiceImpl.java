@@ -1,6 +1,7 @@
 package tn.fst.backend.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.fst.backend.backend.dto.*;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
@@ -33,6 +35,9 @@ public class OrderServiceImpl implements OrderService {
     private final ClientRepository clientRepository;
     private final TransporteurRepository transporteurRepository;
     private final InvoiceService invoiceService;
+    private final EmailService emailService;
+    private final NotificationService notificationService;
+    private final InventoryService inventoryService;
 
     @Override
     @Transactional(readOnly = true)
@@ -169,7 +174,10 @@ public class OrderServiceImpl implements OrderService {
 
         // Annuler la commande
         order.setStatus(OrderStatus.CANCELLED);
-        orderRepository.save(order);
+        order = orderRepository.save(order);
+
+        // Send notification
+        emailService.sendOrderStatusEmail(order);
 
         // Restaurer le stock
         restoreStock(order);
@@ -249,7 +257,10 @@ public class OrderServiceImpl implements OrderService {
 
         // Mettre à jour le statut de la commande
         order.setStatus(OrderStatus.REFUNDED);
-        orderRepository.save(order);
+        order = orderRepository.save(order);
+
+        // Send notification
+        emailService.sendOrderStatusEmail(order);
 
         // Restaurer le stock
         restoreStock(order);
@@ -347,7 +358,7 @@ public class OrderServiceImpl implements OrderService {
 
                 orderDetailRepository.save(detail);
 
-                // Deduct stock if variant is present
+                // Deduct stock if variant is present and log stock movement
                 if (variant != null && variant.getStockQuantity() != null) {
                     variant.setStockQuantity(Math.max(0, variant.getStockQuantity() - item.getQuantity()));
                     variantRepository.save(variant);
@@ -356,6 +367,14 @@ public class OrderServiceImpl implements OrderService {
                         stock.setQuantity(Math.max(0, stock.getQuantity() - item.getQuantity()));
                         stockRepository.save(stock);
                     });
+
+                    // Fix 2: Record stock movement history (SALE type)
+                    try {
+                        inventoryService.recordSale(variant.getIdVariant(), item.getQuantity(), order.getIdOrder());
+                        log.info("Stock movement recorded for variant #{} (qty: {})", variant.getIdVariant(), item.getQuantity());
+                    } catch (Exception e) {
+                        log.warn("Failed to record stock movement for variant #{}: {}", variant.getIdVariant(), e.getMessage());
+                    }
                 }
             }
         }
@@ -380,13 +399,45 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        paymentRepository.save(payment);
+        paymentRepository.saveAndFlush(payment);
+        log.info("Payment record created for order #{}", order.getIdOrder());
 
-        // Automation: sale -> create invoice
+        // Fix 1 & 3: Automation — create invoice record AND generate PDF immediately
         try {
-            invoiceService.issueDate(order.getIdOrder());
-        } catch (Exception ignored) {
+            InvoiceResponse invoiceResp = invoiceService.issueDate(order.getIdOrder());
+            log.info("Invoice automatically generated for order #{}", order.getIdOrder());
+            // Generate the PDF immediately so it's available for download
+            try {
+                invoiceService.ensureInvoicePdf(invoiceResp.getIdInvoice());
+                log.info("Invoice PDF generated for invoice #{}", invoiceResp.getIdInvoice());
+            } catch (Exception pdfEx) {
+                log.warn("Invoice PDF generation failed for invoice #{}: {}", invoiceResp.getIdInvoice(), pdfEx.getMessage());
+            }
+        } catch (Exception e) {
+            log.error("Failed to automatically generate invoice for order #{}: {}", order.getIdOrder(), e.getMessage());
             // Keep checkout/sale flow successful even if invoice generation fails.
+        }
+
+        // Fix 4: Notify all admins — in-app notification + email
+        try {
+            List<User> admins = userRepository.findByRole(Role.ADMIN);
+            String orderMsg = "Nouvelle commande #" + order.getIdOrder()
+                    + " — " + order.getTotalAmount() + " TND";
+            for (User admin : admins) {
+                // In-app DB notification
+                Notification notif = new Notification();
+                notif.setType("NEW_ORDER");
+                notif.setMessage(orderMsg);
+                notif.setStatus(Notification.Status.UNREAD);
+                notif.setDateSend(LocalDate.now());
+                notif.setUser(admin);
+                notificationService.createNotification(notif);
+                // Admin email
+                emailService.sendNewOrderAdminEmail(order, admin.getEmail());
+            }
+            log.info("Admin notifications sent for order #{} to {} admin(s)", order.getIdOrder(), admins.size());
+        } catch (Exception e) {
+            log.warn("Failed to send admin notifications for order #{}: {}", order.getIdOrder(), e.getMessage());
         }
 
         return order;
@@ -394,6 +445,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order adminUpdateOrder(Long orderId, OrderStatus status, Transporteur transporteur) {
+        log.info("Admin update order #{} - New status: {}, Transporteur: {}", orderId, status, transporteur != null ? transporteur.getName() : "none");
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
 
@@ -403,6 +455,7 @@ public class OrderServiceImpl implements OrderService {
 
         Shipment shipment = shipmentRepository.findByOrder(order).orElse(null);
         if (transporteur != null) {
+            order.setTransporteur(transporteur);
             if (shipment == null) {
                 shipment = Shipment.builder()
                         .order(order)
@@ -418,7 +471,13 @@ public class OrderServiceImpl implements OrderService {
             shipmentRepository.save(shipment);
         }
 
-        return orderRepository.save(order);
+        order = orderRepository.save(order);
+        log.info("Order #{} saved successfully with status {}", orderId, order.getStatus());
+
+        // Send notification
+        emailService.sendOrderStatusEmail(order);
+
+        return order;
     }
 
     // ==================== HELPER METHODS ====================

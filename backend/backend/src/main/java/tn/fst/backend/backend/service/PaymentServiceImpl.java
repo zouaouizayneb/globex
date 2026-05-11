@@ -246,9 +246,6 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (payment.getStatus() == PaymentStatus.COMPLETED) {
             invoice.setStatus(InvoiceStatus.PAID);
-            if (invoice.getPaidDate() == null) {
-                invoice.setPaidDate(java.time.LocalDate.now());
-            }
         } else if (payment.getStatus() == PaymentStatus.REFUNDED) {
             invoice.setStatus(InvoiceStatus.REFUNDED);
         } else if (payment.getStatus() == PaymentStatus.FAILED) {

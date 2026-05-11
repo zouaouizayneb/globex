@@ -79,9 +79,6 @@
                   {{ transporter.name }}
                 </option>
               </select>
-              <div *ngIf="order.transporterName" style="font-size: 12px; color: #6b7280; margin-top: 4px;">
-                Current: {{ order.transporterName }}
-              </div>
             </td>
             <td>
               <div class="action-buttons">
@@ -91,10 +88,17 @@
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
                 </button>
-                <button class="action-btn download"
-                        (click)="saveOrderUpdates(order)"
-                        title="Save status and transporteur">
-                  Save
+                <button class="save-btn" 
+                        [class.success]="showSuccess[order.orderId]"
+                        [disabled]="isSaving[order.orderId]"
+                        (click)="saveOrderUpdates(order)">
+                  <span *ngIf="!isSaving[order.orderId] && !showSuccess[order.orderId]">Save</span>
+                  <span *ngIf="isSaving[order.orderId]" class="spinner-mini"></span>
+                  <span *ngIf="showSuccess[order.orderId]">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width: 14px; height: 14px;">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </span>
                 </button>
               </div>
             </td>

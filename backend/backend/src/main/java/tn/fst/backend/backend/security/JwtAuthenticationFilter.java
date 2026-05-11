@@ -62,19 +62,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-            filterChain.doFilter(request, response);
         } catch (ExpiredJwtException e) {
-            sendUnauthorized(response, "Token has expired");
+            logger.warn("Token has expired: " + e.getMessage());
+            SecurityContextHolder.clearContext();
         } catch (JwtException | IllegalArgumentException e) {
-            sendUnauthorized(response, "Invalid token");
+            logger.warn("Invalid token: " + e.getMessage());
+            SecurityContextHolder.clearContext();
         } catch (UsernameNotFoundException e) {
-            sendUnauthorized(response, "User no longer exists");
+            logger.warn("User no longer exists: " + e.getMessage());
+            SecurityContextHolder.clearContext();
         }
-    }
-
-    private void sendUnauthorized(HttpServletResponse response, String message) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write(objectMapper.writeValueAsString(Map.of("message", message)));
+        
+        filterChain.doFilter(request, response);
     }
 }

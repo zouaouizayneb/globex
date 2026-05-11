@@ -1,0 +1,211 @@
+<div class="admin-account-container">
+  <div class="page-header">
+    <div>
+      <h1>My Profile</h1>
+      <p>Manage your admin account settings</p>
+    </div>
+  </div>
+
+  <div class="account-layout">
+    <!-- Profile Card -->
+    <div class="card profile-card">
+      <div class="profile-header">
+        <div class="avatar-large">
+          {{ getInitials(adminProfile.fullName) }}
+        </div>
+        <div class="profile-info">
+          <h2>{{ adminProfile.fullName }}</h2>
+          <p class="role">{{ adminProfile.role }}</p>
+          <p class="username">&#64;<span>{{ adminProfile.username }}</span></p>
+        </div>
+      </div>
+
+      <div class="profile-stats">
+        <div class="stat-item">
+          <span class="stat-label">Email</span>
+          <span class="stat-value">{{ adminProfile.email }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Phone</span>
+          <span class="stat-value">{{ adminProfile.phone }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Member Since</span>
+          <span class="stat-value">{{ adminProfile.createdAt | date:'longDate' }}</span>
+        </div>
+      </div>
+
+      <div class="profile-actions">
+        <button class="btn-globex" (click)="enableEdit()" *ngIf="!isEditing">
+          Edit Profile
+        </button>
+        <button class="btn-globex btn-globex-secondary" (click)="openPasswordModal()">
+          Change Password
+        </button>
+      </div>
+    </div>
+
+    <!-- Edit Form Card -->
+    <div class="card edit-card" *ngIf="isEditing">
+      <div class="card-header">
+        <h3>Edit Profile</h3>
+      </div>
+
+      <div class="form-section">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="editForm.fullName" 
+            placeholder="Enter your full name" 
+            class="form-input" 
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Email *</label>
+          <input 
+            type="email" 
+            [(ngModel)]="editForm.email" 
+            placeholder="admin@globex.com" 
+            class="form-input" 
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Phone</label>
+          <input 
+            type="text" 
+            [(ngModel)]="editForm.phone" 
+            placeholder="+216 XX XXX XXX" 
+            class="form-input" 
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Username</label>
+          <input 
+            type="text" 
+            [(ngModel)]="editForm.username" 
+            placeholder="admin" 
+            class="form-input" 
+            disabled
+          />
+          <small class="form-hint">Username cannot be changed</small>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button 
+          class="btn-globex btn-globex-secondary" 
+          (click)="cancelEdit()" 
+          [disabled]="isSaving"
+        >
+          Cancel
+        </button>
+        <button 
+          class="btn-globex" 
+          (click)="saveProfile()" 
+          [disabled]="isSaving || !editForm.fullName.trim() || !editForm.email.trim()"
+        >
+          {{ isSaving ? 'Saving...' : 'Save Changes' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Account Security Card -->
+    <div class="card security-card">
+      <div class="card-header">
+        <h3>Account Security</h3>
+      </div>
+
+      <div class="security-info">
+        <div class="security-item">
+          <div class="security-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <div class="security-details">
+            <h4>Password</h4>
+            <p>Last changed: Never</p>
+          </div>
+          <button class="btn-globex btn-globex-sm" (click)="openPasswordModal()">
+            Change
+          </button>
+        </div>
+
+        <div class="security-item">
+          <div class="security-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </div>
+          <div class="security-details">
+            <h4>Two-Factor Authentication</h4>
+            <p>Not enabled</p>
+          </div>
+          <button class="btn-globex btn-globex-secondary btn-globex-sm" disabled>
+            Coming Soon
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Modal -->
+  <div class="modal-overlay" *ngIf="showPasswordModal" (click)="closePasswordModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Change Password</h2>
+        <button class="close-btn" (click)="closePasswordModal()">✕</button>
+      </div>
+
+      <div class="modal-content">
+        <div class="form-group">
+          <label>Current Password *</label>
+          <input 
+            type="password" 
+            [(ngModel)]="currentPassword" 
+            placeholder="Enter current password" 
+            class="form-input" 
+          />
+        </div>
+
+        <div class="form-group">
+          <label>New Password *</label>
+          <input 
+            type="password" 
+            [(ngModel)]="newPassword" 
+            placeholder="Enter new password (min 6 characters)" 
+            class="form-input" 
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Confirm New Password *</label>
+          <input 
+            type="password" 
+            [(ngModel)]="confirmPassword" 
+            placeholder="Confirm new password" 
+            class="form-input" 
+          />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-globex btn-globex-secondary" (click)="closePasswordModal()">
+          Cancel
+        </button>
+        <button 
+          class="btn-globex" 
+          (click)="changePassword()"
+          [disabled]="!currentPassword || !newPassword || !confirmPassword"
+        >
+          Change Password
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

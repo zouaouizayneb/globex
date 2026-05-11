@@ -26,11 +26,24 @@ export class NavBarComponent implements OnInit {
 
   allProducts: any[] = [];
   allCategories: any[] = [];
+  featuredProducts: any[] = [];
+  exampleProducts: any[] = [];
 
   categorizedSearchResults = {
     products: [] as any[],
-    categories: [] as any[]
+    categories: [] as any[],
+    pages: [] as any[]
   };
+
+  allPages = [
+    { name: 'About Us', url: '/about-us' },
+    { name: 'Contact', url: '/contact' },
+    { name: 'FAQ', url: '/faq' },
+    { name: 'Shipping And Return', url: '/shipping' },
+    { name: 'Home', url: '/' },
+    { name: 'Collections', url: '/collections' },
+    { name: 'Article Page', url: '/articlepage' }
+  ];
 
   private homeCloseTimer: any;
   private shopAllCloseTimer: any;
@@ -92,9 +105,13 @@ export class NavBarComponent implements OnInit {
   loadSearchData() {
     this.services.getAllProducts().subscribe(products => {
       this.allProducts = products;
+      this.exampleProducts = products.slice(0, 4);
     });
     this.services.getAllCategories().subscribe(categories => {
       this.allCategories = categories;
+    });
+    this.services.getFeaturedProducts(4).subscribe(products => {
+      this.featuredProducts = products;
     });
   }
 
@@ -111,12 +128,38 @@ export class NavBarComponent implements OnInit {
   }
 
   async getCategories() {
-    this.categories = [
-        { id: 4, label: 'Agriculture', image: 'https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=800&h=600&fit=crop' },
-        { id: 3, label: 'Home & garden', image: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=800&h=600&fit=crop' },
-        { id: 2, label: 'Clothing', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050' },
-        { id: 1, label: 'Electronics', image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&h=600&fit=crop' }
-    ];
+    this.services.getAllCategories().subscribe(
+      (categories) => {
+        console.log('Categories received from backend:', categories);
+        console.log('Total categories count:', categories.length);
+        this.categories = categories.map(cat => ({
+          id: cat.id || cat.idCategory,
+          label: cat.name || cat.label,
+          image: cat.image || this.getDefaultImage(cat.name || cat.label)
+        }));
+        console.log('Mapped categories:', this.categories);
+      },
+      (error) => {
+        console.error('Error fetching categories:', error);
+        // Fallback to hardcoded categories if backend fails
+        this.categories = [
+          { id: 4, label: 'Agriculture', image: 'https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=800&h=600&fit=crop' },
+          { id: 3, label: 'Home & garden', image: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=800&h=600&fit=crop' },
+          { id: 2, label: 'Clothing', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050' },
+          { id: 1, label: 'Electronics', image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&h=600&fit=crop' }
+        ];
+      }
+    );
+  }
+
+  private getDefaultImage(categoryName: string): string {
+    const defaultImages: { [key: string]: string } = {
+      'Agriculture': 'https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=800&h=600&fit=crop',
+      'Home & garden': 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=800&h=600&fit=crop',
+      'Clothing': 'https://images.unsplash.com/photo-1445205170230-053b83016050',
+      'Electronics': 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&h=600&fit=crop'
+    };
+    return defaultImages[categoryName] || 'https://via.placeholder.com/150';
   }
 
   showHome() {
@@ -303,32 +346,40 @@ export class NavBarComponent implements OnInit {
       this.searchResults = [];
       this.categorizedSearchResults.products = [];
       this.categorizedSearchResults.categories = [];
+      this.categorizedSearchResults.pages = [];
     }
   }
 
   onSearch() {
-    if (!this.searchQuery.trim()) {
+    const query = this.searchQuery ? this.searchQuery.trim() : '';
+    if (!query) {
       this.categorizedSearchResults.products = [];
       this.categorizedSearchResults.categories = [];
+      this.categorizedSearchResults.pages = [];
       this.searchResults = [];
       return;
     }
 
     this.isSearching = true;
+    const q = query.toLowerCase();
 
-    const q = this.searchQuery.toLowerCase();
-    
-    this.categorizedSearchResults.products = this.allProducts.filter(p => {
-      const nameMatch = p.name && p.name.toLowerCase().includes(q);
-      const skuMatch = p.sku && p.sku.toLowerCase().includes(q);
-      const descMatch = p.description && p.description.toLowerCase().includes(q);
+    this.categorizedSearchResults.products = (this.allProducts || []).filter(p => {
+      if (!p) return false;
+      const nameMatch = p.name && String(p.name).toLowerCase().includes(q);
+      const skuMatch = p.sku && String(p.sku).toLowerCase().includes(q);
+      const descMatch = p.description && String(p.description).toLowerCase().includes(q);
       return nameMatch || skuMatch || descMatch;
     }).slice(0, 5);
 
-    this.categorizedSearchResults.categories = this.allCategories.filter(c => {
-      const nameMatch = c.name && c.name.toLowerCase().includes(q);
-      const labelMatch = c.label && c.label.toLowerCase().includes(q);
+    this.categorizedSearchResults.categories = (this.allCategories || []).filter(c => {
+      if (!c) return false;
+      const nameMatch = c.name && String(c.name).toLowerCase().includes(q);
+      const labelMatch = c.label && String(c.label).toLowerCase().includes(q);
       return nameMatch || labelMatch;
+    }).slice(0, 3);
+
+    this.categorizedSearchResults.pages = (this.allPages || []).filter(p => {
+      return p && p.name && String(p.name).toLowerCase().includes(q);
     }).slice(0, 3);
 
     this.searchResults = this.categorizedSearchResults.products;
@@ -346,16 +397,13 @@ export class NavBarComponent implements OnInit {
     if (this.searchQuery.trim()) {
       if (this.categorizedSearchResults.products.length > 0) {
         const product = this.categorizedSearchResults.products[0];
-        const categoryId = product.category?.idCategory || product.category?.id || product.category_id || product.category;
-        if (categoryId) {
-          this.router.navigate(['/list-article', categoryId]);
-          this.toggleSearch();
-        } else {
-          this.navigateToProduct(product);
-        }
+        this.navigateToProduct(product);
       }
       else if (this.categorizedSearchResults.categories.length > 0) {
         this.navigateToCategory(this.categorizedSearchResults.categories[0]);
+      }
+      else if (this.categorizedSearchResults.pages.length > 0) {
+        this.navigateToPage(this.categorizedSearchResults.pages[0]);
       }
       else {
         this.router.navigate(['/collections'], {
@@ -367,7 +415,17 @@ export class NavBarComponent implements OnInit {
   }
 
   navigateToProduct(product: any) {
-    this.router.navigate(['/product', product.id]);
+    const categoryId = this.getCategoryId(product);
+    if (categoryId) {
+      this.router.navigate(['/list-article', categoryId]);
+    } else {
+      this.router.navigate(['/product', product.id || product.idProduct]);
+    }
+    this.toggleSearch();
+  }
+
+  navigateToPage(page: any) {
+    this.router.navigate([page.url]);
     this.toggleSearch();
   }
 
@@ -382,5 +440,10 @@ export class NavBarComponent implements OnInit {
     this.searchQuery = '';
     this.categorizedSearchResults.products = [];
     this.categorizedSearchResults.categories = [];
+    this.categorizedSearchResults.pages = [];
+  }
+
+  getCategoryId(product: any): any {
+    return product.category?.idCategory || product.category?.id || product.category_id || product.category || '';
   }
 }

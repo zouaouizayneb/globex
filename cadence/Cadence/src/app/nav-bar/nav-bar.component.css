@@ -290,6 +290,7 @@ a, .btn, button {
 }
 .flex {
   display: -webkit-flex;
+  display: flex;
   flex-wrap: wrap;
   box-sizing: border-box;
 }
@@ -312,17 +313,20 @@ ul {
   transition: height 1s ease;
   background-color: rgb(255, 255, 255);
   position: absolute;
-  top: 116px; 
+  top: 116px;
   z-index: 1000000;
   overflow: hidden;
-  display: flex; 
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .shopall.visible{
   height: 50vh;
+  overflow-y: auto;
 }
 .home.visible {
-  height: 35vh; 
+  height: 35vh;
+  overflow-y: auto;
 }
 
 .col-3 {
@@ -402,12 +406,6 @@ ul>li span {
   height: 90%;
 }
 
-.products {
-  width: 100vw !important;
-  left: 0;
-  position: fixed;
-}
-
 .products, .pages, .blogs {
   height: 0;
   transition: height 0.4s ease;
@@ -425,7 +423,8 @@ ul>li span {
 }
 
 .products.visible{
-  height: 37vh;
+  height: 33vh;
+  width: 15vw;
 }
 
 .pages.visible{

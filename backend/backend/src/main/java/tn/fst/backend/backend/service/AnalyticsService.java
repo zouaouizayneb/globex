@@ -27,6 +27,7 @@ public class AnalyticsService {
     private final UserRepository userRepository;
     private final InvoiceRepository invoiceRepository;
     private final PaymentRepository paymentRepository;
+    private final CategoryRepository categoryRepository;
 
 
     /**
@@ -112,6 +113,7 @@ public class AnalyticsService {
                 startDate,
                 endDate,
                 List.of(
+                        OrderStatus.PENDING,
                         OrderStatus.CONFIRMED,
                         OrderStatus.PROCESSING,
                         OrderStatus.PAID,
@@ -207,10 +209,6 @@ public class AnalyticsService {
                 .build();
     }
 
-
-    /**
-     * Top produits par période
-     */
     public TopProductsReport getTopProducts(LocalDate startDate, LocalDate endDate, int limit) {
         // Use optimized query with EntityGraph to fetch orderDetails, variant, and product in one query
         List<Order> orders = orderRepository.findByDateOrderBetweenAndStatus(
@@ -356,31 +354,125 @@ public class AnalyticsService {
      */
     public DashboardData getDashboardData() {
         LocalDate today = LocalDate.now();
-        LocalDate startOfMonth = today.with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate startOfYear = LocalDate.of(today.getYear(), 1, 1);
+        // Global Counts
+        long totalProducts = productRepository.count();
+        long totalClients = userRepository.count();
+        long totalCategories = categoryRepository.count();
 
-        // Get today's stats directly
-        DailySalesReport todayStats = getDailySalesReport(today);
+        // Stock Alerts
+        long outOfStock = variantRepository.countByStockQuantity(0);
+        long lowStockCount = variantRepository.countByStockQuantityLessThanEqual(10);
+        // Note: outOfStock are also <= 10, so lowStock items (excluding 0) is:
+        long onlyLowStock = lowStockCount - outOfStock;
 
-        // Get month stats without recalculating daily breakdown for every day
-        // Just generate the month report once and use it
-        MonthlySalesReport monthStats = getMonthlySalesReport(today.getYear(), today.getMonthValue());
+        // Daily/Monthly/Yearly Stats (Direct calculation to ensure accuracy)
+        List<Order> orders = orderRepository.findAll();
+        
+        long todayOrdersCount = 0;
+        BigDecimal todayRev = BigDecimal.ZERO;
+        long monthOrdersCount = 0;
+        BigDecimal monthRev = BigDecimal.ZERO;
+        long yearOrdersCount = 0;
+        BigDecimal yearRev = BigDecimal.ZERO;
 
-        // Get year stats - this is expensive, consider caching or using a separate endpoint
-        YearlySalesReport yearStats = getYearlySalesReport(today.getYear());
+        for (Order o : orders) {
+            if (o.getDateOrder() == null) continue;
+            LocalDate d = o.getDateOrder();
+            BigDecimal amt = o.getTotalAmount() != null ? o.getTotalAmount() : BigDecimal.ZERO;
+
+            if (d.getYear() == today.getYear()) {
+                yearOrdersCount++;
+                yearRev = yearRev.add(amt);
+                
+                if (d.getMonth() == today.getMonth()) {
+                    monthOrdersCount++;
+                    monthRev = monthRev.add(amt);
+                    
+                    if (d.getDayOfMonth() == today.getDayOfMonth()) {
+                        todayOrdersCount++;
+                        todayRev = todayRev.add(amt);
+                    }
+                }
+            }
+        }
+
+        // Order Status Distribution
+        Map<String, Long> statusDistribution = new HashMap<>();
+        List<Order> allOrders = orderRepository.findAll();
+        for (Order o : allOrders) {
+            if (o.getStatus() != null) {
+                String status = o.getStatus().name();
+                statusDistribution.put(status, statusDistribution.getOrDefault(status, 0L) + 1);
+            }
+        }
+
+        // Category Sales Data
+        // For simplicity, we'll aggregate from all confirmed/delivered orders
+        List<CategorySalesData> categorySales = aggregateCategorySales();
 
         return DashboardData.builder()
-                .todayOrders(todayStats.getTotalOrders())
-                .todayRevenue(todayStats.getTotalRevenue())
-                .monthOrders(monthStats.getTotalOrders())
-                .monthRevenue(monthStats.getTotalRevenue())
-                .yearOrders(yearStats.getTotalOrders())
-                .yearRevenue(yearStats.getTotalRevenue())
-                .topProductsThisMonth(monthStats.getTopProducts())
-                .recentSalesData(monthStats.getDailyBreakdown())
+                .todayOrders(todayOrdersCount)
+                .todayRevenue(todayRev)
+                .monthOrders(monthOrdersCount)
+                .monthRevenue(monthRev)
+                .yearOrders(yearOrdersCount)
+                .yearRevenue(yearRev)
+                .totalProducts(totalProducts)
+                .totalClients(totalClients)
+                .totalCategories(totalCategories)
+                .outOfStockProducts(outOfStock)
+                .lowStockProducts(onlyLowStock)
+                .topProductsThisMonth(new ArrayList<>()) // Simplified
+                .topCategories(categorySales)
+                .ordersByStatus(statusDistribution)
+                .recentSalesData(generateTrendData(orders, today))
                 .currency("TND")
                 .generatedAt(LocalDateTime.now())
                 .build();
+    }
+
+    private List<DailySalesBreakdown> generateTrendData(List<Order> orders, LocalDate today) {
+        List<DailySalesBreakdown> trend = new ArrayList<>();
+        for (int i = 29; i >= 0; i--) {
+            LocalDate d = today.minusDays(i);
+            BigDecimal dayRevenue = orders.stream()
+                    .filter(o -> o.getDateOrder() != null && o.getDateOrder().equals(d))
+                    .map(Order::getTotalAmount)
+                    .filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            trend.add(new DailySalesBreakdown(d, 0L, dayRevenue));
+        }
+        return trend;
+    }
+
+    private List<CategorySalesData> aggregateCategorySales() {
+        // Fetch all order details directly to ensure we have product/category info
+        List<OrderDetail> details = orderDetailRepository.findAll();
+        Map<String, CategorySalesData> aggregation = new HashMap<>();
+
+        for (OrderDetail detail : details) {
+            if (detail.getOrder() == null || detail.getOrder().getStatus() == OrderStatus.CANCELLED) continue;
+            
+            Product product = detail.getProduct();
+            if (product == null) continue;
+
+            String catName = product.getCategory() != null ? product.getCategory().getName() : "Uncategorized";
+            
+            CategorySalesData data = aggregation.computeIfAbsent(catName, k -> 
+                    CategorySalesData.builder()
+                            .categoryName(catName)
+                            .orderCount(0L)
+                            .revenue(BigDecimal.ZERO)
+                            .build());
+            
+            data.setOrderCount(data.getOrderCount() + 1);
+            data.setRevenue(data.getRevenue().add(detail.getPrice().multiply(BigDecimal.valueOf(detail.getQuantity()))));
+        }
+
+        return aggregation.values().stream()
+                .sorted((a, b) -> b.getRevenue().compareTo(a.getRevenue()))
+                .limit(10)
+                .collect(Collectors.toList());
     }
 
 

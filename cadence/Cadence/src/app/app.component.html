@@ -1,11 +1,11 @@
 <div class="page-container">
-  <app-nav-bar *ngIf="!isAdminRoute()"></app-nav-bar>
+  <app-nav-bar *ngIf="!shouldHideNavbarFooter()"></app-nav-bar>
 
   <main>
-    <router-outlet></router-outlet> 
+    <router-outlet></router-outlet>
   </main>
-  
-  <app-footer *ngIf="!isAdminRoute()" style="margin-top: 70px;"></app-footer>
-  
-  <app-chatbot-icon *ngIf="!isAdminRoute()"></app-chatbot-icon>
+
+  <app-footer *ngIf="!shouldHideNavbarFooter()" style="margin-top: 70px;"></app-footer>
+
+  <app-chatbot-icon *ngIf="!shouldHideNavbarFooter()"></app-chatbot-icon>
 </div>

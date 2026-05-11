@@ -61,11 +61,6 @@ public class PurchaseOrderService {
         purchaseOrder.setDiscountAmount(request.getDiscountAmount() != null ? request.getDiscountAmount() : BigDecimal.ZERO);
         purchaseOrder.calculateTotals();
 
-        if (supplier.getPaymentTerms() != null) {
-            purchaseOrder.setPaymentDueDate(
-                    purchaseOrder.getOrderDate().plusDays(supplier.getPaymentTerms())
-            );
-        }
 
         purchaseOrder = purchaseOrderRepository.save(purchaseOrder);
         return mapToPurchaseOrderResponse(purchaseOrder);
@@ -188,8 +183,6 @@ public class PurchaseOrderService {
                 request.getReceivedDate() :
                 LocalDate.now());
 
-        updateSupplierStatistics(purchaseOrder);
-
         purchaseOrder = purchaseOrderRepository.save(purchaseOrder);
         return mapToPurchaseOrderResponse(purchaseOrder);
     }
@@ -203,10 +196,6 @@ public class PurchaseOrderService {
                 request.getPaymentDate() :
                 LocalDate.now());
         purchaseOrder.setStatus(PurchaseOrderStatus.COMPLETED);
-
-        Supplier supplier = purchaseOrder.getSupplier();
-        supplier.setTotalSpent(supplier.getTotalSpent().add(purchaseOrder.getTotalAmount()));
-        supplierRepository.save(supplier);
 
         purchaseOrder = purchaseOrderRepository.save(purchaseOrder);
         return mapToPurchaseOrderResponse(purchaseOrder);
@@ -260,28 +249,6 @@ public class PurchaseOrderService {
         return String.format("PO-%d-%04d", year, count + 1);
     }
 
-    private void updateSupplierStatistics(PurchaseOrder purchaseOrder) {
-        Supplier supplier = purchaseOrder.getSupplier();
-
-        supplier.setTotalOrders(supplier.getTotalOrders() + 1);
-
-        if (purchaseOrder.getActualDeliveryDate() != null &&
-                purchaseOrder.getExpectedDeliveryDate() != null) {
-
-            if (!purchaseOrder.getActualDeliveryDate().isAfter(purchaseOrder.getExpectedDeliveryDate())) {
-                supplier.setOnTimeDeliveries(supplier.getOnTimeDeliveries() + 1);
-            } else {
-                supplier.setLateDeliveries(supplier.getLateDeliveries() + 1);
-            }
-        }
-
-        if (supplier.getFirstOrderDate() == null) {
-            supplier.setFirstOrderDate(purchaseOrder.getOrderDate());
-        }
-        supplier.setLastOrderDate(LocalDate.now());
-
-        supplierRepository.save(supplier);
-    }
 
     private PurchaseOrderResponse mapToPurchaseOrderResponse(PurchaseOrder po) {
         List<PurchaseOrderItemResponse> itemResponses = po.getItems().stream()

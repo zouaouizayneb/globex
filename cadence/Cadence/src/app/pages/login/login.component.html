@@ -8,7 +8,6 @@
 
       <div class="password-field">
         <input type="password" placeholder="Password" [(ngModel)]="loginPassword" required>
-        <span class="forgot" (click)="switchView('forgot')" style="cursor: pointer;">Forgot?</span>
       </div>
 
       <label class="remember">
@@ -16,7 +15,7 @@
       </label>
 
       <button class="main-btn" (click)="onLogin()">Log In</button>
-      <button class="social-btn">Log in with Facebook</button>
+      <button class="secondary-btn" (click)="switchView('forgot')">Reset Password</button>
 
       <p class="switch">
         Don't have an account?
@@ -28,6 +27,7 @@
     <div class="auth-form" *ngIf="currentView === 'register'">
       <h2>Create your account</h2>
       <input type="text" placeholder="Full Name" [(ngModel)]="regFullname" required>
+      <input type="text" placeholder="Username" [(ngModel)]="regUsername" required>
       <input type="email" placeholder="Email Address" [(ngModel)]="regEmail" required>
       <input type="tel" placeholder="Phone Number" [(ngModel)]="regPhone" required>
       <input type="text" placeholder="Address" [(ngModel)]="regAddress" required>
@@ -41,7 +41,6 @@
       </label>
 
       <button class="main-btn" (click)="onRegister()">Sign Up</button>
-      <button class="social-btn">Sign up with Facebook</button>
 
       <p class="switch">
         Already have an account?

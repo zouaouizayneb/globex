@@ -34,6 +34,9 @@ public class CheckoutService {
     private final UserRepository userRepository;
     private final StockRepository stockRepository;
     private final InvoiceService invoiceService;
+    private final NotificationService notificationService;
+    private final InventoryService inventoryService;
+    private final EmailService emailService;
 
     /**
      * Get checkout summary (before placing order)
@@ -154,12 +157,18 @@ public class CheckoutService {
             variant.setStockQuantity(variant.getStockQuantity() - cartItem.getQuantity());
             variantRepository.save(variant);
 
-            final Long varId = variant.getIdVariant();
             stockRepository.findByVariant(variant)
                     .ifPresent(stock -> {
                         stock.setQuantity(Math.max(0, stock.getQuantity() - cartItem.getQuantity()));
                         stockRepository.save(stock);
                     });
+
+            // Fix 2: Record stock movement history (SALE type)
+            try {
+                inventoryService.recordSale(variant.getIdVariant(), cartItem.getQuantity(), order.getIdOrder());
+            } catch (Exception e) {
+                // Non-blocking — do not fail checkout for a logging error
+            }
         }
 
         // 6. Create shipment
@@ -194,12 +203,32 @@ public class CheckoutService {
             orderRepository.save(order);
         }
 
-        // Automation: sale -> create invoice
+        // Fix 1 & 3: Automation — create invoice record AND generate PDF immediately
         try {
-            invoiceService.issueDate(order.getIdOrder());
+            InvoiceResponse invoiceResp = invoiceService.issueDate(order.getIdOrder());
+            try {
+                invoiceService.ensureInvoicePdf(invoiceResp.getIdInvoice());
+            } catch (Exception ignored) { }
         } catch (Exception ignored) {
-            // Do not block checkout flow if invoice PDF generation fails.
+            // Do not block checkout flow if invoice generation fails.
         }
+
+        // Fix 4: Notify all admins — in-app notification + email
+        try {
+            List<User> admins = userRepository.findByRole(Role.ADMIN);
+            String orderMsg = "Nouvelle commande #" + order.getIdOrder()
+                    + " — " + order.getTotalAmount() + " TND";
+            for (User admin : admins) {
+                Notification notif = new Notification();
+                notif.setType("NEW_ORDER");
+                notif.setMessage(orderMsg);
+                notif.setStatus(Notification.Status.UNREAD);
+                notif.setDateSend(LocalDate.now());
+                notif.setUser(admin);
+                notificationService.createNotification(notif);
+                emailService.sendNewOrderAdminEmail(order, admin.getEmail());
+            }
+        } catch (Exception ignored) { }
 
         // 9. Clear cart
         cartService.clearCart(userId);

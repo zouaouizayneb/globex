@@ -19,4 +19,8 @@ export class AppComponent {
   isAdminRoute(): boolean {
     return this.router.url.startsWith('/admin');
   }
+
+  shouldHideNavbarFooter(): boolean {
+    return this.router.url.startsWith('/admin') || this.router.url.startsWith('/login');
+  }
 }

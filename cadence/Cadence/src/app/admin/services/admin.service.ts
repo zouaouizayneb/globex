@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin, map, catchError, of } from 'rxjs';
+import { Observable, forkJoin, map, catchError, of, Subject } from 'rxjs';
 
 export interface AdminProduct {
   id: number;
@@ -152,9 +152,19 @@ export interface AdminInvoice {
   order_id_display?: string;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class AdminService {
   private base = 'http://localhost:8080/api';
+
+  // Refresh signal for notifications
+  private refreshSignal = new Subject<void>();
+  refreshSignal$ = this.refreshSignal.asObservable();
+
+  triggerRefresh() {
+    this.refreshSignal.next();
+  }
 
   constructor(private http: HttpClient) {}
 
@@ -417,14 +427,18 @@ export class AdminService {
       total: parseFloat(o.total_amount ?? o.totalAmount ?? 0),
       status: o.status ?? 'PENDING',
       items: o.orderDetails?.length ?? o.items ?? 0,
-      transporterName: o.shipment?.carrier ?? '',
+      transporterName: o.transporteur?.name ?? o.shipment?.carrier ?? '',
     };
     console.log('Mapped order:', mapped);
     return mapped;
   }
 
-  updateOrderStatus(orderId: number, status: AdminOrder['status']): Observable<any> {
-    return this.http.put(`${this.base}/orders/${orderId}`, { status });
+  adminUpdateOrder(orderId: number, status: AdminOrder['status'], transporteurId?: number | null): Observable<any> {
+    const payload: any = { status };
+    if (transporteurId) {
+      payload.transporteurId = transporteurId;
+    }
+    return this.http.patch(`${this.base}/orders/${orderId}/admin-update`, payload);
   }
 
   // ── CATEGORIES ─────────────────────────────────────────────

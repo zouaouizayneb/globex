@@ -35,6 +35,9 @@ export class ListArticleComponent implements OnInit {
   currentImageIndex: number = 0;
   quantity: number = 1;
   loading: boolean = true;
+  selectedVariant: any = null;
+  selectedColor: string = '';
+  selectedSize: string = '';
 
   currentCurrencyRate: number = 1;
   currentCurrencySymbol: string = '$';
@@ -309,18 +312,90 @@ export class ListArticleComponent implements OnInit {
     this.selectedProduct = product;
     this.showQuickView = !this.showQuickView;
     this.currentImageIndex = 0;
+    this.quantity = 1;
+    this.selectedVariant = null;
+    this.selectedColor = '';
+    this.selectedSize = '';
+
+    // Set default variant if available
+    if (product.variants && product.variants.length > 0) {
+      this.selectedVariant = product.variants[0];
+      this.selectedColor = product.variants[0].color || '';
+      this.selectedSize = product.variants[0].size || '';
+    }
+  }
+
+  selectVariant(variant: any): void {
+    this.selectedVariant = variant;
+    this.selectedColor = variant.color || '';
+    this.selectedSize = variant.size || '';
+    this.currentImageIndex = 0;
+  }
+
+  selectColor(color: string): void {
+    this.selectedColor = color;
+    // Find a variant with this color
+    const variant = this.selectedProduct?.variants?.find((v: any) => v.color === color);
+    if (variant) {
+      this.selectedVariant = variant;
+      this.selectedSize = variant.size || '';
+    }
+    this.currentImageIndex = 0;
+  }
+
+  selectSize(size: string): void {
+    this.selectedSize = size;
+    // Find a variant with this size
+    const variant = this.selectedProduct?.variants?.find((v: any) => v.size === size);
+    if (variant) {
+      this.selectedVariant = variant;
+      this.selectedColor = variant.color || '';
+    }
+    this.currentImageIndex = 0;
+  }
+
+  getAvailableColors(): string[] {
+    if (!this.selectedProduct?.variants) return [];
+    const colors = this.selectedProduct.variants
+      .map((v: any) => v.color)
+      .filter((c: any): c is string => typeof c === 'string' && c.length > 0) as string[];
+    return [...new Set(colors)];
+  }
+
+  getAvailableSizes(): string[] {
+    if (!this.selectedProduct?.variants) return [];
+    const sizes = this.selectedProduct.variants
+      .map((v: any) => v.size)
+      .filter((s: any): s is string => typeof s === 'string' && s.length > 0) as string[];
+    return [...new Set(sizes)];
+  }
+
+  getCurrentPrice(): number {
+    if (this.selectedVariant) {
+      return parseFloat(this.selectedVariant.totalPrice) || parseFloat(this.selectedVariant.price) || this.selectedProduct.price;
+    }
+    return this.selectedProduct.price;
+  }
+
+  getCurrentImages(): any[] {
+    if (this.selectedVariant?.imageUrl) {
+      return [{ url: this.selectedVariant.imageUrl }, ...this.selectedProduct.images];
+    }
+    return this.selectedProduct.images;
   }
 
   nextImage(): void {
-    if (this.selectedProduct?.images?.length) {
-      this.currentImageIndex = (this.currentImageIndex + 1) % this.selectedProduct.images.length;
+    const images = this.getCurrentImages();
+    if (images?.length) {
+      this.currentImageIndex = (this.currentImageIndex + 1) % images.length;
     }
   }
 
   prevImage(): void {
-    if (this.selectedProduct?.images?.length) {
+    const images = this.getCurrentImages();
+    if (images?.length) {
       this.currentImageIndex =
-        (this.currentImageIndex - 1 + this.selectedProduct.images.length) % this.selectedProduct.images.length;
+        (this.currentImageIndex - 1 + images.length) % images.length;
     }
   }
 

@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Product, ShopService } from '../../pages/shared/shop.services';
 import { ServicesService } from '../../services/services.service';
 import { CurrencyService } from '../../services/currency.service';
@@ -9,16 +10,24 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-product',
   standalone: true,
-  imports: [RouterModule, CommonModule],
+  imports: [RouterModule, CommonModule, FormsModule],
   templateUrl: './product.component.html',
-  styleUrl: './product.component.css'
+  styleUrls: ['./product.component.css']
 })
 export class ProductComponent implements OnInit, OnDestroy {
 
   products: Product[] = [];
+  fullProducts: any[] = []; // Store full DB product data for quick view
   loading: boolean = true;
   error: string = '';
   debugInfo: string = '';
+  showQuickView: boolean = false;
+  selectedProduct: any = null;
+  currentImageIndex: number = 0;
+  quantity: number = 1;
+  selectedVariant: any = null;
+  selectedColor: string = '';
+  selectedSize: string = '';
 
   private subscriptions: Subscription = new Subscription();
 
@@ -44,7 +53,7 @@ export class ProductComponent implements OnInit, OnDestroy {
   const sub = this.servicesService.getAllProducts().subscribe({
     next: (dbProducts) => {
       console.log('✅ Products received from DB:', dbProducts);
-      
+
       // Debug: Check the price field
       if (dbProducts && dbProducts.length > 0) {
         console.log('First product price:', dbProducts[0].price, 'type:', typeof dbProducts[0].price);
@@ -53,11 +62,18 @@ export class ProductComponent implements OnInit, OnDestroy {
       // Map DB products
       const mappedProducts = this.mapDatabaseProducts(dbProducts);
 
-      // Shuffle the array randomly
-      const shuffled = mappedProducts.sort(() => Math.random() - 0.5);
+      // Create pairs of (mapped, full) products
+      const paired = mappedProducts.map((mapped, index) => ({ mapped, full: dbProducts[index] }));
+
+      // Shuffle the pairs together
+      const shuffled = paired.sort(() => Math.random() - 0.5);
 
       // Take only 8 products
-      this.products = shuffled.slice(0, 8);
+      const selected = shuffled.slice(0, 8);
+
+      // Separate back into mapped and full arrays
+      this.products = selected.map(p => p.mapped);
+      this.fullProducts = selected.map(p => p.full);
 
       console.log('✅ Mapped products:', this.products);
       this.loading = false;
@@ -70,7 +86,7 @@ export class ProductComponent implements OnInit, OnDestroy {
   });
 
   this.subscriptions.add(sub);
-}
+  }
 
   mapDatabaseProducts(dbProducts: any[]): Product[] {
     if (!dbProducts || dbProducts.length === 0) {
@@ -88,7 +104,7 @@ export class ProductComponent implements OnInit, OnDestroy {
         price: price || 0,
         image: this.getPrimaryImage(dbProduct.images),
         rating: Math.floor(dbProduct.rating || 4),
-        colors: this.getColors(dbProduct.variants)
+        colors: this.getColors(dbProduct.variants, dbProduct.color)
       };
 
       const oldPrice = this.getOldPrice(dbProduct.variants);
@@ -171,16 +187,39 @@ export class ProductComponent implements OnInit, OnDestroy {
     return v ? parseFloat(v.oldPrice) : undefined;
   }
 
-  getColors(variants: any[]): string[] {
-    if (!variants || variants.length === 0) return ['#CCCCCC'];
+  getColors(variants: any[], productColor?: string): string[] {
+    console.log('getColors called with productColor:', productColor, 'and variants:', variants);
 
-    const uniqueColors = [...new Set(
-      variants.map(v => v.color).filter(c => !!c)
-    )];
+    const colors: string[] = [];
 
-    return uniqueColors.length > 0
-      ? uniqueColors.map(color => this.colorNameToHex(color))
-      : ['#CCCCCC'];
+    // Add product color if it exists
+    if (productColor) {
+      const hexColor = this.colorNameToHex(productColor);
+      console.log('Adding product color:', productColor, '-> hex:', hexColor);
+      colors.push(hexColor);
+    }
+
+    // Add variant colors
+    if (variants && variants.length > 0) {
+      const variantColors = [...new Set(
+        variants.map(v => v.color).filter(c => !!c)
+      )];
+
+      console.log('Unique colors from variants:', variantColors);
+
+      variantColors.forEach(color => {
+        const hexColor = this.colorNameToHex(color);
+        if (!colors.includes(hexColor)) {
+          colors.push(hexColor);
+        }
+      });
+    }
+
+    // If no colors found, return default gray
+    const result = colors.length > 0 ? colors : ['#CCCCCC'];
+
+    console.log('Final colors:', result);
+    return result;
   }
 
   colorNameToHex(colorName: string): string {
@@ -263,6 +302,124 @@ export class ProductComponent implements OnInit, OnDestroy {
     this.loadProductsFromDatabase();
   }
 
+  toggleQuickView(product?: Product): void {
+    // If no product passed, close the modal
+    if (!product) {
+      this.showQuickView = false;
+      this.selectedProduct = null;
+      return;
+    }
+
+    // Find the index of the product in the products array
+    const index = this.products.findIndex(p => p.id === product.id);
+
+    if (index === -1 || !this.fullProducts[index]) {
+      console.error('Full product not found for:', product);
+      return;
+    }
+
+    // Use the same index to get the full product data
+    this.selectedProduct = this.fullProducts[index];
+    this.showQuickView = !this.showQuickView;
+    this.currentImageIndex = 0;
+    this.quantity = 1;
+    this.selectedVariant = null;
+    this.selectedColor = '';
+    this.selectedSize = '';
+
+    // Set default variant if available
+    if (this.selectedProduct.variants && this.selectedProduct.variants.length > 0) {
+      this.selectedVariant = this.selectedProduct.variants[0];
+      this.selectedColor = this.selectedProduct.variants[0].color || '';
+      this.selectedSize = this.selectedProduct.variants[0].size || '';
+    }
+  }
+
+  selectColor(color: string): void {
+    this.selectedColor = color;
+    const variant = this.selectedProduct?.variants?.find((v: any) => v.color === color);
+    if (variant) {
+      this.selectedVariant = variant;
+      this.selectedSize = variant.size || '';
+    }
+    this.currentImageIndex = 0;
+  }
+
+  selectSize(size: string): void {
+    this.selectedSize = size;
+    const variant = this.selectedProduct?.variants?.find((v: any) => v.size === size);
+    if (variant) {
+      this.selectedVariant = variant;
+      this.selectedColor = variant.color || '';
+    }
+    this.currentImageIndex = 0;
+  }
+
+  getAvailableColors(): string[] {
+    if (!this.selectedProduct?.variants) return [];
+    const colors = this.selectedProduct.variants
+      .map((v: any) => v.color)
+      .filter((c: any): c is string => typeof c === 'string' && c.length > 0) as string[];
+    return [...new Set(colors)];
+  }
+
+  getAvailableSizes(): string[] {
+    if (!this.selectedProduct?.variants) return [];
+    const sizes = this.selectedProduct.variants
+      .map((v: any) => v.size)
+      .filter((s: any): s is string => typeof s === 'string' && s.length > 0) as string[];
+    return [...new Set(sizes)];
+  }
+
+  getCurrentPrice(): number {
+    if (this.selectedVariant) {
+      return parseFloat(this.selectedVariant.totalPrice) || parseFloat(this.selectedVariant.price) || this.selectedProduct.price;
+    }
+    return this.selectedProduct.price;
+  }
+
+  getCurrentImages(): any[] {
+    console.log('getCurrentImages - selectedProduct:', this.selectedProduct);
+    console.log('getCurrentImages - selectedProduct.images:', this.selectedProduct?.images);
+    console.log('getCurrentImages - selectedProduct.image:', this.selectedProduct?.image);
+
+    // Always show main product images first
+    // Backend images have imageUrl property, so we need to map them
+    const mainImages = this.selectedProduct.images?.map((img: any) => ({ url: img.imageUrl || img.url })) || [{ url: this.selectedProduct.image || this.selectedProduct.imageUrl }];
+
+    console.log('getCurrentImages - mainImages:', mainImages);
+
+    // If variant has a specific image, add it at the end
+    if (this.selectedVariant?.imageUrl) {
+      const variantImage = { url: this.selectedVariant.imageUrl };
+      // Only add if it's not already in the main images
+      const alreadyExists = mainImages.some((img: any) => img.url === this.selectedVariant.imageUrl);
+      if (!alreadyExists) {
+        return [...mainImages, variantImage];
+      }
+    }
+
+    return mainImages;
+  }
+
+  nextImage(): void {
+    const images = this.getCurrentImages();
+    if (images?.length) {
+      this.currentImageIndex = (this.currentImageIndex + 1) % images.length;
+    }
+  }
+
+  prevImage(): void {
+    const images = this.getCurrentImages();
+    if (images?.length) {
+      this.currentImageIndex =
+        (this.currentImageIndex - 1 + images.length) % images.length;
+    }
+  }
+
+  increaseQuantity(): void { this.quantity++; }
+  decreaseQuantity(): void { if (this.quantity > 1) this.quantity--; }
+
   // Currency conversion methods
   formatPrice(priceInUSD: number): string {
     return this.currencyService.formatPrice(priceInUSD);
@@ -272,3 +429,5 @@ export class ProductComponent implements OnInit, OnDestroy {
     return this.currencyService.formatPrice(oldPriceInUSD);
   }
 }
+
+

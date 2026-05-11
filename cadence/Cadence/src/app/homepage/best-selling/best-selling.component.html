@@ -1,100 +1,149 @@
 <section class="bestsellers" id="bestsellers">
 
   <div class="bestsellers__header">
-    <span class="bestsellers__eyebrow">Our Sale</span>
-    <h2 class="bestsellers__title">Sparkling Savings<br /><em>Shop Now!</em></h2>
+    <span class="bestsellers__eyebrow"> Most Loved</span>
+    <h2 class="bestsellers__title">Best Sellers<br /><em>Flying Off Shelves</em></h2>
     <div class="bestsellers__divider"></div>
-    <p class="bestsellers__subtitle">Hand-picked favourites flying off the shelves.</p>
+    <p class="bestsellers__subtitle">Real-time top picks — ranked by what customers actually buy.</p>
   </div>
 
   <div class="bestsellers__filters" role="tablist">
-    <button 
-      class="filter-tab" 
-      [class.filter-tab--active]="activeFilter === 'all'" 
-      (click)="setFilter('all')" 
-      role="tab">All</button>
-    <button 
-      class="filter-tab" 
-      [class.filter-tab--active]="activeFilter === 'trend'" 
-      (click)="setFilter('trend')" 
-      role="tab">Trending</button>
-    <button 
-      class="filter-tab" 
-      [class.filter-tab--active]="activeFilter === 'hot'" 
-      (click)="setFilter('hot')" 
-      role="tab">Hot Deals</button>
-    <button 
-      class="filter-tab" 
-      [class.filter-tab--active]="activeFilter === 'sale'" 
-      (click)="setFilter('sale')" 
-      role="tab">On Sale</button>
+    <button class="filter-tab" [class.filter-tab--active]="activeFilter === 'all'"
+      (click)="setFilter('all')" role="tab">All</button>
+    <button class="filter-tab" [class.filter-tab--active]="activeFilter === 'hot'"
+      (click)="setFilter('hot')" role="tab">Hot</button>
+    <button class="filter-tab" [class.filter-tab--active]="activeFilter === 'trend'"
+      (click)="setFilter('trend')" role="tab">Trending</button>
+    <button class="filter-tab" [class.filter-tab--active]="activeFilter === 'sale'"
+      (click)="setFilter('sale')" role="tab">🏷 On Sale</button>
   </div>
 
   <!-- Loading State -->
   <div class="loading-state" *ngIf="loading">
-    <p>Loading best selling products...</p>
+    <div class="loading-grid">
+      <div class="skeleton-card skeleton-hero"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+    </div>
+    <p class="loading-text">Loading best sellers…</p>
   </div>
 
   <!-- Error State -->
   <div class="error-state" *ngIf="error && !loading">
+    <div class="error-icon"></div>
     <p>{{ error }}</p>
+    <button class="view-all-btn" (click)="loadBestSellingProducts()">
+      <span>Try Again</span>
+    </button>
   </div>
 
   <!-- Product Grid -->
-  <div class="bestsellers__grid" #productGrid *ngIf="!loading && !error">
+  <div class="bestsellers__grid" #productGrid *ngIf="!loading && !error && products.length > 0">
 
-    <article 
+    <article
       *ngFor="let product of products; let i = index"
-      class="product-card" 
+      class="product-card"
       [class.product-card--hero]="product.isHero"
       [class.is-hidden]="!isProductVisible(product)"
       [attr.data-category]="product.badge">
-      
-      <div class="product-card__badge" [ngClass]="'product-card__badge--' + product.badge">
-        {{ product.badge | titlecase }}
+
+      <!-- Rank Badge -->
+      <div class="product-card__rank" [class.product-card__rank--gold]="i === 0">
+        {{ i === 0 ? '' : '#' + (i + 1) }}
       </div>
-      
-      <div class="product-card__media">
+
+      <!-- Badge -->
+      <div class="product-card__badge" [ngClass]="'product-card__badge--' + product.badge">
+        {{ product.badge === 'hot' ? 'Hot' : product.badge === 'trend' ? 'Trend' : '🏷 Sale' }}
+      </div>
+
+      <!-- NEW label -->
+      <div class="product-card__new-label" *ngIf="product.isNew && !product.isHero">New</div>
+
+      <!-- Discount tag -->
+      <div class="product-card__discount" *ngIf="product.discount && !product.isHero">
+        -{{ product.discount }}%
+      </div>
+
+      <div class="product-card__media" (click)="viewProduct(product)">
         <img
           [src]="product.image"
           [alt]="product.name"
-          class="product-card__img standard-product-image"
+          class="product-card__img"
           loading="lazy"
           (error)="onImageError($event)"
         />
         <div class="product-card__overlay" *ngIf="product.isHero"></div>
+
+        <!-- Quick-view overlay for non-hero -->
+        <div class="product-card__quick" *ngIf="!product.isHero">
+          <span>Quick View</span>
+        </div>
       </div>
-      
+
       <div class="product-card__body" [class.product-card__body--overlay]="product.isHero">
         <p class="product-card__category">{{ product.category }}</p>
         <h3 class="product-card__name">{{ product.name }}</h3>
+
         <div class="product-card__pricing">
           <span class="product-card__price">{{ formatPrice(product.price) }}</span>
           <span class="product-card__old-price" *ngIf="product.oldPrice">{{ formatOldPrice(product.oldPrice) }}</span>
         </div>
-        <p class="product-card__desc" *ngIf="product.isHero">Experience the allure of darkness with our exquisite candle collection.</p>
+
+        <p class="product-card__desc" *ngIf="product.isHero && product.description">
+          {{ product.description | slice:0:90 }}{{ (product.description?.length ?? 0) > 90 ? '…' : '' }}
+        </p>
+
         <div class="product-card__stars" *ngIf="!product.isHero">
-          {{ getStars(product.rating) }}
+          <span class="stars-text">{{ getStars(product.rating) }}</span>
           <span class="product-card__reviews">({{ product.reviews }})</span>
         </div>
-        <button class="product-card__cta" (click)="addToCart(product)">Add to Cart</button>
+
+        <div class="product-card__actions">
+          <button class="product-card__cta" (click)="addToCart(product)" [class.in-cart]="isInCart(product)">
+            <svg *ngIf="!isInCart(product)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            <svg *ngIf="isInCart(product)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            {{ isInCart(product) ? 'Added' : 'Add to Cart' }}
+          </button>
+          <button class="product-card__wishlist" (click)="addToWishlist(product)" [class.wishlisted]="isInWishlist(product)" title="Add to wishlist">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+        </div>
       </div>
-      
+
       <div class="product-card__sold-bar">
-        <span class="product-card__sold-label">{{ product.soldCount }} sold this week</span>
+        <div class="product-card__sold-header">
+          <span class="product-card__sold-label">
+            <span class="sold-fire"></span>
+            <strong>{{ product.soldCount }}</strong> sold
+          </span>
+          <span class="product-card__sold-pct">{{ product.soldPercentage }}%</span>
+        </div>
         <div class="product-card__sold-track">
           <div class="product-card__sold-fill" [style.--fill]="product.soldPercentage + '%'"></div>
         </div>
       </div>
+
     </article>
 
   </div><!-- /grid -->
 
+  <!-- Empty state (products returned but filtered to zero) -->
+  <div class="empty-state" *ngIf="!loading && !error && getFilteredProducts().length === 0 && products.length > 0">
+    <p>No products match this filter.</p>
+    <button class="filter-tab filter-tab--active" (click)="setFilter('all')">Show All</button>
+  </div>
+
   <!-- View All CTA -->
-  <div class="bestsellers__footer" *ngIf="!loading && !error">
+  <div class="bestsellers__footer" *ngIf="!loading && !error && products.length > 0">
     <button class="view-all-btn" (click)="viewAllProducts()">
-      <span>View All Products</span>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      <span>Explore All Products</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <line x1="5" y1="12" x2="19" y2="12"/>
+        <polyline points="12 5 19 12 12 19"/>
+      </svg>
     </button>
   </div>
 
@@ -102,6 +151,8 @@
 
 <!-- Toast notification -->
 <div class="cart-toast" [class.is-visible]="toastVisible" role="status" aria-live="polite">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
   <span>{{ toastMessage }}</span>
 </div>

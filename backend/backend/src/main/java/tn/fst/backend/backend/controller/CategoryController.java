@@ -1,6 +1,7 @@
 package tn.fst.backend.backend.controller;
 
 import tn.fst.backend.backend.entity.Category;
+import tn.fst.backend.backend.dto.CategoryResponse;
 import tn.fst.backend.backend.repository.CategoryRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -19,8 +21,15 @@ public class CategoryController {
     private CategoryRepository categoryRepository;
 
     @GetMapping
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<CategoryResponse> getAllCategories() {
+        List<Category> categories = categoryRepository.findAllCategories();
+        System.out.println("Total categories returned: " + categories.size());
+        for (Category cat : categories) {
+            System.out.println("Category: " + cat.getName() + " (ID: " + cat.getIdCategory() + ") Image: " + cat.getImage());
+        }
+        return categories.stream()
+                .map(cat -> CategoryResponse.of(cat.getIdCategory(), cat.getName(), cat.getDescription(), cat.getImage()))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")

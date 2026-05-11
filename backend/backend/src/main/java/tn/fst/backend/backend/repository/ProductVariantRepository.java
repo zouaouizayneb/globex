@@ -25,4 +25,8 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
 
     List<ProductVariant> findByStockQuantity(Integer quantity);
 
+    long countByStockQuantity(Integer quantity);
+
+    long countByStockQuantityLessThanEqual(Integer threshold);
+
 }

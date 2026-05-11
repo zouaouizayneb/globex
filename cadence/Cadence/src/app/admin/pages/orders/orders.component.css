@@ -229,6 +229,51 @@
   background: rgba(59, 130, 246, 0.1);
 }
 
+.save-btn {
+  background: #4a8b6f;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-btn:hover:not(:disabled) {
+  background: #3d725b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(74, 139, 111, 0.2);
+}
+
+.save-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.save-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.save-btn.success {
+  background: #059669;
+  cursor: default;
+}
+
+.save-btn.success svg {
+  animation: checkmarkPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes checkmarkPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 .spinner-mini {
   display: inline-block;
   width: 14px;

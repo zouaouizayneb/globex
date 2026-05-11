@@ -207,7 +207,7 @@
                       </button>
                       <div class="quickview-slider">
                         <div class="slider-track" [style.transform]="'translateX(-' + currentImageIndex * 100 + '%)'">
-                          <div class="slide" *ngFor="let img of selectedProduct.images">
+                          <div class="slide" *ngFor="let img of getCurrentImages()">
                             <img class="standard-product-image" [src]="img.url" alt="Product Image" loading="lazy" (error)="onImageError($event)"/>
                           </div>
                         </div>
@@ -224,10 +224,46 @@
                       <h3><a>{{ selectedProduct.title }}</a></h3>
                     </div>
                     <div class="no-js-hidden qv-price price" role="status">
-                      <ins class="price-item--regular">{{ formatPrice(selectedProduct.price - (selectedProduct.price * selectedProduct.remise / 100)) }}</ins>
-                      <del class="price-item--sale" *ngIf="selectedProduct.remise > 0">{{ formatPrice(selectedProduct.price) }}</del>
+                      <ins class="price-item--regular">{{ formatPrice(getCurrentPrice() - (getCurrentPrice() * selectedProduct.remise / 100)) }}</ins>
+                      <del class="price-item--sale" *ngIf="selectedProduct.remise > 0">{{ formatPrice(getCurrentPrice()) }}</del>
                     </div>
                     <div class="quick-product-dis">{{ selectedProduct.description }}</div>
+
+                    <!-- Color Selection -->
+                    <div *ngIf="getAvailableColors().length > 0" style="margin-bottom: 15px;">
+                      <label style="font-weight: 600; margin-bottom: 8px; display: block;">Color:</label>
+                      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <span
+                          *ngFor="let color of getAvailableColors()"
+                          (click)="selectColor(color)"
+                          [style.background-color]="color"
+                          [style.width]="'30px'"
+                          [style.height]="'30px'"
+                          [style.border-radius]="'50%'"
+                          [style.cursor]="'pointer'"
+                          [style.border]="selectedColor === color ? '3px solid #111' : '2px solid #ddd'"
+                          [style.box-shadow]="selectedColor === color ? '0 0 0 2px rgba(17,17,17,0.2)' : 'none'"
+                        ></span>
+                      </div>
+                    </div>
+
+                    <!-- Size Selection -->
+                    <div *ngIf="getAvailableSizes().length > 0" style="margin-bottom: 15px;">
+                      <label style="font-weight: 600; margin-bottom: 8px; display: block;">Size:</label>
+                      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <span
+                          *ngFor="let size of getAvailableSizes()"
+                          (click)="selectSize(size)"
+                          [style.padding]="'8px 16px'"
+                          [style.border]="selectedSize === size ? '2px solid #111' : '1px solid #ddd'"
+                          [style.border-radius]="'4px'"
+                          [style.cursor]="'pointer'"
+                          [style.background]="selectedSize === size ? '#111' : '#fff'"
+                          [style.color]="selectedSize === size ? '#fff' : '#111'"
+                        >{{ size }}</span>
+                      </div>
+                    </div>
+
                     <div class="product-actions">
                       <div class="quantity-selector" style="width:130px;">
                         <button (click)="decreaseQuantity()" class="qty-btn">-</button>

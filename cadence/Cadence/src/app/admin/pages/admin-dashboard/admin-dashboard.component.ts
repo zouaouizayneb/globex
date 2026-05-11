@@ -1,11 +1,13 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AdminService, DashboardStats, AdminOrder, StockAlert } from '../../services/admin.service';
 import { SalesPerDay } from '../../services/dashboard.service';
-import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
+import * as am5 from '@amcharts/amcharts5';
+import * as am5xy from '@amcharts/amcharts5/xy';
+import * as am5percent from '@amcharts/amcharts5/percent';
+import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import { dashboardIcons } from './dashboard-icons';
 
 interface KPICard {
@@ -19,11 +21,11 @@ interface KPICard {
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, BaseChartDirective],
+  imports: [CommonModule, RouterLink],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css']
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent implements OnInit, OnDestroy {
   kpiCards: KPICard[] = [];
   recentOrders: AdminOrder[] = [];
   stockAlerts: StockAlert[] = [];
@@ -31,143 +33,20 @@ export class AdminDashboardComponent implements OnInit {
   error: string | null = null;
   today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-  salesLineChartType: ChartType = 'line';
-  salesLineChartData: ChartData<'line'> = {
-    labels: [],
-    datasets: [
-      {
-        label: 'Sales',
-        data: [],
-        borderColor: '#2563eb',
-        backgroundColor: 'rgba(37, 99, 235, 0.1)',
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: '#2563eb',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointRadius: 5
-      }
-    ]
-  };
-  salesLineChartOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false
-      },
-      tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        padding: 12,
-        titleFont: { size: 14 },
-        bodyFont: { size: 13 }
-      }
-    },
-    scales: {
-      x: {
-        grid: { display: false },
-        ticks: { color: '#6b7280' }
-      },
-      y: {
-        grid: { color: '#e5e7eb' },
-        ticks: { color: '#6b7280' },
-        beginAtZero: true
-      }
-    }
-  };
-
-  productPieChartType: ChartType = 'pie';
-  productPieChartData: ChartData<'pie'> = {
-    labels: [],
-    datasets: [
-      {
-        data: [],
-        backgroundColor: [
-          '#4a8b6f',
-          '#6b7280',
-          '#f59e0b',
-          '#3b82f6',
-          '#8b5cf6',
-          '#ec4899',
-          '#10b981'
-        ],
-        borderWidth: 2,
-        borderColor: '#ffffff'
-      }
-    ]
-  };
-  productPieChartOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'right',
-        labels: {
-          padding: 20,
-          font: { size: 13 }
-        }
-      },
-      tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        padding: 12,
-        callbacks: {
-          label: (context) => {
-            const value = context.raw as number;
-            const total = context.dataset.data
-              .filter((v): v is number => typeof v === 'number' && v !== null)
-              .reduce((a: number, b: number) => a + b, 0);
-            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
-            return `${context.label}: $${value.toLocaleString()} (${percentage}%)`;
-          }
-        }
-      }
-    }
-  };
-
-  categoryBarChartType: ChartType = 'bar';
-  categoryBarChartData: ChartData<'bar'> = {
-    labels: [],
-    datasets: [
-      {
-        label: 'Orders',
-        data: [],
-        backgroundColor: '#2563eb',
-        borderRadius: 6
-      }
-    ]
-  };
-  categoryBarChartOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false
-      },
-      tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        padding: 12
-      }
-    },
-    scales: {
-      x: {
-        grid: { display: false },
-        ticks: { color: '#6b7280' }
-      },
-      y: {
-        grid: { color: '#e5e7eb' },
-        ticks: { color: '#6b7280' },
-        beginAtZero: true
-      }
-    }
-  };
+  private roots: am5.Root[] = [];
 
   constructor(
     private adminService: AdminService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit(): void {
     this.loadDashboard();
+  }
+
+  ngOnDestroy(): void {
+    this.roots.forEach(root => root.dispose());
   }
 
   loadDashboard(): void {
@@ -183,37 +62,11 @@ export class AdminDashboardComponent implements OnInit {
           .slice(0, 5);
         this.stockAlerts = alerts;
 
-        // Sales trend
-        if (stats.recentSalesData && stats.recentSalesData.length > 0) {
-          this.updateSalesChart(stats.recentSalesData.map((s: any) => ({
-            date: s.date,
-            total: Number(s.totalRevenue || s.total || 0)
-          })));
-        } else {
-          this.salesLineChartData.labels = [];
-          this.salesLineChartData.datasets[0].data = [];
-        }
-
-        // Order status distribution
-        if (stats.ordersByStatus && Object.keys(stats.ordersByStatus).length > 0) {
-          const statusLabels = Object.keys(stats.ordersByStatus);
-          const statusValues = Object.values(stats.ordersByStatus).map((v: unknown) => Number(v || 0));
-          this.productPieChartData.labels = statusLabels;
-          this.productPieChartData.datasets[0].data = statusValues;
-        } else {
-          this.productPieChartData.labels = [];
-          this.productPieChartData.datasets[0].data = [];
-        }
-
-        // Top categories by order count
-        if (stats.topCategories && stats.topCategories.length > 0) {
-          this.categoryBarChartData.labels = stats.topCategories.map((c: any) => c.categoryName || c.name || 'N/A');
-          this.categoryBarChartData.datasets[0].data = stats.topCategories.map((c: any) =>
-            Number(c.orderCount || c.orders || c.value || 0)
-          );
-        } else {
-          this.categoryBarChartData.labels = [];
-          this.categoryBarChartData.datasets[0].data = [];
+        // Render Charts
+        if (isPlatformBrowser(this.platformId)) {
+          setTimeout(() => {
+            this.renderCharts(stats);
+          }, 100);
         }
 
         console.log('Dashboard Sync Complete:', { stats, ordersCount: orders?.length });
@@ -237,9 +90,163 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  private updateSalesChart(sales: SalesPerDay[]): void {
-    this.salesLineChartData.labels = sales.map(s => this.formatDate(s.date));
-    this.salesLineChartData.datasets[0].data = sales.map(s => s.total);
+  private renderCharts(stats: DashboardStats): void {
+    this.roots.forEach(root => root.dispose());
+    this.roots = [];
+
+    // 1. Sales Trend Chart
+    if (stats.recentSalesData && stats.recentSalesData.length > 0) {
+      const root = am5.Root.new("salesTrendChart");
+      this.roots.push(root);
+      root.setThemes([am5themes_Animated.new(root)]);
+
+      const chart = root.container.children.push(am5xy.XYChart.new(root, {
+        panX: true,
+        panY: false,
+        wheelX: "panX",
+        wheelY: "zoomX",
+        pinchZoomX: true
+      }));
+
+      const xAxis = chart.xAxes.push(am5xy.DateAxis.new(root, {
+        maxDeviation: 0.2,
+        baseInterval: { timeUnit: "day", count: 1 },
+        renderer: am5xy.AxisRendererX.new(root, {}),
+        tooltip: am5.Tooltip.new(root, {})
+      }));
+
+      const yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+        renderer: am5xy.AxisRendererY.new(root, {})
+      }));
+
+      const series = chart.series.push(am5xy.LineSeries.new(root, {
+        name: "Sales",
+        xAxis: xAxis,
+        yAxis: yAxis,
+        valueYField: "value",
+        valueXField: "date",
+        tooltip: am5.Tooltip.new(root, {
+          labelText: "{valueY} TND"
+        })
+      }));
+
+      series.fills.template.setAll({
+        fillOpacity: 0.15,
+        visible: true,
+        fill: am5.color(0x5f8575)
+      });
+
+      series.set("stroke", am5.color(0x5f8575));
+
+      series.data.processor = am5.DataProcessor.new(root, {
+        dateFields: ["date"],
+        dateFormat: "yyyy-MM-dd"
+      });
+
+      const data = stats.recentSalesData.map(s => ({
+        date: s.date,
+        value: Number(s.totalRevenue || s.total || 0)
+      }));
+
+      series.data.setAll(data);
+      series.appear(1000);
+      chart.appear(1000, 100);
+    }
+
+    // 2. Status Distribution Chart
+    if (stats.ordersByStatus && Object.keys(stats.ordersByStatus).length > 0) {
+      const root = am5.Root.new("statusDistChart");
+      this.roots.push(root);
+      root.setThemes([am5themes_Animated.new(root)]);
+
+      const chart = root.container.children.push(am5percent.PieChart.new(root, {
+        innerRadius: am5.percent(50),
+        layout: root.verticalLayout
+      }));
+
+      const series = chart.series.push(am5percent.PieSeries.new(root, {
+        valueField: "value",
+        categoryField: "category",
+        alignLabels: true,
+        radius: am5.percent(80)
+      }));
+
+      series.labels.template.setAll({
+        fontSize: 11,
+        text: "{category}"
+      });
+
+      chart.set("paddingLeft", 10);
+      chart.set("paddingRight", 10);
+
+      const colors = series.get("colors");
+      if (colors) {
+        colors.set("colors", [
+          am5.color(0x5f8575),
+          am5.color(0x84a59d),
+          am5.color(0xa3b18a),
+          am5.color(0x789b8c),
+          am5.color(0x4a675b),
+          am5.color(0xd8e2dc)
+        ]);
+      }
+
+      const data = Object.keys(stats.ordersByStatus).map(key => ({
+        category: key,
+        value: Number(stats.ordersByStatus[key])
+      }));
+
+      series.data.setAll(data);
+      chart.appear(1000, 100);
+    }
+
+    // 3. Category Sales Chart
+    if (stats.topCategories && stats.topCategories.length > 0) {
+      const root = am5.Root.new("categorySalesChart");
+      this.roots.push(root);
+      root.setThemes([am5themes_Animated.new(root)]);
+
+      const chart = root.container.children.push(am5xy.XYChart.new(root, {
+        panX: false,
+        panY: false,
+        wheelX: "none",
+        wheelY: "none"
+      }));
+
+      const xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(root, {
+        categoryField: "category",
+        renderer: am5xy.AxisRendererX.new(root, { minGridDistance: 30 })
+      }));
+
+      const yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+        renderer: am5xy.AxisRendererY.new(root, {})
+      }));
+
+      const series = chart.series.push(am5xy.ColumnSeries.new(root, {
+        name: "Orders",
+        xAxis: xAxis,
+        yAxis: yAxis,
+        valueYField: "value",
+        categoryXField: "category",
+        fill: am5.color(0x5f8575),
+        stroke: am5.color(0x5f8575)
+      }));
+
+      series.columns.template.setAll({
+        cornerRadiusTL: 4,
+        cornerRadiusTR: 4,
+        tooltipText: "{categoryX}: {valueY}"
+      });
+
+      const data = stats.topCategories.map(c => ({
+        category: c.categoryName || c.name || 'N/A',
+        value: Number(c.orderCount || c.orders || 0)
+      }));
+
+      xAxis.data.setAll(data);
+      series.data.setAll(data);
+      chart.appear(1000, 100);
+    }
   }
 
   private formatDate(dateString: string): string {

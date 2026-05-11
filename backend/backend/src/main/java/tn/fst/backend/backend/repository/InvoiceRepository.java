@@ -24,7 +24,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
     List<Invoice> findAllByOrderByIssueDateDesc();
 
-    List<Invoice> findByUser_IdUserOrderByIssueDateDesc(Long userId);
+    List<Invoice> findByOrder_User_IdUserOrderByIssueDateDesc(Long userId);
 
 
     List<Invoice> findByStatus(InvoiceStatus status);
@@ -33,13 +33,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     List<Invoice> findByIssueDateBetween(LocalDate startDate, LocalDate endDate);
 
 
-    List<Invoice> findByStatusAndPaidDateBetween(
-            InvoiceStatus status,
-            LocalDate startDate,
-            LocalDate endDate
-    );
-
     Long countByStatus(InvoiceStatus status);
 
-    Long countByUser_IdUser(Long userId);
+    Long countByOrder_User_IdUser(Long userId);
 }

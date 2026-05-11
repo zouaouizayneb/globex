@@ -2,6 +2,7 @@ package tn.fst.backend.backend.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -21,6 +22,7 @@ import java.util.List;
 @RequestMapping("/api/orders")
 @CrossOrigin(origins = "http://localhost:4200")
 @RequiredArgsConstructor
+@Slf4j
 public class OrderController {
 
     private final OrderService orderService;
@@ -104,6 +106,8 @@ public class OrderController {
     public ResponseEntity<Order> adminUpdateOrder(
             @PathVariable Long orderId,
             @RequestBody AdminOrderUpdateRequest request) {
+        log.info("PATCH admin-update for order #{} - status: {}, transporteurId: {}", orderId, request.getStatus(), request.getTransporteurId());
+        
         OrderStatus status = request.getStatus() != null
                 ? OrderStatus.valueOf(request.getStatus().toUpperCase())
                 : null;
@@ -115,6 +119,21 @@ public class OrderController {
         }
 
         Order updated = orderService.adminUpdateOrder(orderId, status, transporteur);
+        return ResponseEntity.ok(updated);
+    }
+
+    @PutMapping("/{orderId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Order> updateOrderStatus(
+            @PathVariable Long orderId,
+            @RequestBody java.util.Map<String, Object> request) {
+        log.info("PUT update status for order #{} - request: {}", orderId, request);
+        
+        Object statusObj = request.get("status");
+        String statusStr = statusObj != null ? statusObj.toString() : null;
+        
+        OrderStatus status = statusStr != null ? OrderStatus.valueOf(statusStr.toUpperCase()) : null;
+        Order updated = orderService.adminUpdateOrder(orderId, status, null);
         return ResponseEntity.ok(updated);
     }
 

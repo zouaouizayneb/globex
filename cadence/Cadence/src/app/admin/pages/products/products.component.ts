@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService, AdminProduct, AdminSupplier } from '../../services/admin.service';
+import { AuthService } from '../../../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-products',
@@ -39,9 +41,23 @@ export class ProductsComponent implements OnInit {
   formVariants: { sku: string; additionalPrice: number; color: string; size: string; stockQuantity: number; imageUrl: string }[] = [];
   isSaving = false;
 
-  constructor(private adminService: AdminService) {}
+  constructor(
+    private adminService: AdminService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
+    const userRole = this.authService.getUserRole();
+    console.log('Current user role:', userRole);
+    console.log('Is admin?', this.authService.isAdmin());
+
+    if (!this.authService.isAdmin()) {
+      console.error('Access denied: User does not have ADMIN role');
+      alert('Access denied: You need ADMIN privileges to access this page. Current role: ' + (userRole || 'None'));
+      this.router.navigate(['/login']);
+      return;
+    }
     this.loadProducts();
     this.loadCategories();
     this.loadSuppliers();
@@ -159,9 +175,7 @@ export class ProductsComponent implements OnInit {
       color: this.formColor.trim(),
       size: this.formSize.trim(),
       stock: this.formStock,
-      status: this.formStatus,
       category: this.formCategoryId ? { idCategory: this.formCategoryId } : null,
-      supplier: this.formSupplierId ? { idSupplier: this.formSupplierId } : null,
       images: images,
       variants: this.formVariants.map(v => ({
         sku: v.sku,
@@ -182,9 +196,22 @@ export class ProductsComponent implements OnInit {
         this.showModal = false;
         this.isSaving = false;
         this.loadProducts();
+        this.adminService.triggerRefresh();
       },
-      error: () => {
-        alert('Failed to save product.');
+      error: (err) => {
+        console.error('Failed to save product:', err);
+        console.error('Error status:', err.status);
+        console.error('Error body:', err.error);
+        console.error('Full error:', JSON.stringify(err));
+        let errorMessage = 'Failed to save product.';
+        if (err.status === 403) {
+          errorMessage = 'Access denied. You need ADMIN privileges to save products. Please log in with an admin account.';
+        } else if (err.status === 401) {
+          errorMessage = 'Authentication required. Please log in again.';
+        } else {
+          errorMessage = err.error?.message || err.error?.error || err.message || errorMessage;
+        }
+        alert(errorMessage);
         this.isSaving = false;
       }
     });

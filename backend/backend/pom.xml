@@ -117,6 +117,15 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
+        <!-- DNS for MX record validation -->
+        <dependency>
+            <groupId>dnsjava</groupId>
+            <artifactId>dnsjava</artifactId>
+            <version>3.5.2</version>
+        </dependency>
+
+        <!-- Rate Limiting - simple implementation without external dependencies -->
+
         <!-- MySQL -->
         <dependency>
             <groupId>com.mysql</groupId>

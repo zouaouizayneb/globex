@@ -58,13 +58,8 @@
         <h3>Sales Evolution</h3>
       </div>
       <div class="card-body">
-        <div *ngIf="salesLineChartData.datasets[0].data.length > 0" style="height: 300px;">
-          <canvas baseChart
-                  [type]="salesLineChartType"
-                  [data]="salesLineChartData"
-                  [options]="salesLineChartOptions"></canvas>
-        </div>
-        <div *ngIf="salesLineChartData.datasets[0].data.length === 0" class="chart-empty">
+        <div id="salesTrendChart" style="width: 100%; height: 350px;"></div>
+        <div *ngIf="!isLoading && kpiCards.length === 0" class="chart-empty">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M3 3v18h18"></path>
             <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
@@ -79,12 +74,7 @@
         <h3>Order Status Distribution</h3>
       </div>
       <div class="card-body">
-        <div style="height: 250px;">
-          <canvas baseChart
-                  [type]="productPieChartType"
-                  [data]="productPieChartData"
-                  [options]="productPieChartOptions"></canvas>
-        </div>
+        <div id="statusDistChart" style="width: 100%; height: 300px;"></div>
       </div>
     </div>
 
@@ -93,12 +83,7 @@
         <h3>Top Categories by Orders</h3>
       </div>
       <div class="card-body">
-        <div style="height: 250px;">
-          <canvas baseChart
-                  [type]="categoryBarChartType"
-                  [data]="categoryBarChartData"
-                  [options]="categoryBarChartOptions"></canvas>
-        </div>
+        <div id="categorySalesChart" style="width: 100%; height: 300px;"></div>
       </div>
     </div>
 
@@ -177,15 +162,17 @@
         <h3>Low Stock Alerts</h3>
       </div>
       <div class="card-body">
-        <div *ngFor="let alert of stockAlerts" class="alert-item">
-          <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-            <line x1="12" y1="9" x2="12" y2="13"></line>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-          <div class="alert-text">
-            <strong>{{ alert.product }}</strong>
-            <span>{{ alert.current }} / {{ alert.minimum }} units</span>
+        <div class="alerts-grid">
+          <div *ngFor="let alert of stockAlerts" class="alert-item">
+            <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <div class="alert-text">
+              <strong>{{ alert.product }}</strong>
+              <span>{{ alert.current }} / {{ alert.minimum }} units</span>
+            </div>
           </div>
         </div>
       </div>

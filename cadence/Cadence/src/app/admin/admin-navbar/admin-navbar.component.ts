@@ -51,19 +51,34 @@ export class AdminNavbarComponent implements OnInit {
   constructor(private router: Router, private adminService: AdminService) {}
 
   ngOnInit(): void {
-    this.adminService.getAllOrders().subscribe(orders => {
-      this.allOrders = orders;
-      // Filter case-insensitively for PENDING status
-      this.pendingOrders = orders.filter(o => 
-        o.status && o.status.toUpperCase() === 'PENDING'
-      );
+    this.loadNotifications();
+    
+    // Listen for refresh signals from other components
+    this.adminService.refreshSignal$.subscribe(() => {
+      this.loadNotifications();
     });
-    this.adminService.getLowStockAlerts().subscribe(alerts => {
-      this.lowStockAlerts = alerts;
-    });
+
     this.adminService.getProducts().subscribe(p => this.allProducts = p);
     this.adminService.getClients().subscribe(c => this.allClients = c);
     this.adminService.getCategories().subscribe(c => this.allCategories = c);
+  }
+
+  loadNotifications(): void {
+    this.adminService.getAllOrders().subscribe(orders => {
+      this.allOrders = orders;
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      
+      this.pendingOrders = orders.filter(o => {
+        const isPending = o.status && o.status.toUpperCase() === 'PENDING';
+        const orderDate = new Date(o.date);
+        // Only show if it's pending AND was created within the last 24 hours
+        return isPending && orderDate > twentyFourHoursAgo;
+      });
+    });
+
+    this.adminService.getLowStockAlerts().subscribe(alerts => {
+      this.lowStockAlerts = alerts;
+    });
   }
 
   onSearch(): void {
@@ -101,6 +116,11 @@ export class AdminNavbarComponent implements OnInit {
     event.stopPropagation();
     this.profileDropdownOpen = !this.profileDropdownOpen;
     this.notificationDropdownOpen = false;
+  }
+
+  goToProfile() {
+    this.router.navigate(['/admin/account']);
+    this.profileDropdownOpen = false;
   }
 
   logout() {

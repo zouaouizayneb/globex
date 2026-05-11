@@ -35,6 +35,7 @@ export class StockManagementComponent implements OnInit {
         this.stocks = stocks;
         this.loadLowStockAlerts();
         this.isLoading = false;
+        this.adminService.triggerRefresh();
       },
       error: () => {
         this.error = 'Could not load stock data. Make sure the backend is running.';
@@ -76,6 +77,7 @@ export class StockManagementComponent implements OnInit {
       next: () => {
         this.updateStockStatus(stock);
         this.loadLowStockAlerts();
+        this.adminService.triggerRefresh();
       },
       error: () => {
         alert('Failed to update stock. Please try again.');

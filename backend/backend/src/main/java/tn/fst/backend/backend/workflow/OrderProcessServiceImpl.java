@@ -25,6 +25,8 @@ import tn.fst.backend.backend.repository.OrderDetailRepository;
 import tn.fst.backend.backend.repository.OrderRepository;
 import tn.fst.backend.backend.repository.ProductRepository;
 import tn.fst.backend.backend.repository.StockRepository;
+import tn.fst.backend.backend.service.EmailService;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -41,6 +43,7 @@ public class OrderProcessServiceImpl implements OrderProcessService {
     private final InvoiceRepository invoiceRepository;
     private final ClientRepository clientRepository;
     private final OrderDetailRepository orderDetailRepository;
+    private final EmailService emailService;
 
     public OrderProcessServiceImpl(
             OrderRepository orderRepository,
@@ -48,13 +51,15 @@ public class OrderProcessServiceImpl implements OrderProcessService {
             StockRepository stockRepository,
             InvoiceRepository invoiceRepository,
             ClientRepository clientRepository,
-            OrderDetailRepository orderDetailRepository) {
+            OrderDetailRepository orderDetailRepository,
+            EmailService emailService) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.stockRepository = stockRepository;
         this.invoiceRepository = invoiceRepository;
         this.clientRepository = clientRepository;
         this.orderDetailRepository = orderDetailRepository;
+        this.emailService = emailService;
     }
 
     @Override
@@ -153,7 +158,10 @@ public class OrderProcessServiceImpl implements OrderProcessService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
 
         order.setStatus(newStatus);
-        orderRepository.save(order);
+        order = orderRepository.save(order);
+
+        // Send notification
+        emailService.sendOrderStatusEmail(order);
 
         return mapToOrderResponse(order);
     }
@@ -182,7 +190,10 @@ public class OrderProcessServiceImpl implements OrderProcessService {
 
         // Update order status
         order.setStatus(OrderStatus.CANCELLED);
-        orderRepository.save(order);
+        order = orderRepository.save(order);
+
+        // Send notification
+        emailService.sendOrderStatusEmail(order);
 
         return mapToOrderResponse(order);
     }

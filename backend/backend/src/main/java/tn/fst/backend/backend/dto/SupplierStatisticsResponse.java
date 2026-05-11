@@ -22,9 +22,4 @@ public class SupplierStatisticsResponse {
     private BigDecimal onTimeDeliveryRate;
     private BigDecimal totalSpent;
     private BigDecimal rating;
-    private BigDecimal qualityRating;
-    private BigDecimal deliveryRating;
-    private BigDecimal serviceRating;
-    private LocalDate firstOrderDate;
-    private LocalDate lastOrderDate;
 }
