@@ -18,7 +18,7 @@
   font-size: 22px;
   margin-bottom: 15px;
   font-family: 'Delicious Handrawn', cursive;
-  color: #689284;
+  color: var(--green);
 }
 
 h2 {
@@ -55,7 +55,7 @@ h2 {
 .about-icon {
   width: 45px;
   height: 45px;
-  background: #689284;
+  background: var(--green);
   display: flex;
   align-items: center;
   justify-content: center;

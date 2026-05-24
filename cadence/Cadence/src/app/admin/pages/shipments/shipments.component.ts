@@ -106,24 +106,24 @@ export class ShipmentsComponent implements OnInit {
 
   getStatusIcon(status: string): string {
     switch(status?.toUpperCase()) {
-      case 'PENDING':      return '⏳';
-      case 'PROCESSING':   return '⚙️';
-      case 'SHIPPED':      return '📦';
-      case 'IN_TRANSIT':   return '🚚';
-      case 'DELIVERED':    return '✓';
-      case 'CANCELLED':    return '✕';
-      case 'RETURNED':     return '↩';
-      default:             return '?';
+      case 'PENDING':      return '';
+      case 'PROCESSING':   return '';
+      case 'SHIPPED':      return '';
+      case 'IN_TRANSIT':   return '';
+      case 'DELIVERED':    return '';
+      case 'CANCELLED':    return '';
+      case 'RETURNED':     return '';
+      default:             return '';
     }
   }
 
   getShippingMethodIcon(method: string): string {
     switch(method?.toUpperCase()) {
-      case 'STANDARD':     return '🚚';
-      case 'EXPRESS':      return '⚡';
-      case 'OVERNIGHT':    return '🌙';
-      case 'INTERNATIONAL': return '🌍';
-      default:             return '📦';
+      case 'STANDARD':     return '';
+      case 'EXPRESS':      return '';
+      case 'OVERNIGHT':    return '';
+      case 'INTERNATIONAL': return '';
+      default:             return '';
     }
   }
 }

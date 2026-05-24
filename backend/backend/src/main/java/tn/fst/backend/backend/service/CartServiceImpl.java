@@ -1,6 +1,7 @@
 package tn.fst.backend.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.fst.backend.backend.dto.*;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
@@ -82,13 +84,15 @@ public class CartServiceImpl implements CartService {
                     .build();
 
             cart.addItem(newItem);
-            cartItemRepository.save(newItem);
+            cartItemRepository.saveAndFlush(newItem);
         }
 
         cart.setUpdatedAt(LocalDateTime.now());
-        cartRepository.save(cart);
+        cartRepository.saveAndFlush(cart);
 
-        return mapToCartResponse(cart);
+        // Refresh the cart from DB to ensure all items are included in response
+        Cart updatedCart = cartRepository.findById(cart.getIdCart()).orElse(cart);
+        return mapToCartResponse(updatedCart);
     }
 
     @Override
@@ -145,16 +149,28 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public void clearCart(Long userId) {
         User user = getUserById(userId);
         Cart cart = cartRepository.findByUser(user).orElse(null);
 
         if (cart != null) {
+            // Get all cart items
+            List<CartItem> items = cartItemRepository.findByCart(cart);
+            
+            // Delete all items in batch for better performance
+            if (!items.isEmpty()) {
+                cartItemRepository.deleteAll(items);
+                cartItemRepository.flush();
+            }
+            
+            // Clear the in-memory list
             cart.clearItems();
-            cartItemRepository.deleteByCart(cart);
-
+            
             cart.setUpdatedAt(LocalDateTime.now());
-            cartRepository.save(cart);
+            cartRepository.saveAndFlush(cart);
+            
+            log.info("Cleared cart {} for user {} - deleted {} items", cart.getIdCart(), userId, items.size());
         }
     }
 

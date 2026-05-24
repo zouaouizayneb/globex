@@ -16,6 +16,8 @@ import { LoginComponent } from './pages/login/login.component';
 import { CheckoutComponent } from './pages/checkout/checkout.component';
 import { ChatbotComponent } from './chatbot/chatbot.component';
 import { PaymentResultComponent } from './pages/payment-result/payment-result.component';
+import { VerifyEmailComponent } from './pages/verify-email/verify-email.component';
+import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { adminRoutes } from './admin/admin.routes';
 import { loginGuard } from './guards/login.guard';
 import { adminGuard } from './guards/admin.guard';
@@ -39,5 +41,7 @@ export const appRoutes: Routes = [
   { path: 'checkout', component: CheckoutComponent },
   { path: 'payment-result', component: PaymentResultComponent },
   { path: 'chatbot', component: ChatbotComponent },
+  { path: 'verify-email', component: VerifyEmailComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'admin', children: adminRoutes, canActivate: [adminGuard] }
 ];

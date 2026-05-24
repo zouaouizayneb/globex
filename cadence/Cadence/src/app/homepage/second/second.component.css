@@ -21,7 +21,7 @@
     margin-bottom: 15px;
     text-transform: capitalize;
     font-family: Delicious Handrawn, cursive;;
-    color: #689284;
+    color: var(--green);
 }
 
 h2{
@@ -43,7 +43,7 @@ h2:before{
     width: 102px;
     left: 50%;
     transform: translateX(-50%);
-    background: black;
+    background: var(--green);
 }
 body {
     font-family: sans-serif;
@@ -93,7 +93,7 @@ body {
     height: 100%;
     top: 0;
     transition: all 0.8s ease-in-out;
-    background: #689284;
+    background: var(--green);
     clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 50%, calc(100% - 40px) 100%, 0 100%);
   }
 

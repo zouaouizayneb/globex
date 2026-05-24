@@ -38,6 +38,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
+        
+        // Log to identify why /api/orders might be failing
+        if (request.getRequestURI().contains("/api/orders")) {
+            System.out.println("DEBUG: JwtAuthenticationFilter - Request to " + request.getRequestURI());
+            System.out.println("DEBUG: Authorization Header: " + (authHeader != null ? "Present" : "Missing"));
+        }
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -53,6 +59,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                 if (jwtUtil.validateToken(jwt, userDetails)) {
+                    if (request.getRequestURI().contains("/api/orders")) {
+                        System.out.println("DEBUG: Token valid for user: " + username);
+                        System.out.println("DEBUG: User enabled: " + userDetails.isEnabled());
+                        System.out.println("DEBUG: User account non-locked: " + userDetails.isAccountNonLocked());
+                    }
+
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
@@ -60,16 +72,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    
+                    if (request.getRequestURI().contains("/api/orders")) {
+                        System.out.println("DEBUG: SecurityContext populated for user: " + username);
+                    }
+                } else {
+                    if (request.getRequestURI().contains("/api/orders")) {
+                        System.out.println("DEBUG: Token validation failed (expired or mismatched) for user: " + username);
+                    }
                 }
             }
-        } catch (ExpiredJwtException e) {
-            logger.warn("Token has expired: " + e.getMessage());
-            SecurityContextHolder.clearContext();
-        } catch (JwtException | IllegalArgumentException e) {
-            logger.warn("Invalid token: " + e.getMessage());
-            SecurityContextHolder.clearContext();
-        } catch (UsernameNotFoundException e) {
-            logger.warn("User no longer exists: " + e.getMessage());
+        } catch (Exception e) {
+            if (request.getRequestURI().contains("/api/orders")) {
+                System.out.println("DEBUG: Authentication error: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+                e.printStackTrace();
+            }
             SecurityContextHolder.clearContext();
         }
         

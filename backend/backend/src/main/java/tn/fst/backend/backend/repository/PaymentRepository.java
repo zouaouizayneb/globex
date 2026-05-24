@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import tn.fst.backend.backend.entity.PaymentMethod;
 import tn.fst.backend.backend.entity.PaymentStatus;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,4 +31,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     // Find all payments by method
     List<Payment> findByPaymentMethod(PaymentMethod method);
+
+    // Find payments by date range
+    List<Payment> findByDatePaymentBetween(LocalDate startDate, LocalDate endDate);
 }

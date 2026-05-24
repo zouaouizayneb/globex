@@ -1,7 +1,7 @@
 /* la photo */
 .common-banner-sec {
     padding: 100px 0;
-    background-color: #689284;
+    background-color: var(--green);
     background-position: 50% 50%;
     position: relative;
     z-index: 1;
@@ -29,7 +29,7 @@
     margin-bottom: 15px;
     text-transform: capitalize;
     font-family: Delicious Handrawn, cursive;
-    color: #555555;
+    color: var(--dark-gray);
 }
 .breadcrumbs {
     text-transform: capitalize;
@@ -82,7 +82,7 @@ li, ul, ol {
 }
 
 .faq-left-itm {
-    max-width: 85%;
+    max-width: 100%;
     width: 100%;
   }
   
@@ -177,79 +177,142 @@ li, ul, ol {
   }
 
 
-/*Form*/
-.faq-right-itm .faq-form, .contact-page .contact-right-inner .contact-form {
-    border: 1px solid #e4e4e4;
+/* Help Topics Section */
+.help-topics-section {
+  padding: 4rem 2rem;
+  background: #f9f9f9;
 }
 
-.form-control, input:not([type=submit]), input:not([type=checkbox]), input:not([type=button]), input:not([type=radio]), select, textarea {
-    position: relative;
-    border: 1px solid #e4e4e4;
-    display: block;
-    width: 100%;
-    padding: 12px 20px;
-    background: transparent;
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 1;
-    color: black;
-    font-family: Gothic A1, sans-serif;
-}
-.form-control, textarea, input {
-    font-family: Gothic A1, sans-serif;
+.help-container {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.form-container {
-    padding: 15px;
-    border-bottom: 1px solid #e4e4e4;
+.help-container h2 {
+  text-align: center;
+  font-family: Federo, sans-serif;
+  font-size: 36px;
+  margin-bottom: 2rem;
+  color: #111;
 }
 
-.faq-right-itm .faq-form .form-heading h4 {
-    text-transform: capitalize;
-    font-family:Federo, sans-serif;
-    margin: 0;
-    font-size: 26px;
-    font-weight: 400;
+.help-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
 }
-.form-container .btn {
-    width: 100%;
-    --tilt: 40px;
-    text-align: center;
-    padding: 12px 22px;
-    color: var(--primary-text-color);
-    outline: none;
-    background-color:#689284;
-    border: 1px solid #689284;
-    font-size: 16px;
-    line-height: 1;
-    display: inline-flex;
-    gap: 10px;
-    font-weight: 600;
-    align-items: center;
-    justify-content: center;
-    transition: all .5s ease-in-out 0s;
-    position: relative;
-    z-index: 1;
-    overflow: hidden;
+
+.help-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-.form-group {
-    margin-bottom: 20px;
+
+.help-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
-.form-container .form-group label {
-    margin-bottom: 5px;
+
+.help-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
 }
-.form-group label {
-    display: inline-block;
-    margin-bottom: 10px;
+
+.help-card h3 {
+  font-family: Federo, sans-serif;
+  font-size: 20px;
+  margin-bottom: 0.5rem;
+  color: #111;
 }
-.form-group label sup {
-    color: red;
-    font-size: 10px;
-    line-height: 0;
-    margin-right: 3px;
-    position: relative;
-    font-weight: 500;
-    margin-left: 5px;
+
+.help-card p {
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Contact Support Section */
+.contact-support-section {
+  padding: 4rem 2rem;
+  background: white;
+}
+
+.contact-support-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.contact-support-container h2 {
+  font-family: Federo, sans-serif;
+  font-size: 36px;
+  margin-bottom: 1rem;
+  color: #111;
+}
+
+.contact-support-container > p {
+  color: #666;
+  margin-bottom: 2rem;
+  font-size: 18px;
+}
+
+.support-options {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.support-option {
+  text-align: center;
+  min-width: 200px;
+}
+
+.support-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.support-option h3 {
+  font-family: Federo, sans-serif;
+  font-size: 18px;
+  margin-bottom: 0.5rem;
+  color: #111;
+}
+
+.support-option p {
+  color: #666;
+  margin: 0.25rem 0;
+}
+
+.support-hours {
+  background: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 8px;
+  display: inline-block;
+  margin-top: 2rem;
+}
+
+.support-hours h3 {
+  font-family: Federo, sans-serif;
+  font-size: 18px;
+  margin-bottom: 0.5rem;
+  color: #111;
+}
+
+.support-hours p {
+  color: #666;
+  margin: 0.25rem 0;
+}
+
+@media screen and (max-width: 768px) {
+  .support-options {
+    flex-direction: column;
+    gap: 2rem;
+  }
 }
 
 

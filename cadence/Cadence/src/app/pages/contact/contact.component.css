@@ -125,7 +125,7 @@
   .info-boxes {
     display: flex;
     justify-content: space-around;
-    background: #689284;
+    background: var(--green);
     padding: 2rem;
     text-align: center;
   }
@@ -144,7 +144,7 @@
 
   .box p{
     font-family: Federo, sans-serif;
-    color: #000;
+    color: var(--dark-gray);
     font-size: 20px;
   }
   
@@ -285,4 +285,53 @@
   .submit-button:hover{
     color: white;
   }
-  
+
+  /* About Section */
+  .about-section {
+    flex: 1;
+    min-width: 300px;
+    padding: 2rem;
+  }
+  .about-section h2 {
+    margin-bottom: 1rem;
+    font-family: Federo, sans-serif;
+    font-size: 28px;
+    color: #111;
+  }
+  .about-section p {
+    margin-bottom: 1rem;
+    color: #333;
+    line-height: 1.6;
+  }
+
+  /* Map Section */
+  .map-section {
+    padding: 3rem;
+    background: #f9f9f9;
+  }
+  .map-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .map-container h2 {
+    margin-bottom: 1.5rem;
+    font-family: Federo, sans-serif;
+    font-size: 28px;
+    color: #111;
+    text-align: center;
+  }
+  .map-link {
+    display: block;
+    text-decoration: none;
+  }
+  .map-placeholder {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .map-instruction {
+    text-align: center;
+    margin-top: 1rem;
+    color: #666;
+    font-size: 14px;
+  }

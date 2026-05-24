@@ -1,11 +1,11 @@
 /* ── Variables ─────────────────────────────────────────── */
 :host {
-  --green:       #689284;
-  --green-deep:  #4a6b5e;
-  --green-pale:  #d6e6e1;
+  --green:       var(--green);
+  --green-deep:  var(--green-dark);
+  --green-pale:  var(--green-lt);
   --green-glass: rgba(255,255,255,0.08);
-  --white:       #ffffff;
-  --ink:         #1a1a1a;
+  --white:       var(--white);
+  --ink:         var(--ink);
   --interval:    5000ms;
 }
 

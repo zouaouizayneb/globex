@@ -1,6 +1,6 @@
 .testimonials-section {
   padding: 80px 0;
-  background-color: #689284;
+  background-color: var(--green);
   position: relative;
   overflow: hidden;
 }
@@ -22,21 +22,21 @@
   font-size: 22px;
   margin-bottom: 15px;
   font-family: 'Delicious Handrawn', cursive;
-  color: #555555;
+  color: var(--dark-gray);
 }
 
 .section-header h2 {
   font-family: 'Federo', sans-serif;
   font-size: 46px;
   font-weight: 400;
-  color: #111111;
+  color: var(--dark-gray);
   margin-bottom: 25px;
   line-height: 1.2;
 }
 
 .description {
   font-size: 16px;
-  color: #666;
+  color: var(--dark-gray);
   line-height: 1.8;
 }
 

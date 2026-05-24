@@ -60,14 +60,8 @@ export class ServicesService {
   }
 
   getProductsByCategory(categoryId: any): Observable<any[]> {
-    return this.getAllProducts().pipe(
-      map((products: any[]) =>
-        products.filter((p: any) => {
-          const pCategoryId = p.category?.idCategory || p.category?.id || p.category_id || p.category;
-          return pCategoryId == categoryId;
-        })
-      )
-    );
+    console.log('🔍 Fetching products for category ID:', categoryId);
+    return this.http.get<any[]>(`${this.prefix}/api/products/category/${categoryId}`);
   }
 
   searchProducts(keyword: string): Observable<any[]> {
@@ -84,28 +78,55 @@ export class ServicesService {
     return this.http.get<any[]>(`${this.prefix}/api/products/featured`, { params });
   }
 
-  addToCart(cartData: any): Observable<any> {
-    return this.http.post<any>(`${this.prefix}/api/cart/add`, cartData);
+  getBestSellers(limit: number = 8): Observable<any[]> {
+    const params = new HttpParams().set('limit', limit.toString());
+    return this.http.get<any[]>(`${this.prefix}/api/products/best-sellers`, { params });
   }
 
+  // ── Cart ─────────────────────────────────────────────────────────────
   getCart(): Observable<any> {
     return this.http.get<any>(`${this.prefix}/api/cart`);
   }
 
-  removeFromCart(itemId: number): Observable<any> {
-    return this.http.delete<any>(`${this.prefix}/api/cart/${itemId}`);
+  addToCart(variantId: number, quantity: number = 1): Observable<any> {
+    return this.http.post<any>(`${this.prefix}/api/cart/items`, { variantId, quantity });
   }
 
+  updateCartItemQuantity(cartItemId: number, quantity: number): Observable<any> {
+    return this.http.put<any>(`${this.prefix}/api/cart/items/${cartItemId}`, { quantity });
+  }
+
+  removeFromCart(cartItemId: number): Observable<any> {
+    return this.http.delete<any>(`${this.prefix}/api/cart/items/${cartItemId}`);
+  }
+
+  clearCart(): Observable<any> {
+    return this.http.delete<any>(`${this.prefix}/api/cart`);
+  }
+
+  moveCartItemToWishlist(cartItemId: number): Observable<any> {
+    return this.http.post<any>(`${this.prefix}/api/cart/items/${cartItemId}/move-to-wishlist`, {});
+  }
+
+  // ── Wishlist ─────────────────────────────────────────────────────────
   getWishlist(): Observable<any> {
-    return this.http.get(`${this.prefix}/api/wishlist`);
+    return this.http.get<any>(`${this.prefix}/api/wishlist`);
   }
 
-  addToWishlist(data: any): Observable<any> {
-    return this.http.post(`${this.prefix}/api/wishlist`, data);
+  addToWishlist(variantId: number): Observable<any> {
+    return this.http.post<any>(`${this.prefix}/api/wishlist/items/${variantId}`, {});
   }
 
-  removeFromWishlist(itemId: number): Observable<any> {
-    return this.http.delete(`${this.prefix}/api/wishlist/${itemId}`);
+  removeFromWishlist(wishlistItemId: number): Observable<any> {
+    return this.http.delete<any>(`${this.prefix}/api/wishlist/items/${wishlistItemId}`);
+  }
+
+  clearWishlist(): Observable<any> {
+    return this.http.delete<any>(`${this.prefix}/api/wishlist`);
+  }
+
+  moveWishlistItemToCart(wishlistItemId: number): Observable<any> {
+    return this.http.post<any>(`${this.prefix}/api/wishlist/items/${wishlistItemId}/move-to-cart`, {});
   }
 
   getOrders(): Observable<any> {
@@ -113,7 +134,7 @@ export class ServicesService {
   }
 
   createOrder(data: any): Observable<any> {
-    return this.http.post(`${this.prefix}/api/orders`, data);
+    return this.http.post(`${this.prefix}/api/orders/create`, data);
   }
 
   getPayments(): Observable<any> {
@@ -166,5 +187,22 @@ export class ServicesService {
 
   initiatePayment(payload: any): Observable<any> {
     return this.http.post(`${this.prefix}/api/payment/initiate`, payload);
+  }
+
+  // ── Comments ─────────────────────────────────────────────────────────
+  getComments(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.prefix}/api/comments`);
+  }
+
+  submitComment(data: any): Observable<any> {
+    return this.http.post(`${this.prefix}/api/comments`, data);
+  }
+
+  updateComment(id: number, data: any): Observable<any> {
+    return this.http.put(`${this.prefix}/api/comments/${id}`, data);
+  }
+
+  deleteComment(id: number): Observable<any> {
+    return this.http.delete(`${this.prefix}/api/comments/${id}`);
   }
 }

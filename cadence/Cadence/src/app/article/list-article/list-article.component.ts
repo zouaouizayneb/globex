@@ -3,12 +3,14 @@ import { ServicesService } from '../../services/services.service';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ShopService } from '../../pages/shared/shop.services';
+import { Product, ShopService } from '../../pages/shared/shop.services';
 import { CurrencyService } from '../../services/currency.service';
+
+import { AppCurrencyPipe } from '../../pipes/currency.pipe';
 
 @Component({
   selector: 'app-list-article',
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, AppCurrencyPipe],
   templateUrl: './list-article.component.html',
   styleUrl: './list-article.component.css',
   standalone: true
@@ -141,10 +143,11 @@ export class ListArticleComponent implements OnInit {
     const price = this.extractPrice(p);
     const oldPrice = this.getOldPrice(p.variants);
     const remise = oldPrice ? Math.round(((oldPrice - price) / oldPrice) * 100) : 0;
-    const colors = this.getColors(p.variants);
+    const colors = this.getColors(p.variants, p.color);
 
     return {
       id: p.idProduct || p.id_product || p.id,
+      variantId: (p.variants && p.variants.length > 0) ? p.variants[0].idVariant : null,
       title: p.name || p.title || 'Unknown Product',
       description: p.description || '',
       price: price,
@@ -155,8 +158,10 @@ export class ListArticleComponent implements OnInit {
       colors: colors,
       color: colors[0] || '',
       brand: p.brand || p.brandName || (p.variants?.[0]?.brand) || '',
-      stock: p.stock ?? p.availabilities ?? 1,
-      isNew: this.isNewProduct(p.createdAt || p.created_at || p.date_add),
+      stock: (p.variants && p.variants.length > 0)
+        ? (p.variants[0].stockQuantity ?? p.variants[0].stock ?? p.stock ?? p.availabilities ?? 10)
+        : (p.stock ?? p.availabilities ?? 10),
+      isNew: (p.isNew === true || p.is_new === true) || this.isNewProduct(p.createdAt || p.created_at || p.date_add),
       variants: p.variants || []
     };
   }
@@ -198,19 +203,55 @@ export class ListArticleComponent implements OnInit {
     return v ? parseFloat(v.oldPrice) : undefined;
   }
 
-  getColors(variants: any[]): string[] {
-    if (!variants || variants.length === 0) return ['#CCCCCC'];
-    const unique = [...new Set(variants.map(v => v.color).filter(c => !!c))];
-    return unique.length > 0 ? unique : ['#CCCCCC'];
+  getColors(variants: any[], productColor?: string): string[] {
+    const colors: string[] = [];
+    
+    // Add product color if it exists
+    if (productColor) {
+      const hexColor = this.colorNameToHex(productColor);
+      colors.push(hexColor);
+    }
+    
+    // Add variant colors
+    if (variants && variants.length > 0) {
+      variants.forEach(v => {
+        if (v.color && !colors.includes(v.color)) {
+          const hexColor = this.colorNameToHex(v.color);
+          if (!colors.includes(hexColor)) {
+            colors.push(hexColor);
+          }
+        }
+      });
+    }
+    
+    return colors.length > 0 ? colors : ['#CCCCCC'];
+  }
+
+  colorNameToHex(colorName: string): string {
+    const colorMap: { [key: string]: string } = {
+      'Black': '#000000', 'White': '#FFFFFF', 'Red': '#FF0000',
+      'Blue': '#0000FF', 'Navy': '#000080', 'Green': '#00FF00',
+      'Yellow': '#FFFF00', 'Orange': '#FFA500', 'Pink': '#FFC0CB',
+      'Purple': '#800080', 'Gray': '#808080', 'Grey': '#808080',
+      'Brown': '#8B4513', 'Beige': '#F5F5DC', 'Cream': '#FFFDD0',
+      'Gold': '#FFD700', 'Silver': '#C0C0C0', 'Maroon': '#800000',
+      'Olive': '#808000', 'Lime': '#00FF00', 'Aqua': '#00FFFF',
+      'Teal': '#008080', 'Fuchsia': '#FF00FF', 'Khaki': '#C3B091'
+    };
+
+    return colorMap[colorName]
+      || colorMap[colorName.charAt(0).toUpperCase() + colorName.slice(1).toLowerCase()]
+      || colorName
+      || '#CCCCCC';
   }
 
   isNewProduct(createdAt: string | Date): boolean {
     if (!createdAt) return false;
     try {
       const d = new Date(createdAt);
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      return d > thirtyDaysAgo;
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      return d > sevenDaysAgo;
     } catch { return false; }
   }
 
@@ -226,13 +267,179 @@ export class ListArticleComponent implements OnInit {
   }
 
   addToCart(product: any): void {
-    const cartItem = { ...product, quantity: 1, image: product.images[0]?.url };
+    console.log('Adding to cart (list):', product);
+    console.log('🔍 QuickView:', this.showQuickView, 'selectedProduct:', this.selectedProduct?.name, 'selectedVariant:', this.selectedVariant);
+
+    // Stock validation is handled by the backend
+
+    // Determine the variant ID to add
+    let targetVariantId = product.variantId;
+    let targetVariant: any = null;
+    
+    // If we're in Quick View and a variant is selected, use that
+    if (this.showQuickView && this.selectedProduct && this.selectedVariant) {
+      targetVariantId = this.selectedVariant.idVariant || this.selectedVariant.id;
+      targetVariant = this.selectedVariant;
+      console.log('✅ Using variant from QuickView. targetVariantId:', targetVariantId);
+    } 
+    // Fallback if not set but variants available
+    else if (!targetVariantId && product.variants && product.variants.length > 0) {
+      targetVariantId = product.variants[0].idVariant || product.variants[0].id;
+      targetVariant = product.variants[0];
+    }
+    // If targetVariantId is set but targetVariant is not, find the variant
+    else if (targetVariantId && product.variants && product.variants.length > 0) {
+      targetVariant = product.variants.find((v: any) => 
+        v.idVariant === targetVariantId || v.id === targetVariantId
+      );
+    }
+
+    const productId = product.idProduct || product.id_product || product.id;
+    let name = product.name || product.title || 'Unknown Product';
+    
+    // Add variant details to name for cart display
+    if (this.showQuickView && this.selectedVariant) {
+      const variantDetails = [];
+      if (this.selectedColor && this.selectedColor !== 'undefined') {
+        variantDetails.push(`Color: ${this.selectedColor}`);
+      }
+      if (this.selectedSize && this.selectedSize !== 'undefined') {
+        variantDetails.push(`Size: ${this.selectedSize}`);
+      }
+      if (variantDetails.length > 0) {
+        name = `${name} (${variantDetails.join(', ')})`;
+      }
+    } else if (targetVariant) {
+      // Add variant details from the target variant
+      const variantDetails = [];
+      if (targetVariant.color) {
+        variantDetails.push(`Color: ${targetVariant.color}`);
+      }
+      if (targetVariant.size) {
+        variantDetails.push(`Size: ${targetVariant.size}`);
+      }
+      if (variantDetails.length > 0) {
+        name = `${name} (${variantDetails.join(', ')})`;
+      }
+    }
+    
+    // Determine price
+    let price = product.price;
+    if (this.showQuickView && this.selectedProduct) {
+      price = this.getCurrentPrice();
+      // Apply discount if any
+      const discount = this.selectedProduct.discount || this.selectedProduct.remise || 0;
+      if (discount > 0) {
+        price = price - (price * discount / 100);
+      }
+    } else if (targetVariant) {
+      price = parseFloat(targetVariant.totalPrice) || parseFloat(targetVariant.price) || product.price;
+    } else if (product.discount || product.remise) {
+      const discount = product.discount || product.remise || 0;
+      price = price - (price * discount / 100);
+    }
+
+    // Determine image - prioritize variant image when variant selected
+    let image = 'assets/images/no-product-image.jpg';
+    if (this.showQuickView && this.selectedVariant?.imageUrl) {
+      image = this.selectedVariant.imageUrl;
+    } else if (targetVariant?.imageUrl) {
+      image = targetVariant.imageUrl;
+    } else if (product.image) {
+      image = product.image;
+    } else if (product.images && product.images.length > 0) {
+      image = product.images[0].url || product.images[0].imageUrl;
+    }
+
+    // Determine variant color and size
+    let variantColor = this.selectedColor || '';
+    let variantSize = this.selectedSize || '';
+    if (!variantColor && targetVariant?.color) {
+      variantColor = targetVariant.color;
+    }
+    if (!variantSize && targetVariant?.size) {
+      variantSize = targetVariant.size;
+    }
+
+    const cartItem: Product = {
+      id: targetVariantId || productId, // Use variantId as the primary key in cart
+      variantId: targetVariantId, // Explicitly set variantId for backend
+      name: name,
+      price: price,
+      image: image,
+      variantImage: image, // Store variant-specific image
+      variantColor: variantColor, // Store variant color
+      variantSize: variantSize, // Store variant size
+      quantity: this.quantity || 1,
+      rating: product.rating || 4,
+      colors: product.colors || []
+    };
+    
     this.shopService.addToCart(cartItem);
     this.shopService.cartOpen$.next(true); // Open the drawer
   }
 
   addToWishlist(product: any): void {
-    const wishItem = { ...product, image: product.images[0]?.url || product.image };
+    const productId = product.idProduct || product.id_product || product.id;
+    const name = product.name || product.title || 'Unknown Product';
+
+    // Determine variant ID
+    let targetVariantId = product.variantId;
+    let targetVariant: any = null;
+
+    // If we're in Quick View and a variant is selected, use that
+    if (this.showQuickView && this.selectedProduct && this.selectedVariant) {
+      targetVariantId = this.selectedVariant.idVariant || this.selectedVariant.id;
+      targetVariant = this.selectedVariant;
+    }
+    // Fallback if not set but variants available
+    else if (!targetVariantId && product.variants && product.variants.length > 0) {
+      targetVariantId = product.variants[0].idVariant || product.variants[0].id;
+      targetVariant = product.variants[0];
+    }
+    // If targetVariantId is set but targetVariant is not, find the variant
+    else if (targetVariantId && product.variants && product.variants.length > 0) {
+      targetVariant = product.variants.find((v: any) => 
+        v.idVariant === targetVariantId || v.id === targetVariantId
+      );
+    }
+
+    let color = '';
+    let size = '';
+
+    // Add variant details
+    if (targetVariant) {
+      color = targetVariant.color || '';
+      size = targetVariant.size || '';
+    } else if (this.showQuickView) {
+      color = this.selectedColor || '';
+      size = this.selectedSize || '';
+    }
+
+    // Determine image - prioritize variant image when variant selected
+    let image = 'assets/images/no-product-image.jpg';
+    if (targetVariant?.imageUrl) {
+      image = targetVariant.imageUrl;
+    } else if (this.showQuickView && this.selectedVariant?.imageUrl) {
+      image = this.selectedVariant.imageUrl;
+    } else if (product.image) {
+      image = product.image;
+    } else if (product.images && product.images.length > 0) {
+      image = product.images[0].url || product.images[0].imageUrl;
+    }
+
+    const wishItem: Product = {
+      id: targetVariantId || productId,
+      variantId: targetVariantId,
+      name: name,
+      price: product.price,
+      image: image,
+      variantImage: image,
+      variantColor: color,
+      variantSize: size,
+      rating: product.rating || 4,
+      colors: product.colors || []
+    };
     this.shopService.addToWishlist(wishItem);
   }
 
@@ -336,9 +543,11 @@ export class ListArticleComponent implements OnInit {
     this.selectedColor = color;
     // Find a variant with this color
     const variant = this.selectedProduct?.variants?.find((v: any) => v.color === color);
+    console.log('✅ selectColor called:', color, 'Found variant:', variant);
     if (variant) {
       this.selectedVariant = variant;
       this.selectedSize = variant.size || '';
+      console.log('✅ selectedVariant set to:', this.selectedVariant);
     }
     this.currentImageIndex = 0;
   }
@@ -355,10 +564,22 @@ export class ListArticleComponent implements OnInit {
   }
 
   getAvailableColors(): string[] {
-    if (!this.selectedProduct?.variants) return [];
-    const colors = this.selectedProduct.variants
-      .map((v: any) => v.color)
-      .filter((c: any): c is string => typeof c === 'string' && c.length > 0) as string[];
+    const colors: string[] = [];
+    
+    // Add base product color if it exists
+    if (this.selectedProduct?.color) {
+      colors.push(this.selectedProduct.color);
+    }
+    
+    // Add variant colors
+    if (this.selectedProduct?.variants) {
+      this.selectedProduct.variants.forEach((v: any) => {
+        if (v.color && !colors.includes(v.color)) {
+          colors.push(v.color);
+        }
+      });
+    }
+    
     return [...new Set(colors)];
   }
 
@@ -399,8 +620,28 @@ export class ListArticleComponent implements OnInit {
     }
   }
 
-  increaseQuantity(): void { this.quantity++; }
-  decreaseQuantity(): void { if (this.quantity > 1) this.quantity--; }
+  increaseQuantity(): void {
+    if (this.quantity < 99) {
+      this.quantity++;
+    }
+  }
+
+  decreaseQuantity(): void {
+    if (this.quantity > 1) {
+      this.quantity--;
+    }
+  }
+
+  onQuantityChange(): void {
+    const newQuantity = Number(this.quantity);
+    if (isNaN(newQuantity) || newQuantity < 1) {
+      this.quantity = 1;
+    } else if (newQuantity > 99) {
+      this.quantity = 99;
+    } else {
+      this.quantity = newQuantity;
+    }
+  }
 
   onImageError(event: any): void {
     event.target.src = 'assets/images/no-product-image.jpg';

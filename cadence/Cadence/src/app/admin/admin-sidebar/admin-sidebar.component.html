@@ -1,7 +1,7 @@
 <aside class="admin-sidebar">
 
  <div class="sidebar-logo">
-    <img src="https://i.imgur.com/KkZI2T7.png" alt="Globex">
+    <img src="https://i.imgur.com/YACRFXn.png" alt="Globex">
     <p class="tagline">Trade Without Borders</p>
   </div>
    
@@ -128,8 +128,14 @@
         </a>
       </li>
 
-      
-
+      <li class="menu-item" [class.active]="isActive('/admin/comments')">
+        <a routerLink="/admin/comments" class="menu-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span class="menu-label">Comments</span>
+        </a>
+      </li>
     </ul>
   </nav>
 

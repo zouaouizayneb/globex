@@ -137,7 +137,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .paymentMethod(PaymentMethod.valueOf(paymentMethod.toUpperCase()))
                     .status(PaymentStatus.COMPLETED)
                     .amount(order.getTotalAmount())
-                    .currency("USD") // Or get from order
+                    .currency("TND")
                     .transactionId(intent.getId())
                     .paymentIntentId(paymentIntentId)
                     .paidAt(java.time.LocalDateTime.now())
@@ -154,7 +154,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .paymentMethod(PaymentMethod.valueOf(paymentMethod.toUpperCase()))
                     .status(PaymentStatus.FAILED)
                     .amount(order.getTotalAmount())
-                    .currency("USD")
+                    .currency("TND")
                     .paymentIntentId(paymentIntentId)
                     .failureReason(e.getMessage())
                     .build();
@@ -177,7 +177,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .paymentMethod(PaymentMethod.CASH_ON_DELIVERY)
                 .status(PaymentStatus.PENDING)
                 .amount(order.getTotalAmount())
-                .currency("USD")
+                .currency("TND")
                 .build();
 
         Payment saved = paymentRepository.save(payment);

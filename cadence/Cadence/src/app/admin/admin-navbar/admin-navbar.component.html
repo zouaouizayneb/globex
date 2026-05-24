@@ -118,7 +118,7 @@
           <div class="avatar-circle">A</div>
 
           <div class="user-info">
-            <span class="username">Admin</span>
+            <span class="username">Globex</span>
             <span class="user-role">Administrator</span>
           </div>
 
@@ -128,8 +128,6 @@
         </button>
 
         <div class="dropdown-menu" *ngIf="profileDropdownOpen" (mousedown)="$event.stopPropagation()">
-          <div class="dropdown-header">Account</div>
-
           <button class="dropdown-item" (click)="goToProfile()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -137,17 +135,6 @@
             </svg>
             My Profile
           </button>
-
-          <button class="dropdown-item" (click)="profileDropdownOpen = false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="1"></circle>
-              <circle cx="19" cy="12" r="1"></circle>
-              <circle cx="5" cy="12" r="1"></circle>
-            </svg>
-            Settings
-          </button>
-
-          <div class="dropdown-divider"></div>
 
           <button class="dropdown-item logout-btn" (click)="logout()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

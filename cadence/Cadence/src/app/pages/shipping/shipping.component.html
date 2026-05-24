@@ -22,84 +22,101 @@
     </div>
   </section>
 
-  <div class="shipping-page">
-    <ul>
-      <li>
-        <h4>1. When will my items be shipped?</h4>
-        <p>
-          To estimate when you can expect your order, please refer to the timeframe below.<br>
-          If your order is personalized and/or needs adjustment, it may take a few days for our designer to create a complete art file.<br>
-          Design time will depend on adjustment (more or less, easy or difficult) and can be from 1-5 days or more.
-        </p>
-      </li>
+  <div class="shipping-page-container">
+    <div class="shipping-grid">
+      <!-- 1. Processing Time -->
+      <div class="shipping-card">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="card-content">
+          <h3>Processing Time</h3>
+          <p>Orders are typically processed within a specific timeframe. Personalized items or those requiring adjustments may take an additional 1-5 business days for our designers to finalize the artwork.</p>
+        </div>
+      </div>
   
-      <li>
-        <h4>2. Shipping cost</h4>
-        <p>
-          4.99DT for domestic orders and 8.99DT for international orders. Free shipping for orders over 99DT.<br>
-          Shipping fee will be calculated after customers fill in their correct address in the checkout.
-        </p>
+      <!-- 2. Shipping Costs & Estimates -->
+      <div class="shipping-card wide">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        </div>
+        <div class="card-content">
+          <h3>Shipping Rates & Delivery</h3>
+          <p class="cost-summary">Domestic: <strong>4.99 DT</strong> | International: <strong>8.99 DT</strong></p>
+          <p class="highlight">Free shipping on all orders over <strong>99 DT</strong>.</p>
+          
+          <div class="table-wrapper">
+            <table class="minimal-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Tunisia</th>
+                  <th>International</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Electronics (Phone)</td>
+                  <td>4 - 6 Days</td>
+                  <td>5 - 8 Days</td>
+                </tr>
+                <tr>
+                  <td>Audio (Headphones)</td>
+                  <td>7 - 10 Days</td>
+                  <td>Local Only</td>
+                </tr>
+                <tr>
+                  <td>Laptops & Accessories</td>
+                  <td>2 - 6 Days</td>
+                  <td>2 - 10 Days</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
   
-        <h6>Estimated time of arrival (production + shipping time)</h6>
+      <!-- 3. Returns & Exchanges -->
+      <div class="shipping-card">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l-5 5 5 5"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/></svg>
+        </div>
+        <div class="card-content">
+          <h3>Returns Policy</h3>
+          <p>Return shipping costs are the responsibility of the customer and are non-refundable. For high-value items (over 75 DT), we recommend using a trackable shipping service or purchasing insurance.</p>
+        </div>
+      </div>
   
-        <table class="shipping-table">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Tunisia</th>
-              <th>Other Countries</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Phone</td>
-              <td>4 - 6 Days</td>
-              <td>5 - 6 Days</td>
-            </tr>
-            <tr>
-              <td>Headphone</td>
-              <td>7 - 10 Days</td>
-              <td>Not Available</td>
-            </tr>
-            <tr>
-              <td>Speaker, laptops, airpods</td>
-              <td>2 - 6 Days</td>
-              <td>2 - 10 Days</td>
-            </tr>
-          </tbody>
-        </table>
-      </li>
+      <!-- 4. Gifts -->
+      <div class="shipping-card">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+        </div>
+        <div class="card-content">
+          <h3>Gift Returns</h3>
+          <p>Items marked as a gift will receive a gift credit for the value of the return. If the item was not marked as a gift, the refund will be issued to the original purchaser.</p>
+        </div>
+      </div>
   
-      <li>
-        <h4>3. Shipping</h4>
-        <p>
-          You will be responsible for paying for your own shipping costs for returning your item. Shipping costs are non-refundable.<br>
-          If you receive a refund, the cost of return shipping will be deducted from your refund.<br>
-          Depending on where you live, the time it may take for your exchanged product to reach you may vary.<br>
-          If you are shipping an item over 75DT, you should consider using a trackable shipping service or purchasing shipping insurance.<br>
-          We don’t guarantee that we will receive your returned item.
-        </p>
-      </li>
-  
-      <li>
-        <h4>4. Gifts</h4>
-        <p>
-          If the item was marked as a gift when purchased and shipped directly to you, you’ll receive a gift credit for the value of your return.<br>
-          Once the returned item is received, a gift certificate will be mailed to you.<br>
-          If the item wasn’t marked as a gift when purchased, or the gift giver had the order shipped to themselves to give to you later,<br>
-          we will send a refund to the gift giver and they will find out about your return.
-        </p>
-      </li>
-  
-      <li>
-        <h4>5. Help</h4>
-        <p>
-          Give us a shout if you have any other questions and/or concerns.<br>
-          <strong>Email:</strong> contact.com<br>
-          <strong>Phone:</strong> (+216) 000 000 000
-        </p>
-      </li>
-    </ul>
-  
+      <!-- 5. Support -->
+      <div class="shipping-card contact-card">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="card-content">
+          <h3>Need Assistance?</h3>
+          <div class="contact-details">
+            <div class="contact-item">
+              <span>Email</span>
+              <strong>support&#64;globex.com</strong>
+            </div>
+            <div class="contact-item">
+              <span>Phone</span>
+              <strong>(+216) 71 000 000</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   

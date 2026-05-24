@@ -20,9 +20,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
-@CrossOrigin(origins = "http://localhost:4200")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(origins = "http://localhost:4200")
 public class OrderController {
 
     private final OrderService orderService;
@@ -86,19 +86,27 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<OrderCreatedResponse> createFrontendOrder(
             @RequestBody FrontendOrderRequest request,
             Authentication authentication) {
-        Long userId = getCurrentUserId(authentication);
-        Order order = orderService.createFrontendOrder(userId, request);
-        OrderCreatedResponse response = OrderCreatedResponse.builder()
-                .id(order.getIdOrder())
-                .orderNumber("ORD-" + String.format("%06d", order.getIdOrder()))
-                .status(order.getStatus().name())
-                .message("Your order has been placed successfully.")
-                .build();
-        return ResponseEntity.ok(response);
+        log.info("POST createFrontendOrder hit - Authentication: {}", authentication != null ? authentication.getName() : "null");
+        try {
+            Long userId = getCurrentUserId(authentication);
+            log.info("DEBUG: OrderController - Derived userId: {}", userId);
+            Order order = orderService.createFrontendOrder(userId, request);
+            OrderCreatedResponse response = OrderCreatedResponse.builder()
+                    .id(order.getIdOrder())
+                    .orderNumber("ORD-" + String.format("%06d", order.getIdOrder()))
+                    .status(order.getStatus().name())
+                    .message("Your order has been placed successfully.")
+                    .build();
+            log.info("Order created successfully, returning response");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error creating order: ", e);
+            throw e;
+        }
     }
 
     @PatchMapping("/{orderId}/admin-update")
@@ -139,9 +147,11 @@ public class OrderController {
 
     private Long getCurrentUserId(Authentication authentication) {
         if (authentication == null || authentication.getPrincipal() == null) {
-            return null; // or throw unauthorized
+            log.error("Authentication is null or principal is null");
+            throw new RuntimeException("User not authenticated");
         }
         User user = (User) authentication.getPrincipal();
+        log.info("Successfully retrieved user ID: {} for user: {}", user.getIdUser(), user.getUsername());
         return user.getIdUser();
     }
 }

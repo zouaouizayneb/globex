@@ -7,14 +7,15 @@ import { HomeComponent } from './homepage/home/home.component'; // Le composant 
 import { RouterModule } from '@angular/router'; // Import du RouterModule
 import { provideHttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
-  declarations: [
-    
-  ],
+  declarations: [],
   imports: [
     BrowserModule,
     RouterModule.forRoot(appRoutes), // Ajout du RouterModule avec appRoutes
+    CommonModule,
+    FormsModule
   ],
   providers: [],
   bootstrap: []

@@ -45,7 +45,6 @@ public class Product {
     @JsonManagedReference
     private List<ProductVariant> variants = new ArrayList<>();
 
-
     @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<ProductImage> images = new ArrayList<>();

@@ -1,57 +1,210 @@
 <section class="hero">
 
-  <div class="hero-video-wrap">
-    <video #heroVideo autoplay muted loop playsinline class="hero-video">
-      <source [src]="videoUrl" type="video/mp4">
-    </video>
-    <div class="overlay-dark"></div>
-    <div class="overlay-green"></div>
-    <div class="overlay-vignette"></div>
+  <!-- ── Background ─────────────────────────────────────── -->
+  <div class="hero-bg" aria-hidden="true">
+    <div class="bg-base"></div>
+    <div class="bg-glow"></div>
+
+    <!-- World map / trade routes SVG illustration -->
+    <svg class="world-svg" viewBox="0 0 700 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+      <!-- Globe wireframe grid -->
+      <g class="globe-frame">
+        <circle cx="380" cy="252" r="218" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <ellipse cx="380" cy="155" rx="150" ry="17"  stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <ellipse cx="380" cy="200" rx="200" ry="23"  stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <ellipse cx="380" cy="252" rx="218" ry="27"  stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <ellipse cx="380" cy="305" rx="200" ry="23"  stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <ellipse cx="380" cy="350" rx="150" ry="17"  stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <path d="M380,34 Q355,252 380,470" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <path d="M380,34 Q280,252 380,470" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <path d="M380,34 Q460,252 380,470" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <path d="M380,34 Q530,252 380,470" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        <path d="M380,34 Q210,252 380,470" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+      </g>
+
+      <!-- ── Trade route paths ── (draw themselves in via CSS) -->
+
+      <!-- New York → London -->
+      <path id="r1" d="M 195,188 Q 268,115 350,163"
+            stroke="rgba(77,158,120,0.5)" stroke-width="1"
+            stroke-dasharray="212" stroke-dashoffset="212"/>
+
+      <!-- London → Tunis -->
+      <path id="r6" d="M 350,163 Q 360,180 373,200"
+            stroke="rgba(77,158,120,0.42)" stroke-width="1"
+            stroke-dasharray="58" stroke-dashoffset="58"/>
+
+      <!-- London → Dubai -->
+      <path id="r2" d="M 350,163 Q 398,138 447,210"
+            stroke="rgba(77,158,120,0.5)" stroke-width="1"
+            stroke-dasharray="168" stroke-dashoffset="168"/>
+
+      <!-- Dubai → Singapore -->
+      <path id="r3" d="M 447,210 Q 477,228 512,265"
+            stroke="rgba(77,158,120,0.5)" stroke-width="1"
+            stroke-dasharray="118" stroke-dashoffset="118"/>
+
+      <!-- Singapore → Tokyo -->
+      <path id="r4" d="M 512,265 Q 530,218 557,183"
+            stroke="rgba(77,158,120,0.5)" stroke-width="1"
+            stroke-dasharray="118" stroke-dashoffset="118"/>
+
+      <!-- New York → São Paulo -->
+      <path id="r5" d="M 195,188 Q 198,250 233,308"
+            stroke="rgba(77,158,120,0.30)" stroke-width="1"
+            stroke-dasharray="138" stroke-dashoffset="138"/>
+
+      <!-- Main global arc — carries the primary plane -->
+      <path id="main-arc" d="M 195,188 Q 358,80 557,183"
+            stroke="rgba(77,158,120,0.65)" stroke-width="1.5"
+            stroke-dasharray="440" stroke-dashoffset="440"/>
+
+      <!-- ── City markers ── -->
+
+      <!-- New York -->
+      <g class="city" style="animation-delay:1.5s">
+        <circle class="pulse-ring" cx="195" cy="188" r="8"
+                stroke="rgba(77,158,120,0.5)" stroke-width="1"/>
+        <circle cx="195" cy="188" r="3"   fill="rgba(77,158,120,0.88)"/>
+        <circle cx="195" cy="188" r="1.5" fill="rgba(255,255,255,0.92)"/>
+      </g>
+
+      <!-- London -->
+      <g class="city" style="animation-delay:1.8s">
+        <circle class="pulse-ring" cx="350" cy="163" r="8"
+                stroke="rgba(77,158,120,0.5)" stroke-width="1"/>
+        <circle cx="350" cy="163" r="3"   fill="rgba(77,158,120,0.88)"/>
+        <circle cx="350" cy="163" r="1.5" fill="rgba(255,255,255,0.92)"/>
+      </g>
+
+      <!-- Tunis (home base — highlighted) -->
+      <g class="city" style="animation-delay:2.0s">
+        <circle class="pulse-ring pulse-special" cx="373" cy="200" r="10"
+                stroke="rgba(77,158,120,0.75)" stroke-width="1"/>
+        <circle cx="373" cy="200" r="4.5" fill="rgba(77,158,120,1)"/>
+        <circle cx="373" cy="200" r="2.2" fill="rgba(255,255,255,0.97)"/>
+      </g>
+
+      <!-- Dubai -->
+      <g class="city" style="animation-delay:2.3s">
+        <circle class="pulse-ring" cx="447" cy="210" r="8"
+                stroke="rgba(77,158,120,0.5)" stroke-width="1"/>
+        <circle cx="447" cy="210" r="3"   fill="rgba(77,158,120,0.88)"/>
+        <circle cx="447" cy="210" r="1.5" fill="rgba(255,255,255,0.92)"/>
+      </g>
+
+      <!-- Singapore -->
+      <g class="city" style="animation-delay:2.6s">
+        <circle class="pulse-ring" cx="512" cy="265" r="8"
+                stroke="rgba(77,158,120,0.5)" stroke-width="1"/>
+        <circle cx="512" cy="265" r="3"   fill="rgba(77,158,120,0.88)"/>
+        <circle cx="512" cy="265" r="1.5" fill="rgba(255,255,255,0.92)"/>
+      </g>
+
+      <!-- Tokyo -->
+      <g class="city" style="animation-delay:2.9s">
+        <circle class="pulse-ring" cx="557" cy="183" r="8"
+                stroke="rgba(77,158,120,0.5)" stroke-width="1"/>
+        <circle cx="557" cy="183" r="3"   fill="rgba(77,158,120,0.88)"/>
+        <circle cx="557" cy="183" r="1.5" fill="rgba(255,255,255,0.92)"/>
+      </g>
+
+      <!-- São Paulo -->
+      <g class="city" style="animation-delay:3.1s">
+        <circle class="pulse-ring" cx="233" cy="308" r="8"
+                stroke="rgba(77,158,120,0.5)" stroke-width="1"/>
+        <circle cx="233" cy="308" r="3"   fill="rgba(77,158,120,0.88)"/>
+        <circle cx="233" cy="308" r="1.5" fill="rgba(255,255,255,0.92)"/>
+      </g>
+
+      <!-- ── Flying planes ── -->
+
+      <!-- Primary: long-haul global arc -->
+      <g>
+        <path d="M 10,0 L 2,-3.5 L -4,-11 L -6,-10 L -2,-3 L -4,-3 L -4,3 L -2,3 L -6,10 L -4,11 L 2,3.5 Z"
+              fill="rgba(255,255,255,0.94)"/>
+        <animate attributeName="opacity"
+                 values="0;0;1;1;0" keyTimes="0;0.05;0.12;0.90;1"
+                 dur="10s" repeatCount="indefinite" begin="3s"/>
+        <animateMotion dur="10s" repeatCount="indefinite" rotate="auto" begin="3s"
+                       path="M 195,188 Q 358,80 557,183"/>
+      </g>
+
+      <!-- Secondary: London → Dubai hop -->
+      <g>
+        <path d="M 7,0 L 1.5,-2.5 L -3,-7.5 L -4.5,-6.5 L -1.5,-2 L -3,-2 L -3,2 L -1.5,2 L -4.5,6.5 L -3,7.5 L 1.5,2.5 Z"
+              fill="rgba(255,255,255,0.78)"/>
+        <animate attributeName="opacity"
+                 values="0;0;1;1;0" keyTimes="0;0.08;0.18;0.85;1"
+                 dur="6s" repeatCount="indefinite" begin="8s"/>
+        <animateMotion dur="6s" repeatCount="indefinite" rotate="auto" begin="8s"
+                       path="M 350,163 Q 398,138 447,210"/>
+      </g>
+
+      <!-- Tertiary: Dubai → Singapore -->
+      <g>
+        <path d="M 6,0 L 1,-2 L -2.5,-6.5 L -4,-5.5 L -1.5,-1.8 L -2.5,-1.8 L -2.5,1.8 L -1.5,1.8 L -4,5.5 L -2.5,6.5 L 1,2 Z"
+              fill="rgba(255,255,255,0.65)"/>
+        <animate attributeName="opacity"
+                 values="0;0;1;1;0" keyTimes="0;0.10;0.20;0.82;1"
+                 dur="5s" repeatCount="indefinite" begin="13s"/>
+        <animateMotion dur="5s" repeatCount="indefinite" rotate="auto" begin="13s"
+                       path="M 447,210 Q 477,228 512,265"/>
+      </g>
+
+    </svg>
+
+    <div class="bg-vignette"></div>
   </div>
 
-  <div class="category-pills" [class.visible]="loaded">
-    <span *ngFor="let cat of categories; let i = index"
-          class="pill"
-          [style.animation-delay]="(0.8 + i * 0.12) + 's'">
-      {{ cat.icon }}&nbsp; {{ cat.label }}
-    </span>
-  </div>
+  <!-- ── Top bar ──────────────────────────────────────── -->
+  <header class="hero-bar" [class.visible]="loaded">
+    <span class="wordmark">MERIDIAN</span>
+    <nav class="pill-row" aria-label="Categories">
+      <span class="pill"
+            *ngFor="let cat of categories; let i = index"
+            [style.animation-delay]="(0.85 + i * 0.09) + 's'">
+        {{ cat.label }}
+      </span>
+    </nav>
+  </header>
 
-  <div class="hero-body" [class.visible]="loaded">
-    <p class="hero-eyebrow">Global Marketplace</p>
-
-    <h1 class="hero-title">
+  <!-- ── Main content ─────────────────────────────────── -->
+  <main class="hero-body" [class.visible]="loaded">
+    <p class="eyebrow">Global Marketplace</p>
+    <h1 class="headline">
       Trade Without<br>
-      <em class="hero-title-accent">Borders.</em>
+      <em>Borders.</em>
     </h1>
-
-    <p class="hero-sub">
+    <p class="sub">
       Your passport to the world's best products —<br class="br-desk">
       home, fashion, sports &amp; beyond.
     </p>
-
-    <div class="hero-actions">
+    <div class="cta-row">
       <a [routerLink]="['/collections']" class="btn-primary">
-        <span>Shop Now</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        Shop Now
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path d="M5 12h14M12 5l7 7-7 7"/>
         </svg>
       </a>
-      <a [routerLink]="['/collections']" class="btn-ghost">Explore Categories</a>
+      <a [routerLink]="['/collections']" class="btn-ghost">Explore Collections</a>
     </div>
-  </div>
+  </main>
 
-  <div class="hero-footer" [class.visible]="loaded">
-    <div class="scroll-hint">
-      <span class="scroll-line"></span>
-      <span class="scroll-label">Scroll</span>
-    </div>
-    <div class="stat-strip">
+  <!-- ── Footer bar ───────────────────────────────────── -->
+  <footer class="hero-foot" [class.visible]="loaded">
+    <div class="stat-row">
       <div class="stat" *ngFor="let s of stats">
         <strong>{{ s.value }}</strong>
         <span>{{ s.label }}</span>
       </div>
     </div>
-  </div>
+    <div class="scroll-hint" aria-hidden="true">
+      <span class="scroll-line"></span>
+      <span class="scroll-label">Scroll</span>
+    </div>
+  </footer>
 
 </section>

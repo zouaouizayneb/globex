@@ -2,13 +2,11 @@
   <div class="cart-backdrop" (click)="close()"></div>
   <div class="cart-sidebar">
 
-    <!-- Header -->
     <div class="cart-header">
       <h2>Your Cart</h2>
       <button class="close-btn" (click)="close()">×</button>
     </div>
 
-    <!-- Empty state -->
     <div class="cart-empty" *ngIf="cartItems.length === 0">
       <div class="empty-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
@@ -20,14 +18,12 @@
       <p>Your cart is empty</p>
     </div>
 
-    <!-- Cart content when items exist -->
     <div class="cart-content" *ngIf="cartItems.length > 0">
 
-      <!-- Free shipping progress -->
       <div class="free-shipping">
         <div class="shipping-text">
           <p *ngIf="subtotal < 99">
-            You're <strong>${{ (99 - subtotal) | number:'1.2-2' }}</strong> away from
+            You're <strong>{{ (99 - subtotal) | appCurrency }}</strong> away from
             <strong>FREE shipping</strong>.
           </p>
           <p *ngIf="subtotal >= 99">🎉 You've unlocked <strong>FREE shipping</strong>!</p>
@@ -45,10 +41,15 @@
       <!-- Items -->
       <div class="cart-items">
         <div class="cart-item" *ngFor="let item of cartItems">
-          <img [src]="item.image" [alt]="item.name" />
+          <img [src]="item.variantImage || item.image" [alt]="item.name" />
           <div class="item-details">
             <p class="product-name">{{ item.name }}</p>
-            <p class="product-price">${{ item.price | number:'1.2-2' }}</p>
+            <p class="product-variant" *ngIf="item.variantColor || item.variantSize">
+              <span *ngIf="item.variantColor">Color: {{ item.variantColor }}</span>
+              <span *ngIf="item.variantColor && item.variantSize"> | </span>
+              <span *ngIf="item.variantSize">Size: {{ item.variantSize }}</span>
+            </p>
+            <p class="product-price">{{ item.price | appCurrency }}</p>
             <div class="quantity-controls">
               <button (click)="decrement(item)">−</button>
               <span>{{ item.quantity }}</span>
@@ -74,7 +75,7 @@
         </div>
         <div class="summary-row summary-total">
           <span>Subtotal</span>
-          <span>${{ subtotal | number:'1.2-2' }}</span>
+          <span>{{ subtotal | appCurrency }}</span>
         </div>
       </div>
     </div>

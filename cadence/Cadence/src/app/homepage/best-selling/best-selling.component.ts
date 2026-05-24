@@ -16,10 +16,12 @@ interface BestSellerProduct extends Product {
   isHero?: boolean;
 }
 
+import { AppCurrencyPipe } from '../../pipes/currency.pipe';
+
 @Component({
   selector: 'app-best-selling',
   standalone: true,
-  imports: [RouterModule, CommonModule, TitleCasePipe],
+  imports: [RouterModule, CommonModule, TitleCasePipe, AppCurrencyPipe],
   templateUrl: './best-selling.component.html',
   styleUrl: './best-selling.component.css'
 })
@@ -62,19 +64,15 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loading = true;
     this.error = '';
 
-    const sub = this.servicesService.getAllProducts().subscribe({
-      next: (dbProducts) => {
-        if (!dbProducts || dbProducts.length === 0) {
+    const sub = this.servicesService.getBestSellers(8).subscribe({
+      next: (bestSellers) => {
+        if (!bestSellers || bestSellers.length === 0) {
           this.error = 'No products available at the moment.';
           this.loading = false;
           return;
         }
 
-        // Sort by rating as fallback to determine "best sellers"
-        const sorted = [...dbProducts].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        const top = sorted.slice(0, 8);
-
-        this.products = this.mapDatabaseProducts(top);
+        this.products = this.mapBestSellersToProducts(bestSellers);
 
         if (this.products.length > 0) {
           this.products[0].isHero = true;
@@ -87,13 +85,51 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
         }, 100);
       },
       error: (err) => {
-        console.error('Error loading products:', err);
+        console.error('Error loading best sellers:', err);
         this.error = 'Unable to load products. Please make sure the backend is running.';
         this.loading = false;
       }
     });
 
     this.subscriptions.add(sub);
+  }
+
+  /** Mapper for real best sellers data from backend */
+  mapBestSellersToProducts(bestSellers: any[]): BestSellerProduct[] {
+    if (!bestSellers || bestSellers.length === 0) return [];
+
+    const badgeTypes: ('trend' | 'hot' | 'sale')[] = ['trend', 'hot', 'sale'];
+
+    return bestSellers.map((bestSeller: any, index: number) => {
+      const product: BestSellerProduct = {
+        id: bestSeller.idProduct,
+        name: bestSeller.name,
+        description: bestSeller.description,
+        price: bestSeller.price || 0,
+        image: this.getPrimaryImage(bestSeller.images, bestSeller.imageUrl),
+        rating: Math.floor(bestSeller.rating || 0),
+        colors: this.getColors(bestSeller.variants),
+        category: bestSeller.category?.name || 'Collection',
+        badge: badgeTypes[index % badgeTypes.length],
+        soldCount: bestSeller.soldCount || 0,
+        soldPercentage: bestSeller.soldPercentage || 0,
+        reviews: bestSeller.reviews || 0,
+        stock: (bestSeller.variants && bestSeller.variants.length > 0)
+          ? (bestSeller.variants[0].stockQuantity ?? bestSeller.variants[0].stock ?? bestSeller.stock ?? 10)
+          : (bestSeller.stock ?? 10),
+        variantId: (bestSeller.variants && bestSeller.variants.length > 0) ? bestSeller.variants[0].idVariant : null
+      };
+
+      const oldPrice = this.getOldPrice(bestSeller.variants);
+      if (oldPrice !== undefined) product.oldPrice = oldPrice;
+
+      const discount = this.calculateDiscount(bestSeller.variants);
+      if (discount !== undefined) product.discount = discount;
+
+      if (this.isNewProduct(bestSeller.createdAt)) product.isNew = true;
+
+      return product;
+    });
   }
 
   /** Fallback mapper for plain products without sold data */
@@ -121,7 +157,11 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
         badge: badgeTypes[index % badgeTypes.length],
         soldCount,
         soldPercentage,
-        reviews: Math.floor(rating * 18)
+        reviews: Math.floor(rating * 18),
+        stock: (dbProduct.variants && dbProduct.variants.length > 0)
+          ? (dbProduct.variants[0].stockQuantity ?? dbProduct.variants[0].stock ?? dbProduct.stock ?? 10)
+          : (dbProduct.stock ?? 10),
+        variantId: (dbProduct.variants && dbProduct.variants.length > 0) ? dbProduct.variants[0].idVariant : null
       };
 
       const oldPrice = this.getOldPrice(dbProduct.variants);

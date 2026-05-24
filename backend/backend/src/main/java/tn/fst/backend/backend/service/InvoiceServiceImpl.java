@@ -43,15 +43,15 @@ public class InvoiceServiceImpl implements InvoiceService {
             throw new IllegalStateException("Une facture existe déjà pour cette commande");
         }
 
-        Payment payment = paymentRepository.findByOrder(order)
-                .orElseThrow(() -> new ResourceNotFoundException("Payment not found for order"));
+        Payment payment = paymentRepository.findByOrder(order).orElse(null);
+        PaymentStatus paymentStatus = (payment != null) ? payment.getStatus() : PaymentStatus.PENDING;
 
         Invoice invoice = Invoice.builder()
                 .invoiceNumber(generateInvoiceNumber())
                 .order(order)
                 .issueDate(LocalDate.now())
                 .totalAmount(order.getTotalAmount())
-                .status(payment.getStatus() == PaymentStatus.COMPLETED ? InvoiceStatus.PAID : InvoiceStatus.ISSUED)
+                .status(paymentStatus == PaymentStatus.COMPLETED ? InvoiceStatus.PAID : InvoiceStatus.ISSUED)
                 .build();
 
         invoice = invoiceRepository.save(invoice);
@@ -181,17 +181,106 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     @Override
     public InvoiceSummaryResponse getInvoiceSummary() {
-        return InvoiceSummaryResponse.builder().build();
+        List<Invoice> allInvoices = invoiceRepository.findAll();
+
+        BigDecimal totalValue = allInvoices.stream()
+                .map(Invoice::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal paidValue = allInvoices.stream()
+                .filter(Invoice::isPaid)
+                .map(Invoice::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal pendingValue = allInvoices.stream()
+                .filter(inv -> inv.getStatus() == InvoiceStatus.ISSUED || inv.getStatus() == InvoiceStatus.SENT)
+                .map(Invoice::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal overdueValue = allInvoices.stream()
+                .filter(Invoice::isOverdue)
+                .map(Invoice::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return InvoiceSummaryResponse.builder()
+                .totalInvoices((long) allInvoices.size())
+                .draftInvoices(allInvoices.stream().filter(inv -> inv.getStatus() == InvoiceStatus.DRAFT).count())
+                .issuedInvoices(allInvoices.stream().filter(inv -> inv.getStatus() == InvoiceStatus.ISSUED).count())
+                .paidInvoices(allInvoices.stream().filter(Invoice::isPaid).count())
+                .overdueInvoices(allInvoices.stream().filter(Invoice::isOverdue).count())
+                .cancelledInvoices(allInvoices.stream().filter(inv -> inv.getStatus() == InvoiceStatus.CANCELLED).count())
+                .totalValue(totalValue)
+                .paidValue(paidValue)
+                .pendingValue(pendingValue)
+                .overdueValue(overdueValue)
+                .currency("TND")
+                .build();
     }
 
     @Override
     public TaxReportResponse getTaxReport(LocalDate startDate, LocalDate endDate) {
-        return TaxReportResponse.builder().build();
+        List<Invoice> invoices = invoiceRepository.findByIssueDateBetween(startDate, endDate);
+
+        BigDecimal totalSales = invoices.stream()
+                .map(Invoice::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalTaxCollected = invoices.stream()
+                .filter(Invoice::isPaid)
+                .map(Invoice::getTotalAmount)
+                .map(amount -> amount.multiply(BigDecimal.valueOf(0.19))) // 19% VAT
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal averageTaxRate = totalSales.compareTo(BigDecimal.ZERO) > 0
+                ? totalTaxCollected.divide(totalSales, 2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+        TaxBreakdown taxBreakdown = TaxBreakdown.builder()
+                .domesticSales(totalSales)
+                .domesticTax(totalTaxCollected)
+                .internationalSales(BigDecimal.ZERO)
+                .internationalTax(BigDecimal.ZERO)
+                .build();
+
+        return TaxReportResponse.builder()
+                .startDate(startDate)
+                .endDate(endDate)
+                .totalSales(totalSales)
+                .totalTaxCollected(totalTaxCollected)
+                .averageTaxRate(averageTaxRate)
+                .taxBreakdown(taxBreakdown)
+                .currency("TND")
+                .build();
     }
 
     @Override
     public PaymentReconciliationResponse getPaymentReconciliation(LocalDate startDate, LocalDate endDate) {
-        return PaymentReconciliationResponse.builder().build();
+        List<Payment> payments = paymentRepository.findByDatePaymentBetween(startDate, endDate);
+
+        Long totalTransactions = (long) payments.size();
+        Long reconciledTransactions = payments.stream()
+                .filter(p -> p.getStatus() == PaymentStatus.COMPLETED)
+                .count();
+        Long unreconciledTransactions = totalTransactions - reconciledTransactions;
+
+        BigDecimal totalReconciledAmount = payments.stream()
+                .filter(p -> p.getStatus() == PaymentStatus.COMPLETED)
+                .map(Payment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalUnreconciledAmount = payments.stream()
+                .filter(p -> p.getStatus() != PaymentStatus.COMPLETED)
+                .map(Payment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return PaymentReconciliationResponse.builder()
+                .totalTransactions(totalTransactions)
+                .reconciledTransactions(reconciledTransactions)
+                .unreconciledTransactions(unreconciledTransactions)
+                .totalReconciledAmount(totalReconciledAmount)
+                .totalUnreconciledAmount(totalUnreconciledAmount)
+                .currency("TND")
+                .build();
     }
 
     @Override
@@ -267,11 +356,15 @@ public class InvoiceServiceImpl implements InvoiceService {
         addressTable.setWidthPercentage(100);
         addressTable.setSpacingAfter(20);
 
+        String clientName = order.getClient() != null && order.getClient().getName() != null 
+                ? order.getClient().getName() 
+                : (order.getUser() != null ? order.getUser().getFullname() : "Guest");
+
         PdfPCell billingCell = new PdfPCell();
         billingCell.setBorder(Rectangle.BOX);
         billingCell.setPadding(10);
         billingCell.addElement(new Paragraph("CLIENT", headerFont));
-        billingCell.addElement(new Paragraph(order.getUser().getUsername() + "\n" + order.getShippingAddress(), normalFont));
+        billingCell.addElement(new Paragraph(clientName + "\n" + order.getShippingAddress(), normalFont));
         addressTable.addCell(billingCell);
 
         PdfPCell shippingCell = new PdfPCell();
@@ -300,13 +393,33 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
         document.add(itemsTable);
 
+        // Detailed Totals
         PdfPTable totalsTable = new PdfPTable(2);
         totalsTable.setWidthPercentage(40);
         totalsTable.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        totalsTable.setSpacingBefore(10);
 
+        BigDecimal subtotal = order.getTotalAmount()
+                .subtract(order.getTaxAmount() != null ? order.getTaxAmount() : BigDecimal.ZERO)
+                .subtract(order.getShippingCost() != null ? order.getShippingCost() : BigDecimal.ZERO);
+
+        addCellToTable(totalsTable, "Subtotal:", normalFont);
+        addCellToTable(totalsTable, subtotal.setScale(2, RoundingMode.HALF_UP) + " TND", normalFont);
+        
+        addCellToTable(totalsTable, "Shipping:", normalFont);
+        addCellToTable(totalsTable, (order.getShippingCost() != null ? order.getShippingCost() : BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP) + " TND", normalFont);
+        
+        String taxLabel = "Tax (" + (order.getTaxRate() != null ? order.getTaxRate() : "0.00") + "%):";
+        addCellToTable(totalsTable, taxLabel, normalFont);
+        addCellToTable(totalsTable, (order.getTaxAmount() != null ? order.getTaxAmount() : BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP) + " TND", normalFont);
+        
         addCellToTable(totalsTable, "TOTAL:", headerFont);
-        addCellToTable(totalsTable, invoice.getTotalAmount().setScale(2, RoundingMode.HALF_UP) + " TND", headerFont);
+        addCellToTable(totalsTable, order.getTotalAmount().setScale(2, RoundingMode.HALF_UP) + " TND", headerFont);
         document.add(totalsTable);
+
+        Paragraph countryInfo = new Paragraph("\nTax country: " + (order.getCountry() != null ? order.getCountry() : "N/A"), smallFont);
+        countryInfo.setAlignment(Element.ALIGN_RIGHT);
+        document.add(countryInfo);
 
         document.close();
         return filePath;
@@ -343,11 +456,15 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     private InvoiceResponse mapToInvoiceResponse(Invoice invoice) {
         Order order = invoice.getOrder();
+        String clientName = order.getClient() != null && order.getClient().getName() != null 
+                ? order.getClient().getName() 
+                : (order.getUser() != null ? order.getUser().getFullname() : "Guest");
+                
         return InvoiceResponse.builder()
                 .idInvoice(invoice.getIdInvoice())
                 .invoiceNumber(invoice.getInvoiceNumber())
                 .orderId(order.getIdOrder())
-                .customerName(order.getUser().getUsername())
+                .customerName(clientName)
                 .issueDate(invoice.getIssueDate())
                 .dueDate(invoice.getIssueDate().plusDays(30))
                 .totalAmount(invoice.getTotalAmount())

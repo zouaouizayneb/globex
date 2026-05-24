@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ShopService } from '../shared/shop.services';
 import { ServicesService } from '../../services/services.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-checkout',
@@ -40,7 +41,10 @@ export class CheckoutComponent implements OnInit {
   ];
 
   // ── Payment ───────────────────────────────────────────────────────────
-  // Non-Tunisian
+  // Payment method selection
+  selectedPaymentMethod: 'PAYPAL' | 'CASH_ON_DELIVERY' = 'PAYPAL';
+
+  // Non-Tunisian card info (for future use)
   card = {
     number: '',
     expiry: '',
@@ -48,10 +52,6 @@ export class CheckoutComponent implements OnInit {
     name: '',
     useBillingAddress: true
   };
-  paypalSelected = true;  // default for non-TN
-
-  // Tunisian tabs
-  tunisianTab: 'D17' | 'Flouci' | 'Virement' = 'D17';
 
   // ── State ─────────────────────────────────────────────────────────────
   isPlacing = false;
@@ -86,7 +86,8 @@ export class CheckoutComponent implements OnInit {
   constructor(
     public shop: ShopService,
     private api: ServicesService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -125,9 +126,17 @@ export class CheckoutComponent implements OnInit {
 
   get itemCount(): number { return this.shop.cartCount; }
 
-  // ── Tunisian tab helper ───────────────────────────────────────────────
-  setTunisianTab(tab: 'D17' | 'Flouci' | 'Virement') {
-    this.tunisianTab = tab;
+  // ── Payment method helper ───────────────────────────────────────────────
+  setPaymentMethod(method: 'PAYPAL' | 'CASH_ON_DELIVERY') {
+    this.selectedPaymentMethod = method;
+  }
+
+  get availablePaymentMethods() {
+    const methods = [{ id: 'PAYPAL', label: 'PayPal (Online)', icon: '💳' }];
+    if (this.delivery.country === 'TN') {
+      methods.push({ id: 'CASH_ON_DELIVERY', label: 'Cash on Delivery', icon: '💵' });
+    }
+    return methods;
   }
 
   // ── Format helpers ────────────────────────────────────────────────────
@@ -146,7 +155,24 @@ export class CheckoutComponent implements OnInit {
 
   // ── Place order ───────────────────────────────────────────────────────
   placeOrder() {
-    if (this.isPlacing) return;
+    console.log('=== placeOrder called ===');
+
+    // Simple token presence check — the backend JWT filter is the authority.
+    // If the token is expired/invalid, the backend returns 401 and the
+    // error handler below redirects to /login automatically.
+    const token = localStorage.getItem('token');
+    console.log('Token exists:', !!token);
+
+    if (!token) {
+      console.log('No token found — redirecting to login');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (this.isPlacing) {
+      console.log('Already placing order, returning');
+      return;
+    }
 
     // Validate required fields
     if (!this.contact.email || !this.delivery.firstName || !this.delivery.lastName ||
@@ -158,13 +184,11 @@ export class CheckoutComponent implements OnInit {
 
     this.errorMsg = '';
     this.isPlacing = true;
+    console.log('Setting isPlacing to true');
 
     // Determine payment method label
-    let paymentMethod = 'PAYPAL';
-    if (this.isTunisian) {
-      paymentMethod = this.tunisianTab === 'D17' ? 'D17' :
-                      this.tunisianTab === 'Flouci' ? 'FLOUCI' : 'BANK_TRANSFER';
-    }
+    let paymentMethod = this.selectedPaymentMethod;
+    console.log('Payment method:', paymentMethod);
 
     // Build order payload
     const orderPayload = {
@@ -194,13 +218,19 @@ export class CheckoutComponent implements OnInit {
       status: 'PENDING'
     };
 
+    console.log('Order payload:', orderPayload);
+    console.log('Token being used:', token ? token.substring(0, 30) + '...' : 'none');
+
     this.api.createOrder(orderPayload).subscribe({
       next: (res: any) => {
+        console.log('Order created successfully:', res);
         const orderId = res?.id || res?.orderId || res?.orderNumber;
+        console.log('Order ID:', orderId);
         
         // Decide if we need to initiate a payment gateway redirect
-        if (paymentMethod !== 'CASH_ON_DELIVERY' && paymentMethod !== 'BANK_TRANSFER') {
-          // It's an API payment (PayPal, Flouci, D17, etc.)
+        if (paymentMethod !== 'CASH_ON_DELIVERY') {
+          console.log('Initiating payment for PayPal');
+          // It's an API payment (PayPal)
           this.api.initiatePayment({
             orderId: String(orderId),
             amount: this.total,
@@ -212,24 +242,29 @@ export class CheckoutComponent implements OnInit {
             cancelUrl: window.location.origin + '/payment-result'
           }).subscribe({
             next: (paymentRes: any) => {
+              console.log('Payment initiated:', paymentRes);
               if (paymentRes.paymentUrl) {
                 // Clear cart before redirecting
                 this.shop.cart = [];
                 localStorage.removeItem('cart');
                 
-                // Redirect user to the gateway (Flouci, PayPal, etc.) or our simulated D17 page
+                // Redirect user to the gateway (PayPal)
+                console.log('Redirecting to:', paymentRes.paymentUrl);
                 window.location.href = paymentRes.paymentUrl;
               } else {
+                console.error('No payment URL returned');
                 this.isPlacing = false;
                 this.errorMsg = 'Payment initiation failed: no URL returned.';
               }
             },
             error: (payErr) => {
+              console.error('Payment initiation error:', payErr);
               this.isPlacing = false;
               this.errorMsg = 'Failed to connect to the payment provider. ' + (payErr.error?.message || '');
             }
           });
         } else {
+          console.log('Cash on delivery - completing order');
           // Standard offline order
           this.placedOrderId = orderId || ('ORD-' + Date.now());
           this.shop.cart = [];
@@ -240,17 +275,31 @@ export class CheckoutComponent implements OnInit {
         }
       },
       error: (err) => {
+        console.error('Order creation error full object:', err);
+        console.error('Status:', err.status);
+        console.error('Message:', err.message);
+        console.error('Error Body:', err.error);
+        
         this.isPlacing = false;
+        
+        // Temporarily, let's show an alert so the user can tell us what the error is
         if (err.status === 401 || err.status === 403) {
-          this.errorMsg = 'You must be logged in to place an order. Please sign in and try again.';
+          alert('HTTP ' + err.status + ' Error. Check console. Server rejected token or CORS blocked it. Not redirecting so you can read this.');
+          // Temporarily disable redirecting to login to prevent the loop
+          // console.log('Server rejected token (401/403) — clearing session and redirecting');
+          // localStorage.removeItem('token');
+          // localStorage.removeItem('user');
+          // this.router.navigate(['/login']);
         } else if (err.status === 400) {
           this.errorMsg = err.error?.message || 'Invalid order information. Please review your details and try again.';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         } else if (err.status === 404) {
           this.errorMsg = 'One or more items in your cart are no longer available.';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
           this.errorMsg = 'Unable to place your order right now. Please try again in a moment.';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     });
   }

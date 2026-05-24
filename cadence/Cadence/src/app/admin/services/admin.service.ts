@@ -477,43 +477,35 @@ export class AdminService {
 
   // ── STOCK ───────────────────────────────────────────────────
   getStock(): Observable<StockItem[]> {
-    return forkJoin({
-      stocks: this.http.get<any[]>(`${this.base}/stocks`).pipe(catchError(() => of([]))),
-      products: this.http.get<any[]>(`${this.base}/products`).pipe(catchError(() => of([])))
-    }).pipe(
-      map(({ stocks, products }) => {
+    return this.http.get<any[]>(`${this.base}/stocks`).pipe(
+      map(stocks => {
         console.log('Stocks from API:', stocks);
-        console.log('Products from API:', products);
         
         return stocks.map((s, index) => {
-          let product = null;
-          let variant = s.variant;
-          
-          if (variant) {
-             product = products.find(p => p.variants?.some((v: any) => v.idVariant === variant.idVariant));
-          } else if (s.variant_id) {
-             product = products.find(p => p.variants?.some((v: any) => v.idVariant === s.variant_id));
-             if (product) variant = product.variants.find((v: any) => v.idVariant === s.variant_id);
-          }
-          
-          if (!product && s.product) {
-            product = products.find(p => p.idProduct === s.product?.idProduct || p.id === s.product?.id);
-          }
-          if (!product && products[index]) {
-            product = products[index];
-          }
-          
+          const product = s.product;
+          const variant = s.variant;
           const quantity = s.quantity || 0;
+          
           let status: 'in-stock' | 'low-stock' | 'out-of-stock' = 'in-stock';
           if (quantity === 0) status = 'out-of-stock';
           else if (quantity <= 10) status = 'low-stock';
 
+          // Get image from variant first, then from product images
           const primaryImage = (product?.images ?? []).find((img: any) => img.isPrimary) ?? product?.images?.[0];
-          const finalImage = variant?.imageUrl || primaryImage?.imageUrl || null;
+          const finalImage = variant?.imageUrl || primaryImage?.imageUrl || product?.imageUrl || null;
           
+          // Build product name - show product name, and variant info if exists
           let productName = product?.name || `Product #${index + 1}`;
-          if (variant && variant.sku) {
-             productName += ` (${variant.sku})`;
+          if (variant) {
+            if (variant.sku) {
+              productName += ` (${variant.sku})`;
+            }
+            if (variant.size || variant.color) {
+              const variantInfo = [variant.size, variant.color].filter(Boolean).join(' - ');
+              if (variantInfo) {
+                productName += ` - ${variantInfo}`;
+              }
+            }
           }
 
           const stockItem: StockItem = {
@@ -528,7 +520,8 @@ export class AdminService {
           console.log('Mapped stock item:', stockItem);
           return stockItem;
         });
-      })
+      }),
+      catchError(() => of([]))
     );
   }
 
@@ -537,35 +530,25 @@ export class AdminService {
   }
 
   getLowStockAlerts(threshold: number = 10): Observable<StockAlert[]> {
-    return forkJoin({
-      stocks: this.http.get<any[]>(`${this.base}/stocks`).pipe(catchError(() => of([]))),
-      products: this.http.get<any[]>(`${this.base}/products`).pipe(catchError(() => of([])))
-    }).pipe(
-      map(({ stocks, products }: { stocks: any[], products: any[] }) => {
+    return this.http.get<any[]>(`${this.base}/stocks`).pipe(
+      map(stocks => {
         return stocks
           .filter(s => s.quantity <= threshold)
-          .map(s => {
-            let product: any = null;
-            let variant: any = s.variant;
+          .map((s, index) => {
+            const product = s.product;
+            const variant = s.variant;
             
+            let productName = product?.name || `Product #${index + 1}`;
             if (variant) {
-               product = products.find(p => p.variants?.some((v: any) => v.idVariant === variant.idVariant));
-            } else if (s.variant_id) {
-               product = products.find(p => p.variants?.some((v: any) => v.idVariant === s.variant_id));
-               if (product) variant = product.variants.find((v: any) => v.idVariant === s.variant_id);
-            }
-            
-            if (!product && s.product) {
-              product = products.find(p => p.idProduct === s.product?.idProduct || p.id === s.product?.id);
-            }
-            if (!product) {
-              const index = stocks.indexOf(s);
-              product = products[index];
-            }
-            
-            let productName = product?.name || `Product #${stocks.indexOf(s) + 1}`;
-            if (variant && variant.sku) {
-               productName += ` (${variant.sku})`;
+              if (variant.sku) {
+                productName += ` (${variant.sku})`;
+              }
+              if (variant.size || variant.color) {
+                const variantInfo = [variant.size, variant.color].filter(Boolean).join(' - ');
+                if (variantInfo) {
+                  productName += ` - ${variantInfo}`;
+                }
+              }
             }
             
             return {

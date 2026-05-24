@@ -31,6 +31,11 @@ public class StockServiceImpl implements StockService {
 
     @Override
     public Stock createStock(Stock stock) {
+        // Validate: if variant is set, product must also be set
+        if (stock.getVariant() != null && stock.getProduct() == null) {
+            stock.setProduct(stock.getVariant().getProduct());
+        }
+        
         if (stock.getProduct() != null) {
             productRepository.findById(stock.getProduct().getIdProduct())
                     .ifPresent(stock::setProduct);
@@ -45,6 +50,11 @@ public class StockServiceImpl implements StockService {
 
         Stock stock = optional.get();
         stock.setQuantity(stockDetails.getQuantity());
+
+        // Validate: if variant is set, product must also be set
+        if (stockDetails.getVariant() != null && stockDetails.getProduct() == null) {
+            stockDetails.setProduct(stockDetails.getVariant().getProduct());
+        }
 
         if (stockDetails.getProduct() != null)
             productRepository.findById(stockDetails.getProduct().getIdProduct())

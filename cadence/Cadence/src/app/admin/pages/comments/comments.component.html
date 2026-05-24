@@ -1,0 +1,110 @@
+<div class="comments-container">
+  <div class="comments-header">
+    <h1>Website Comments</h1>
+    <div class="header-stats">
+      <div class="stat">
+        <span class="stat-label">Total</span>
+        <span class="stat-value">{{ comments.length }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">New</span>
+        <span class="stat-value new">{{ newCommentsCount }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="comments-controls">
+    <div class="search-box">
+      <input 
+        type="text" 
+        placeholder="Search by name, email, or comment..." 
+        [(ngModel)]="searchQuery"
+        (keyup)="onSearch()"
+        class="search-input"
+      >
+    </div>
+    <div class="filter-box">
+      <select [(ngModel)]="filterStatus" (change)="onFilterChange()" class="filter-select">
+        <option value="ALL">All Comments</option>
+        <option value="NEW">New</option>
+        <option value="READ">Read</option>
+        <option value="ARCHIVED">Archived</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="comments-list">
+    <div 
+      *ngIf="filteredComments.length === 0" 
+      class="empty-state"
+    >
+      <p>No comments found</p>
+    </div>
+
+    <div 
+      *ngFor="let comment of filteredComments" 
+      class="comment-card"
+      [class.new]="comment.status === 'NEW'"
+      (click)="viewComment(comment)"
+    >
+      <div class="comment-header">
+        <div class="comment-info">
+          <h3 class="comment-name">{{ comment.name }}</h3>
+          <p class="comment-email">{{ comment.email }}</p>
+        </div>
+        <div class="comment-meta">
+          <span class="comment-date">{{ comment.createdAt | date:'MMM d, yyyy' }}</span>
+          <span class="comment-status" [style.background-color]="getStatusColor(comment.status)">
+            {{ getStatusLabel(comment.status) }}
+          </span>
+        </div>
+      </div>
+
+      <p class="comment-text">{{ comment.comment }}</p>
+
+      <div class="comment-actions" (click)="$event.stopPropagation()">
+        <button class="action-btn archive-btn" (click)="markAsArchived(comment, $event)" title="Archive">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15V7c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z"></path>
+            <polyline points="3 6 12 11 21 6"></polyline>
+          </svg>
+        </button>
+        <button class="action-btn delete-btn" (click)="deleteComment(comment, $event)" title="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div *ngIf="showDetail && selectedComment" class="detail-modal" (click)="closeDetail()">
+    <div class="detail-content" (click)="$event.stopPropagation()">
+      <div class="detail-header">
+        <h2>{{ selectedComment.name }}</h2>
+        <button class="close-btn" (click)="closeDetail()">×</button>
+      </div>
+
+      <div class="detail-info">
+        <p><strong>Email:</strong> {{ selectedComment.email }}</p>
+        <p><strong>Date:</strong> {{ selectedComment.createdAt | date:'MMMM d, yyyy · h:mm a' }}</p>
+        <p><strong>Status:</strong> <span class="status-badge" [style.background-color]="getStatusColor(selectedComment.status)">{{ getStatusLabel(selectedComment.status) }}</span></p>
+      </div>
+
+      <div class="detail-comment">
+        <h3>Comment</h3>
+        <p>{{ selectedComment.comment }}</p>
+      </div>
+
+      <div class="detail-actions">
+        <button class="btn-secondary" (click)="markAsArchived(selectedComment, $event)">Archive</button>
+        <button class="btn-danger" (click)="deleteComment(selectedComment, $event)">Delete</button>
+        <button class="btn-primary" (click)="closeDetail()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

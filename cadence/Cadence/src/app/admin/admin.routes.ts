@@ -11,6 +11,7 @@ import { TransporteursComponent } from './pages/transporteurs/transporteurs.comp
 import { SuppliersComponent } from './pages/suppliers/suppliers.component';
 import { InvoicesComponent } from './pages/invoices/invoices.component';
 import { AdminAccountComponent } from './pages/admin-account/admin-account.component';
+import { CommentsComponent } from './pages/comments/comments.component';
 
 export const adminRoutes: Routes = [
   {
@@ -28,7 +29,8 @@ export const adminRoutes: Routes = [
       { path: 'stock-management', component: StockManagementComponent },
       { path: 'transporteurs', component: TransporteursComponent },
       { path: 'suppliers', component: SuppliersComponent },
-      { path: 'account', component: AdminAccountComponent }
+      { path: 'account', component: AdminAccountComponent },
+      { path: 'comments', component: CommentsComponent }
     ]
   }
 ];

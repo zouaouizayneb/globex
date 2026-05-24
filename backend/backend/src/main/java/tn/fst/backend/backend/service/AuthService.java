@@ -17,6 +17,9 @@ import tn.fst.backend.backend.entity.User;
 import tn.fst.backend.backend.repository.ClientRepository;
 import tn.fst.backend.backend.repository.UserRepository;
 import tn.fst.backend.backend.security.JwtUtil;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -38,6 +41,9 @@ public class AuthService {
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
+
+    @Value("${app.frontend-url:http://localhost:4200}")
+    private String frontendUrl;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -86,15 +92,18 @@ public class AuthService {
             clientRepository.save(client);
         }
 
-        String verificationLink = baseUrl + "/api/auth/verify-email?token=" + verificationToken;
+        String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
+        System.out.println("=== Email Sending Debug ===");
         System.out.println("Sending verification email to: " + user.getEmail());
         System.out.println("Verification link: " + verificationLink);
+        System.out.println("Frontend URL: " + frontendUrl);
         try {
             emailService.sendVerificationEmail(user.getEmail(), verificationLink);
             System.out.println("Verification email sent successfully");
         } catch (Exception e) {
             System.err.println("Failed to send verification email: " + e.getMessage());
             e.printStackTrace();
+            System.err.println("Email sending failed, but user registration will continue");
         }
 
         String token = jwtUtil.generateToken(user);
@@ -118,10 +127,20 @@ public class AuthService {
         );
 
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+                .orElseGet(() -> userRepository.findByEmail(request.getUsername())
+                        .orElseThrow(() -> new BadCredentialsException("Invalid username or email")));
+
+        System.out.println("=== Login Debug ===");
+        System.out.println("User: " + user.getUsername());
+        System.out.println("Is Active: " + user.getIsActive());
+        System.out.println("Email Verified: " + user.getEmailVerified());
 
         if (!user.getIsActive()) {
-            throw new IllegalStateException("User account is deactivated");
+            throw new LockedException("User account is deactivated");
+        }
+        
+        if (user.getEmailVerified() != null && !user.getEmailVerified()) {
+            throw new DisabledException("Email not verified");
         }
 
         String token = jwtUtil.generateToken(user);
@@ -138,17 +157,31 @@ public class AuthService {
 
     @Transactional
     public MessageResponse verifyEmail(String token) {
+        System.out.println("=== Email Verification Debug ===");
+        System.out.println("Received token: " + token);
+
         User user = userRepository.findByEmailVerificationToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired verification token"));
+                .orElseThrow(() -> {
+                    System.out.println("ERROR: Invalid or expired verification token - token not found in database");
+                    return new IllegalArgumentException("Invalid or expired verification token");
+                });
+
+        System.out.println("Found user: " + user.getUsername());
+        System.out.println("Current emailVerified status: " + user.getEmailVerified());
+        System.out.println("Token expiry: " + user.getEmailVerificationTokenExpiry());
 
         if (user.getEmailVerificationTokenExpiry() != null && user.getEmailVerificationTokenExpiry().isBefore(Instant.now())) {
+            System.out.println("ERROR: Verification token has expired");
             throw new IllegalArgumentException("Verification token has expired");
         }
 
         user.setEmailVerified(true);
         user.setEmailVerificationToken(null);
         user.setEmailVerificationTokenExpiry(null);
-        userRepository.save(user);
+
+        System.out.println("Saving user with emailVerified=true");
+        User savedUser = userRepository.save(user);
+        System.out.println("User saved successfully. New emailVerified status: " + savedUser.getEmailVerified());
 
         return MessageResponse.builder().message("Email verified successfully").build();
     }
@@ -164,7 +197,7 @@ public class AuthService {
         user.setPasswordResetTokenExpiry(resetExpiry);
         userRepository.save(user);
 
-        String resetLink = baseUrl + "/api/auth/reset-password?token=" + resetToken;
+        String resetLink = frontendUrl + "/reset-password?token=" + resetToken;
         emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
 
         return MessageResponse.builder()

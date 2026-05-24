@@ -7,17 +7,14 @@ import tn.fst.backend.backend.entity.PaymentMethod;
 
 /**
  * Service unifié de paiement
- * Tunisie → SMT Monétique
+ * Tunisie → PayPal ou Cash on Delivery
  * International → PayPal
  */
 @Service
 @RequiredArgsConstructor
 public class UnifiedPaymentService {
 
-    private final SMTPaymentService smtService;
     private final PayPalPaymentService paypalService;
-    private final FlouciPaymentService flouciService;
-    private final D17PaymentService d17Service;
 
     /**
      * Initier un paiement selon le pays et la méthode choisie
@@ -27,81 +24,21 @@ public class UnifiedPaymentService {
         String country = request.getCountry();
         PaymentMethod method = PaymentMethod.valueOf(request.getPaymentMethod());
 
-        // Clients TUNISIENS
-        if ("TN".equalsIgnoreCase(country)) {
-            switch (method) {
-                case SMT_MONETIQUE:
-                case E_DINAR:
-                    return processSMTPayment(request);
-                case FLOUCI:
-                case PAYMEE:
-                    return processFlouciPayment(request);
-                case D17:
-                case KONNECT:
-                    return processD17Payment(request);
-                case CASH_ON_DELIVERY:
-                    return processCODPayment(request);
-                case BANK_TRANSFER:
-                    return processBankTransferPayment(request);
-
-                default:
-                    throw new IllegalArgumentException("Méthode non supportée en Tunisie: " + method);
-            }
+        // Support PayPal for all countries
+        if (method == PaymentMethod.PAYPAL) {
+            return processPayPalPayment(request);
         }
-        // Clients INTERNATIONAUX
+        // Support Cash on Delivery for Tunisia only
+        else if (method == PaymentMethod.CASH_ON_DELIVERY && "TN".equalsIgnoreCase(country)) {
+            return processCODPayment(request);
+        }
         else {
-            if (method == PaymentMethod.PAYPAL) {
-                return processPayPalPayment(request);
-            } else {
-                throw new IllegalArgumentException("Seul PayPal est supporté pour les paiements internationaux");
-            }
+            throw new IllegalArgumentException("Méthode de paiement non supportée: " + method);
         }
     }
 
     /**
-     * Traiter paiement SMT (Tunisie)
-     */
-    private PaymentInitiateResponse processSMTPayment(PaymentInitiateRequest request) {
-
-        SMTPaymentResponse smtResponse = smtService.createPayment(
-                SMTPaymentRequest.builder()
-                        .amount(request.getAmount())
-                        .orderId(request.getOrderId())
-                        .returnUrl(request.getReturnUrl() != null ? request.getReturnUrl() : "https://globex.tn/payment/success")
-                        .cancelUrl(request.getCancelUrl() != null ? request.getCancelUrl() : "https://globex.tn/payment/cancel")
-                        .description(request.getDescription())
-                        .build()
-        );
-
-        return PaymentInitiateResponse.builder()
-                .paymentUrl(smtResponse.getPaymentUrl())
-                .transactionId(smtResponse.getTransactionId())
-                .paymentMethod("SMT_MONETIQUE")
-                .status("PENDING")
-                .message("Redirection vers SMT Monétique pour paiement sécurisé")
-                .currency("TND")
-                .build();
-    }
-
-    private PaymentInitiateResponse processFlouciPayment(PaymentInitiateRequest request) {
-        return flouciService.createPayment(request);
-    }
-
-    private PaymentInitiateResponse processD17Payment(PaymentInitiateRequest request) {
-        return d17Service.createPayment(request);
-    }
-    
-    private PaymentInitiateResponse processBankTransferPayment(PaymentInitiateRequest request) {
-        return PaymentInitiateResponse.builder()
-                .paymentMethod("BANK_TRANSFER")
-                .status("PENDING")
-                .message("Veuillez effectuer un virement bancaire pour valider votre commande.")
-                .currency("TND")
-                .build();
-    }
-
-    /**
-     * Traiter paiement PayPal (International)
+     * Traiter paiement PayPal (International & Tunisia)
      */
     private PaymentInitiateResponse processPayPalPayment(PaymentInitiateRequest request) {
 
@@ -111,8 +48,8 @@ public class UnifiedPaymentService {
                         .currency(request.getCurrency())
                         .orderId(request.getOrderId())
                         .description(request.getDescription() != null ? request.getDescription() : "Order " + request.getOrderId())
-                        .returnUrl(request.getReturnUrl() != null ? request.getReturnUrl() : "https://globex.tn/payment/success")
-                        .cancelUrl(request.getCancelUrl() != null ? request.getCancelUrl() : "https://globex.tn/payment/cancel")
+                        .returnUrl(request.getReturnUrl() != null ? request.getReturnUrl() : "http://localhost:4200/payment-result")
+                        .cancelUrl(request.getCancelUrl() != null ? request.getCancelUrl() : "http://localhost:4200/payment-result")
                         .build()
         );
 
@@ -144,17 +81,15 @@ public class UnifiedPaymentService {
      */
     public Object checkPaymentStatus(String transactionId, String paymentMethod) {
 
-        if ("SMT_MONETIQUE".equals(paymentMethod) || "E_DINAR".equals(paymentMethod)) {
-            return smtService.verifyPayment(transactionId);
-        }
-        else if ("PAYPAL".equals(paymentMethod)) {
+        if ("PAYPAL".equals(paymentMethod)) {
             return paypalService.verifyPayment(transactionId);
         }
-        else if ("FLOUCI".equals(paymentMethod) || "PAYMEE".equals(paymentMethod)) {
-            return flouciService.verifyPayment(transactionId);
-        }
-        else if ("D17".equals(paymentMethod) || "KONNECT".equals(paymentMethod)) {
-            return d17Service.verifyPayment(transactionId);
+        else if ("CASH_ON_DELIVERY".equals(paymentMethod)) {
+            return PaymentInitiateResponse.builder()
+                    .paymentMethod("CASH_ON_DELIVERY")
+                    .status("PENDING")
+                    .message("Paiement à la livraison")
+                    .build();
         }
 
         return "UNKNOWN";

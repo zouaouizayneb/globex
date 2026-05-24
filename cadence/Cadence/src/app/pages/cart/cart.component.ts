@@ -1,19 +1,26 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ShopService } from '../shared/shop.services';
 
+import { AppCurrencyPipe } from '../../pipes/currency.pipe';
+
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AppCurrencyPipe],
   templateUrl: './cart.component.html',
   styleUrls: ['./cart.component.css']
 })
-export class CartComponent {
+export class CartComponent implements OnInit {
   isOpen = false;
+  cartItems: any[] = [];
 
   constructor(public shop: ShopService, private router: Router) {}
+
+  ngOnInit(): void {
+    this.shop.cart$.subscribe(items => this.cartItems = items);
+  }
 
   open() {
     this.isOpen = true;
@@ -46,9 +53,6 @@ export class CartComponent {
     this.router.navigate(['/checkout']);
   }
 
-  get cartItems() {
-    return this.shop.getCart();
-  }
 
   get totalItems(): number {
     return this.shop.cartCount;

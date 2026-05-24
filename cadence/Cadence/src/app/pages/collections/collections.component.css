@@ -90,7 +90,7 @@
 
 .common-banner-sec {
   padding: 100px 0;
-  background-color: var(--primary-color);
+  background-color: var(--green);
   background-position: 50% 50%;
   position: relative;
   z-index: 1;
@@ -165,8 +165,8 @@
   .btn {
     font-family: Federo, sans-serif;
     text-align: center;
-    color: #111111;
-    background-color: #689284;
+    color: white;
+    background-color: var(--green);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -174,7 +174,7 @@
     position: relative;
     z-index: 1;
     outline: none;
-    border: 1px solid #689284;
+    border: 1px solid var(--green);
     gap: 10px;
     transition: 0.5s ease-in-out;
     overflow: hidden;

@@ -140,7 +140,7 @@
       style="height:274px; margin:0; top:20px; background-color:#f8f9fa; margin-bottom:30px;">
 
       <div class="col-3" style="padding:20px; height:100%">
-        <a style="display:block; height:100%;" class="img-wrapper product__media-item" tabindex="0">
+        <a (click)="toggleQuickView(item)" style="display:block; height:100%; cursor: pointer;" class="img-wrapper product__media-item" tabindex="0">
           <img loading="lazy" class="standard-product-image default-img"
             [src]="item.images[0]?.url"
             [alt]="item.title"
@@ -153,22 +153,19 @@
           <div class="product-label-wrp">
             <div class="pro-label pro-sale" *ngIf="item.isNew">New</div>
             <div class="pro-label pro-discount" *ngIf="item.remise > 0">-{{ item.remise }}%</div>
+            <div class="pro-label pro-out-of-stock" *ngIf="item.stock !== undefined && item.stock !== null && item.stock <= 0">Out of Stock</div>
           </div>
-          <h3><a>{{ item.title }}</a></h3>
+          <h3 (click)="toggleQuickView(item)" style="cursor: pointer;"><a>{{ item.title }}</a></h3>
           <p>{{ item.description }}</p>
         </div>
       </div>
 
       <div class="col-4" style="padding-top:60px; padding-left:180px;">
 
-        <div class="rating-container">
-          <div class="stars">{{ getStars(item.rating) }}</div>
-        </div>
-
         <div style="padding-top:10px;">
           <div class="pro-btn-wrapper">
 
-            <div class="pro-btn pro-wishlist" (click)="addToWishlist(item)" [routerLink]="'/wishlist'" style="cursor: pointer;">
+            <div class="pro-btn pro-wishlist" (click)="addToWishlist(item)" style="cursor: pointer;">
               <label style="cursor: pointer;">
                 <span class="wishlist-label wishlist-btn">
                   <div class="svg-container">
@@ -193,108 +190,17 @@
               </button>
             </div>
 
-            <div class="quickview-modal" *ngIf="showQuickView && selectedProduct">
-              <div class="modal-overlay" (click)="toggleQuickView(null)"></div>
-              <div class="modal-content">
-                <button class="close-btn" (click)="toggleQuickView(null)">×</button>
-                <div class="row" style="height:100%;">
-                  <div class="col-6">
-                    <div class="quickview-slider-wrapper">
-                      <button class="arrow left" (click)="prevImage()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
-                          <path fill="#111" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-                        </svg>
-                      </button>
-                      <div class="quickview-slider">
-                        <div class="slider-track" [style.transform]="'translateX(-' + currentImageIndex * 100 + '%)'">
-                          <div class="slide" *ngFor="let img of getCurrentImages()">
-                            <img class="standard-product-image" [src]="img.url" alt="Product Image" loading="lazy" (error)="onImageError($event)"/>
-                          </div>
-                        </div>
-                      </div>
-                      <button class="arrow right" (click)="nextImage()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
-                          <path fill="#111" d="m10 6-1.41 1.41L13.17 12l-4.58 4.59L10 18l6-6z"/>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                  <div class="col-6" style="padding-top:100px;">
-                    <div class="section-title">
-                      <h3><a>{{ selectedProduct.title }}</a></h3>
-                    </div>
-                    <div class="no-js-hidden qv-price price" role="status">
-                      <ins class="price-item--regular">{{ formatPrice(getCurrentPrice() - (getCurrentPrice() * selectedProduct.remise / 100)) }}</ins>
-                      <del class="price-item--sale" *ngIf="selectedProduct.remise > 0">{{ formatPrice(getCurrentPrice()) }}</del>
-                    </div>
-                    <div class="quick-product-dis">{{ selectedProduct.description }}</div>
 
-                    <!-- Color Selection -->
-                    <div *ngIf="getAvailableColors().length > 0" style="margin-bottom: 15px;">
-                      <label style="font-weight: 600; margin-bottom: 8px; display: block;">Color:</label>
-                      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span
-                          *ngFor="let color of getAvailableColors()"
-                          (click)="selectColor(color)"
-                          [style.background-color]="color"
-                          [style.width]="'30px'"
-                          [style.height]="'30px'"
-                          [style.border-radius]="'50%'"
-                          [style.cursor]="'pointer'"
-                          [style.border]="selectedColor === color ? '3px solid #111' : '2px solid #ddd'"
-                          [style.box-shadow]="selectedColor === color ? '0 0 0 2px rgba(17,17,17,0.2)' : 'none'"
-                        ></span>
-                      </div>
-                    </div>
-
-                    <!-- Size Selection -->
-                    <div *ngIf="getAvailableSizes().length > 0" style="margin-bottom: 15px;">
-                      <label style="font-weight: 600; margin-bottom: 8px; display: block;">Size:</label>
-                      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span
-                          *ngFor="let size of getAvailableSizes()"
-                          (click)="selectSize(size)"
-                          [style.padding]="'8px 16px'"
-                          [style.border]="selectedSize === size ? '2px solid #111' : '1px solid #ddd'"
-                          [style.border-radius]="'4px'"
-                          [style.cursor]="'pointer'"
-                          [style.background]="selectedSize === size ? '#111' : '#fff'"
-                          [style.color]="selectedSize === size ? '#fff' : '#111'"
-                        >{{ size }}</span>
-                      </div>
-                    </div>
-
-                    <div class="product-actions">
-                      <div class="quantity-selector" style="width:130px;">
-                        <button (click)="decreaseQuantity()" class="qty-btn">-</button>
-                        <input [(ngModel)]="quantity" min="1" class="qty-input"/>
-                        <button (click)="increaseQuantity()" class="qty-btn">+</button>
-                      </div>
-                      <div style="display: flex; gap: 10px;">
-                        <button (click)="addToCart(selectedProduct)" [routerLink]="'/cart'"
-                          type="submit" class="cart-btn product-form__submit">
-                          Add to Cart
-                        </button>
-                        <button (click)="addToWishlist(selectedProduct)" [routerLink]="'/wishlist'"
-                          type="button" class="cart-btn product-form__submit" style="padding: 0 15px;">
-                          Wishlist
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
 
           </div>
         </div>
 
         <div class="no-js-hidden price" role="status" style="padding-top:12px; padding-right:5px;">
-          <ins class="price-item--regular">{{ formatPrice(item.price - (item.price * item.remise / 100)) }}</ins>
-          <del class="price-item--sale" *ngIf="item.remise > 0">{{ formatPrice(item.price) }}</del>
+          <ins class="price-item--regular">{{ (item.price - (item.price * item.remise / 100)) | appCurrency }}</ins>
+          <del class="price-item--sale" *ngIf="item.remise > 0">{{ item.price | appCurrency }}</del>
         </div>
 
-        <button (click)="addToCart(item)" [routerLink]="'/cart'"
+        <button (click)="addToCart(item)"
           type="submit" class="cart-btn product-form__submit" aria-label="Add to Cart">
           <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none">
             <path d="M3.67596 4.51919C3.54138 4.51919 3.39971 4.46252 3.30055 4.36335C3.09513 4.15794 3.09513 3.81794 3.30055 3.61252L5.8718 1.04127C6.07721 0.835853 6.41721 0.835853 6.62263 1.04127C6.82805 1.24669 6.82805 1.58669 6.62263 1.7921L4.05138 4.36335C3.94513 4.46252 3.81055 4.51919 3.67596 4.51919Z" fill="#111111"></path>
@@ -310,5 +216,97 @@
       </div>
     </div>
 
+</div>
+</div>
+
+<!-- Quick View Modal -->
+<div class="quickview-modal" *ngIf="showQuickView && selectedProduct">
+  <div class="modal-overlay" (click)="toggleQuickView(null)"></div>
+  <div class="modal-content">
+    <button class="close-btn" (click)="toggleQuickView(null)">×</button>
+    <div class="row" style="height:100%;">
+      <div class="col-6">
+        <div class="quickview-slider-wrapper">
+          <button class="arrow left" (click)="prevImage()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
+              <path fill="#111" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+            </svg>
+          </button>
+          <div class="quickview-slider">
+            <div class="slider-track" [style.transform]="'translateX(-' + currentImageIndex * 100 + '%)'">
+              <div class="slide" *ngFor="let img of getCurrentImages()">
+                <img class="standard-product-image" [src]="img.url" alt="Product Image" loading="lazy" (error)="onImageError($event)"/>
+              </div>
+            </div>
+          </div>
+          <button class="arrow right" (click)="nextImage()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
+              <path fill="#111" d="m10 6-1.41 1.41L13.17 12l-4.58 4.59L10 18l6-6z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="col-6" style="padding: 20px;">
+        <div class="section-title">
+          <h3><a>{{ selectedProduct.title }}</a></h3>
+        </div>
+        <div class="no-js-hidden qv-price price" role="status">
+          <ins class="price-item--regular">{{ (getCurrentPrice() - (getCurrentPrice() * (selectedProduct.remise || 0) / 100)) | appCurrency }}</ins>
+          <del class="price-item--sale" *ngIf="selectedProduct.remise > 0">{{ getCurrentPrice() | appCurrency }}</del>
+        </div>
+        <div class="quick-product-dis" style="margin-bottom: 15px; color: #666; line-height: 1.5;">{{ selectedProduct.description }}</div>
+
+        <!-- Color Selection -->
+        <div *ngIf="getAvailableColors().length > 0" style="margin-bottom: 15px;">
+          <label style="font-weight: 600; margin-bottom: 8px; display: block;">Color:</label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <span
+              *ngFor="let color of getAvailableColors()"
+              (click)="selectColor(color)"
+              [style.background-color]="colorNameToHex(color)"
+              [style.width]="'30px'"
+              [style.height]="'30px'"
+              [style.border-radius]="'50%'"
+              [style.cursor]="'pointer'"
+              [style.border]="selectedColor === color ? '3px solid #111' : '2px solid #ddd'"
+              [style.box-shadow]="selectedColor === color ? '0 0 0 2px rgba(17,17,17,0.2)' : 'none'"
+            ></span>
+          </div>
+        </div>
+
+        <!-- Size Selection -->
+        <div *ngIf="getAvailableSizes().length > 0" style="margin-bottom: 15px;">
+          <label style="font-weight: 600; margin-bottom: 8px; display: block;">Size:</label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <span
+              *ngFor="let size of getAvailableSizes()"
+              (click)="selectSize(size)"
+              [style.padding]="'8px 16px'"
+              [style.border]="selectedSize === size ? '2px solid #111' : '1px solid #ddd'"
+              [style.border-radius]="'4px'"
+              [style.cursor]="'pointer'"
+              [style.background]="selectedSize === size ? '#111' : '#fff'"
+              [style.color]="selectedSize === size ? '#fff' : '#111'"
+            >{{ size }}</span>
+          </div>
+        </div>
+
+        <div class="product-actions" style="margin-top: 20px;">
+          <div class="quantity-selector" style="width: fit-content; display: flex; align-items: center; border: 2px solid #ddd; border-radius: 6px; overflow: hidden; height: 45px; background: white;">
+            <button type="button" (click)="decreaseQuantity(); $event.stopPropagation()" style="padding: 0; width: 40px; height: 100%; border: none; border-right: 1px solid #ddd; background: #f9f9f9; cursor: pointer; font-size: 18px; font-weight: 600; color: #333; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='#e8e8e8'" onmouseout="this.style.backgroundColor='#f9f9f9'">−</button>
+            <input type="number" [(ngModel)]="quantity" min="1" (ngModelChange)="onQuantityChange()" (click)="$event.stopPropagation()" style="width: 60px; text-align: center; border: none; padding: 0 10px; font-size: 16px; font-weight: 500; background: white; outline: none;"/>
+            <button type="button" (click)="increaseQuantity(); $event.stopPropagation()" style="padding: 0; width: 40px; height: 100%; border: none; border-left: 1px solid #ddd; background: #f9f9f9; cursor: pointer; font-size: 18px; font-weight: 600; color: #333; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='#e8e8e8'" onmouseout="this.style.backgroundColor='#f9f9f9'">+</button>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button (click)="addToCart(selectedProduct)" type="submit" style="padding: 12px 24px; background: #111; color: white; border: none; cursor: pointer; font-weight: 600; font-size: 14px; border-radius: 4px; transition: all 0.2s ease;" onmouseover="this.style.background='#000'" onmouseout="this.style.background='#111'">
+              Add to Cart
+            </button>
+            <button (click)="addToWishlist(selectedProduct)" type="button" style="padding: 12px 24px; background: white; color: #111; border: 1px solid #111; cursor: pointer; font-weight: 600; font-size: 14px; border-radius: 4px; transition: all 0.2s ease;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='#ffffff'">
+              Wishlist
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

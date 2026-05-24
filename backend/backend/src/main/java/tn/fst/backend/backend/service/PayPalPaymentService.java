@@ -40,10 +40,20 @@ public class PayPalPaymentService {
             // Créer le contexte API PayPal
             APIContext apiContext = new APIContext(clientId, clientSecret, mode);
 
+            String currency = request.getCurrency();
+            BigDecimal amountValue = request.getAmount();
+
+            // Convert TND to USD because PayPal does not support TND
+            if ("TND".equalsIgnoreCase(currency)) {
+                currency = "USD";
+                // Static conversion rate: 1 TND ~ 0.32 USD
+                amountValue = amountValue.multiply(new BigDecimal("0.32")).setScale(2, RoundingMode.HALF_UP);
+            }
+
             // Configurer le montant
             Amount amount = new Amount();
-            amount.setCurrency(request.getCurrency());
-            amount.setTotal(formatAmount(request.getAmount()));
+            amount.setCurrency(currency);
+            amount.setTotal(formatAmount(amountValue));
 
             // Configurer la transaction
             Transaction transaction = new Transaction();

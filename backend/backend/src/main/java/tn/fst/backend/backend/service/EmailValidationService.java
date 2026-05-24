@@ -14,9 +14,6 @@ public class EmailValidationService {
         "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
     );
 
-    /**
-     * Validate email format and check if domain has valid MX records
-     */
     public boolean isValidEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             return false;
@@ -35,9 +32,6 @@ public class EmailValidationService {
         return hasValidMXRecords(domain);
     }
 
-    /**
-     * Check if domain has valid MX records
-     */
     private boolean hasValidMXRecords(String domain) {
         try {
             Lookup lookup = new Lookup(domain, Type.MX);
@@ -59,8 +53,7 @@ public class EmailValidationService {
             return false;
         } catch (Exception e) {
             log.error("Unexpected error during DNS lookup for domain {}: {}", domain, e.getMessage());
-            // Return true to not block registration if DNS lookup fails
-            // In production, you might want to handle this differently
+
             return true;
         }
     }

@@ -165,7 +165,7 @@
         font-size: 0.95rem;
   
         .required {
-          color: #689284;
+          color: var(--green);
         }
       }
   
@@ -183,7 +183,7 @@
   
         &:focus {
           outline: none;
-          border-color: #689284;
+          border-color: var(--green);
         }
       }
     }
@@ -197,11 +197,11 @@
     text-align: center;
     font-weight: 400;
     text-decoration: none;
-    color: #000000;
+    color: white;
     cursor: pointer;
     overflow: hidden;
-    background: #689284;
-    border: 2px solid white;
+    background: var(--green);
+    border: 2px solid var(--green);
     z-index: 1;
     border-radius: 0;
     font-family: var(--first-font);

@@ -7,4 +7,5 @@ public interface EmailService {
     void sendNewOrderAdminEmail(Order order, String adminEmail);
     void sendVerificationEmail(String email, String link);
     void sendPasswordResetEmail(String email, String link);
+    void sendNewOrderClientEmail(Order order, String clientEmail);
 }

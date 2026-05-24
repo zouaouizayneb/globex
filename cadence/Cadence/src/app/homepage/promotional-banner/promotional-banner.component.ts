@@ -12,12 +12,16 @@ import { CommonModule } from '@angular/common';
 export class SupplierSliderComponent {
 
   suppliers = [
-    { name: 'Alisa Boutique', style: 'serif' },
-    { name: 'The Backyard Studio', style: 'handwritten' },
-    { name: 'Natural Beauty', style: 'clean' },
-    { name: 'Jewelry', style: 'elegant' },
-    { name: 'Hand Made Studio', style: 'bold' },
-    { name: 'Heliphoto', style: 'handwritten' }
+    { name: 'Global Textiles', style: 'serif' },
+    { name: 'Leather Pro', style: 'handwritten' },
+    { name: 'Electro Supply', style: 'clean' },
+    { name: 'Home Decor', style: 'elegant' },
+    { name: 'Sport Fit', style: 'bold' },
+    { name: 'Beauty Store', style: 'handwritten' },
+    { name: 'Office Hub', style: 'serif' },
+    { name: 'Audio Tech', style: 'clean' },
+    { name: 'Fashion World', style: 'elegant' },
+    { name: 'Garden Living', style: 'bold' }
   ];
 
 }

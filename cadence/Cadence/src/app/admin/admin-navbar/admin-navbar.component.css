@@ -1,23 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --color-primary:      #4a8b6f;
-  --color-primary-dark: #3d7159;
-  --color-accent:       #ef4444;
+  --color-primary:      #4d9e78;
+  --color-primary-dark: #0c2c1a;
+  --color-accent:       #8f3131;
   --nb-height:          64px;
   --sidebar-width: 250px;
   --color-green:       #4a8b6f;
 }
 
 .admin-navbar {
-  background: white;
+  background: #0c2c1a;
   height: var(--nb-height);
-  border-bottom: 1px solid #f0f0f0;
-  position: sticky;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: fixed;
   top: 0;
+  left: 196px;
+  right: 0;
   z-index: 1010;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  margin-left: 204.8px;
 }
 
 
@@ -27,7 +28,7 @@
   align-items: center;
   height: 100%;
   padding: 0 28px;
-  gap: 20px;
+
 }
 
 .navbar-center {
@@ -130,7 +131,6 @@
   font-size: 13px;
 }
 
-/* ── Right: icons + avatar ─────────────────────────────────────────── */
 .navbar-right {
   display: flex;
   align-items: center;
@@ -142,18 +142,19 @@
 
 /* Bell button */
 .icon-btn {
-  background: #f8faf9;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  color: #6b7280;
+  color: white;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: 100%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
   position: relative;
+  flex-shrink: 0;
 }
 
 .icon-btn svg {
@@ -161,15 +162,15 @@
   height: 20px;
 }
 
-.icon-btn:hover { background: #f0f0f0; }
+.icon-btn:hover { background: rgba(255, 255, 255, 0.2); }
 
 /* Notification red dot */
 .notification-badge {
   position: absolute;
   top: 4px;
   right: 4px;
-  background: #ef4444;
-  color: #fff;
+  background: #ffffff;
+  color: #6d2929;
   border-radius: 50%;
   width: 17px;
   height: 17px;
@@ -195,7 +196,8 @@
   font-family: 'Inter', sans-serif;
 }
 
-.profile-btn:hover { background: #f8faf9; }
+.profile-btn:hover { background: #c1d6cc; }
+.profile-btn { background:  #f8faf9;}
 
 .avatar-circle {
   width: 36px;
@@ -219,7 +221,7 @@
 }
 
 .username {
-  color: #1a1a1a;
+  color: #0b22089a;
   font-weight: 600;
   font-size: 13px;
   line-height: 1;
@@ -227,7 +229,7 @@
 }
 
 .user-role {
-  color: #9ca3af;
+  color: #4a7749;
   font-size: 11px;
   line-height: 1;
   white-space: nowrap;
@@ -295,12 +297,12 @@
 
 .notif-icon-wrap.order {
   background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  color: #002c74;
 }
 
 .notif-icon-wrap.stock {
   background: rgba(245, 158, 11, 0.1);
-  color: #f59e0b;
+  color: #855400;
 }
 
 .notif-text {
@@ -382,14 +384,14 @@
 }
 
 .dropdown-item.logout-btn {
-  color: #ef4444;
+  color: #6d2929;
   font-weight: 600;
   margin-top: 4px;
 }
 
 .dropdown-item.logout-btn:hover {
   background: rgba(239, 68, 68, 0.08);
-  color: #dc2626;
+  color: #6d2929;
 }
 
 .dropdown-divider {

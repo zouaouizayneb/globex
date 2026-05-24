@@ -12,11 +12,11 @@ public class Stock {
 
     private int quantity;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "variant_id")
     private ProductVariant variant;
 

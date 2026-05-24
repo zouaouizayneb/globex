@@ -40,38 +40,22 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                // Auth endpoints (public)
-                                "/login",
-                                "/register",
-                                "/api/auth/register",
-                                "/api/auth/login",
-                                "/api/auth/verify-email",
-                                "/api/auth/forgot-password",
-                                "/api/auth/reset-password",
-
-                                // Public endpoints for products and categories
-                                "/api/products/**",
-                                "/api/categories/**",
-
-                                // Public & documentation
-                                "/api/public/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
-
-                        // Protected endpoints
-                        .requestMatchers("/api/auth/me").authenticated()
-                        .requestMatchers("/api/users/**").authenticated()
-                        .requestMatchers("/api/addresses/**").authenticated()
-                        .requestMatchers("/api/cart/**").authenticated()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/login", "/register", "/error").permitAll()
+                        .requestMatchers("/api/public/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        
+                        // 3. Public Shop Content (Browsing)
+                        .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**", "/api/brands/**", "/api/reviews/product/**").permitAll()
+                        
+                        // 4. PROTECTED: Orders & Checkout (Require Login)
                         .requestMatchers("/api/orders/**").authenticated()
-                        .requestMatchers("/api/payment/**").authenticated()
-                        .requestMatchers("/api/payments/**").authenticated()
-                        .requestMatchers("/api/shipments/**").authenticated()
+                        .requestMatchers("/api/checkout/**").authenticated()
+                        .requestMatchers("/api/cart/**").authenticated()
+                        .requestMatchers("/api/addresses/**").authenticated()
+                        .requestMatchers("/api/payment/**", "/api/payments/**").authenticated()
+                        
+                        // 5. Admin & Others
                         .requestMatchers("/api/reports/**").hasRole("ADMIN")
-
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -88,23 +72,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of(
-                "http://localhost:*",
-                "http://127.0.0.1:*"
-        ));
-
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
-        ));
-
+        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
-
         configuration.setAllowCredentials(true);
-
-        // Headers exposés (pour JWT)
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
-
-        // Cache CORS preflight (1 heure)
+        configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

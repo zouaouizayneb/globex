@@ -4,36 +4,41 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router'; 
 
 
+import { AppCurrencyPipe } from '../../pipes/currency.pipe';
+
 @Component({
   selector: 'app-wishlist',
   standalone: true,
-  imports: [CommonModule , RouterModule],
+  imports: [CommonModule, RouterModule, AppCurrencyPipe],
   templateUrl: './wishlist.component.html',
   styleUrl: './wishlist.component.css'
 })
 export class WishlistComponent implements OnInit {
 
-  wishlist: any[] = [];
+  wishlist: any[] = []; // will be replaced by subscription
 
   constructor(private shopService: ShopService) {}
 
   ngOnInit(): void {
-    this.loadWishlist();
+    this.shopService.wishlist$.subscribe(items => this.wishlist = items);
   }
 
-  loadWishlist() {
-    this.wishlist = this.shopService.getWishlist();
-  }
+  // loadWishlist method removed; using observable subscription
 
   removeFromWishlist(itemId: number) {
     this.shopService.removeFromWishlist(itemId);
-    this.loadWishlist();
+    // no need to reload manually; observable updates
   }
 
   addToCart(productId: number) {
     const product = this.wishlist.find(item => item.id === productId);
     if (product) {
-      this.shopService.addToCart(product);
+      // Stock validation is handled by the backend
+      // Add using variantId if available, otherwise fallback to id
+      const variantId = product.variantId ?? product.id;
+      this.shopService.addToCart({ ...product, variantId: variantId });
+      // Optionally remove from wishlist after adding to cart
+      this.shopService.removeFromWishlist(product.id);
     }
   }
 

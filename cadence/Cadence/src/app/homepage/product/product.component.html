@@ -38,6 +38,7 @@
 
     <div class="badge new" *ngIf="product.isNew">New</div>
     <div class="badge discount" *ngIf="product.discount">-{{product.discount}}%</div>
+    <div class="badge out-of-stock" *ngIf="product.stock !== undefined && product.stock !== null && product.stock <= 0">Out of Stock</div>
 
     <img
       class="standard-product-image"
@@ -48,11 +49,10 @@
     >
 
     <p class="name">{{product.name}}</p>
-    <div class="stars">{{getStars(product.rating)}}</div>
 
     <div class="price">
-      <span class="current">{{formatPrice(product.price)}}</span>
-      <span class="old" *ngIf="product.oldPrice">{{formatOldPrice(product.oldPrice)}}</span>
+      <span class="current">{{ product.price | appCurrency }}</span>
+      <span class="old" *ngIf="product.oldPrice">{{ product.oldPrice | appCurrency }}</span>
     </div>
 
     <div class="colors" *ngIf="product.colors && product.colors.length">
@@ -67,7 +67,7 @@
   <div class="modal-overlay" (click)="toggleQuickView(undefined)"></div>
   <div class="modal-content">
     <button class="close-btn" (click)="toggleQuickView(undefined)">×</button>
-    <div class="row" style="height:100%;">
+    <div class="row">
       <div class="col-6">
         <div class="quickview-slider-wrapper">
           <button class="arrow left" (click)="prevImage()">
@@ -89,69 +89,80 @@
           </button>
         </div>
       </div>
-      <div class="col-6" style="padding: 20px;">
+      <div class="col-6">
         <div class="section-title">
           <h3><a>{{ selectedProduct.name }}</a></h3>
         </div>
         <div class="no-js-hidden qv-price price" role="status">
-          <ins class="price-item--regular">{{ formatPrice(getCurrentPrice() - (getCurrentPrice() * (selectedProduct.discount || 0) / 100)) }}</ins>
-          <del class="price-item--sale" *ngIf="selectedProduct.discount">{{ formatPrice(getCurrentPrice()) }}</del>
+          <ins class="price-item--regular">{{ (getCurrentPrice() - (getCurrentPrice() * (selectedProduct.discount || 0) / 100)) | appCurrency }}</ins>
+          <del class="price-item--sale" *ngIf="selectedProduct.discount">{{ getCurrentPrice() | appCurrency }}</del>
         </div>
 
         <!-- Product Description -->
-        <div *ngIf="selectedProduct.description" style="margin-bottom: 15px; color: #666; line-height: 1.5;">
+        <div *ngIf="selectedProduct.description" style="margin-bottom: 15px; color: #666; line-height: 1.5; font-size: 14px;">
           {{ selectedProduct.description }}
         </div>
 
         <!-- Color Selection -->
-        <div *ngIf="getAvailableColors().length > 0" style="margin-bottom: 15px;">
-          <label style="font-weight: 600; margin-bottom: 8px; display: block;">Color:</label>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <div *ngIf="getAvailableColors().length > 0" style="margin-bottom: 20px;">
+          <label style="font-weight: 600; margin-bottom: 10px; display: block; font-size: 14px;">Color:</label>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <span
               *ngFor="let color of getAvailableColors()"
               (click)="selectColor(color)"
-              [style.background-color]="color"
-              [style.width]="'30px'"
-              [style.height]="'30px'"
+              [style.background-color]="colorNameToHex(color)"
+              [style.width]="'40px'"
+              [style.height]="'40px'"
               [style.border-radius]="'50%'"
               [style.cursor]="'pointer'"
               [style.border]="selectedColor === color ? '3px solid #111' : '2px solid #ddd'"
               [style.box-shadow]="selectedColor === color ? '0 0 0 2px rgba(17,17,17,0.2)' : 'none'"
+              [style.transition]="'all 0.2s ease'"
             ></span>
           </div>
         </div>
 
         <!-- Size Selection -->
-        <div *ngIf="getAvailableSizes().length > 0" style="margin-bottom: 15px;">
-          <label style="font-weight: 600; margin-bottom: 8px; display: block;">Size:</label>
+        <div *ngIf="getAvailableSizes().length > 0" style="margin-bottom: 20px;">
+          <label style="font-weight: 600; margin-bottom: 10px; display: block; font-size: 14px;">Size:</label>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <span
+            <button
               *ngFor="let size of getAvailableSizes()"
               (click)="selectSize(size)"
-              [style.padding]="'8px 16px'"
+              [style.padding]="'10px 16px'"
               [style.border]="selectedSize === size ? '2px solid #111' : '1px solid #ddd'"
-              [style.border-radius]="'4px'"
+              [style.border-radius]="'6px'"
               [style.cursor]="'pointer'"
               [style.background]="selectedSize === size ? '#111' : '#fff'"
               [style.color]="selectedSize === size ? '#fff' : '#111'"
-            >{{ size }}</span>
+              [style.font-weight]="'600'"
+              [style.font-size]="'14px'"
+              [style.transition]="'all 0.2s ease'"
+              style="border: none; outline: none;"
+            >{{ size }}</button>
           </div>
         </div>
 
-        <div class="product-actions" style="margin-top: 20px;">
-          <div class="quantity-selector" style="width:130px; display: flex; align-items: center; margin-bottom: 15px;">
-            <button (click)="decreaseQuantity()" style="padding: 8px 12px; border: 1px solid #ddd; background: white; cursor: pointer;">-</button>
-            <input [(ngModel)]="quantity" min="1" style="width: 50px; text-align: center; border: 1px solid #ddd; padding: 8px; margin: 0 5px;"/>
-            <button (click)="increaseQuantity()" style="padding: 8px 12px; border: 1px solid #ddd; background: white; cursor: pointer;">+</button>
+        <!-- Quantity Selector -->
+        <div style="margin-bottom: 20px;">
+          <label style="font-weight: 600; margin-bottom: 10px; display: block; font-size: 14px;">Quantity:</label>
+          <div style="display: flex; align-items: center; gap: 10px; width: fit-content;">
+            <div style="display: flex; align-items: center; border: 2px solid #ddd; border-radius: 6px; overflow: hidden; height: 45px; background: white;">
+              <button type="button" (click)="decreaseQuantity(); $event.stopPropagation()" style="padding: 0; width: 40px; height: 100%; border: none; border-right: 1px solid #ddd; background: #f9f9f9; cursor: pointer; font-size: 18px; font-weight: 600; color: #333; transition: all 0.2s ease;">−</button>
+              <input type="number" [(ngModel)]="quantity" min="1" (ngModelChange)="onQuantityChange()" (click)="$event.stopPropagation()" style="width: 60px; text-align: center; border: none; padding: 0 10px; font-size: 16px; font-weight: 500; background: white; outline: none;"/>
+              <button type="button" (click)="increaseQuantity(); $event.stopPropagation()" style="padding: 0; width: 40px; height: 100%; border: none; border-left: 1px solid #ddd; background: #f9f9f9; cursor: pointer; font-size: 18px; font-weight: 600; color: #333; transition: all 0.2s ease;">+</button>
+            </div>
           </div>
-          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button (click)="addToCart(selectedProduct)" type="submit" style="padding: 12px 24px; background: #111; color: white; border: none; cursor: pointer; font-weight: 600; font-size: 14px;">
-              Add to Cart
-            </button>
-            <button (click)="addToWishlist(selectedProduct)" type="button" style="padding: 12px 24px; background: white; color: #111; border: 1px solid #111; cursor: pointer; font-weight: 600; font-size: 14px;">
-              Wishlist
-            </button>
-          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="quickview-actions">
+          <button (click)="addToCart(selectedProduct)" type="submit" style="padding: 10px 16px; background: #111; color: white; border: none; cursor: pointer; font-weight: 600; font-size: 13px; border-radius: 6px; transition: all 0.3s ease; flex: 1;">
+            Add to Cart
+          </button>
+          <button (click)="addToWishlist(selectedProduct)" type="button" style="padding: 10px 16px; background: white; color: #111; border: 2px solid #111; cursor: pointer; font-weight: 600; font-size: 13px; border-radius: 6px; transition: all 0.3s ease; flex: 1;">
+            Add to Wishlist
+          </button>
         </div>
       </div>
     </div>
@@ -169,6 +180,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: 'Segoe UI', sans-serif;
 }
 
 .modal-overlay {
@@ -183,88 +195,206 @@
 .modal-content {
   position: relative;
   background: white;
-  width: 80%;
-  max-width: 900px;
-  max-height: 90vh;
+  width: 90%;
+  max-width: 1000px;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.row {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+}
+
+.col-6 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.col-6:first-child {
+  background: #f9f9f9;
+}
+
+.col-6:last-child {
   overflow-y: auto;
-  padding: 20px;
-  border-radius: 8px;
+  padding: 30px;
+  padding-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+}
+
+.col-6:last-child > div {
+  flex-shrink: 0;
+}
+
+.col-6:last-child .quickview-actions {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.quickview-actions {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .close-btn {
   position: absolute;
-  top: 10px;
+  top: 15px;
   right: 15px;
-  font-size: 24px;
+  font-size: 28px;
   background: none;
   border: none;
   cursor: pointer;
   z-index: 10;
+  color: #333;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #f0f0f0;
+  border-radius: 50%;
 }
 
 .quickview-slider-wrapper {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
+  height: 100%;
 }
 
 .quickview-slider {
   overflow: hidden;
   width: 100%;
+  height: 100%;
 }
 
 .slider-track {
   display: flex;
   transition: transform 0.3s ease;
+  height: 100%;
 }
 
 .slide {
   min-width: 100%;
   display: flex;
   justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.slide img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 .arrow {
   position: absolute;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   border: none;
   cursor: pointer;
-  padding: 10px;
+  padding: 12px;
   z-index: 5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.arrow:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .arrow.left {
-  left: 10px;
+  left: 15px;
 }
 
 .arrow.right {
-  right: 10px;
+  right: 15px;
 }
 
-.qty-btn {
-  padding: 5px 10px;
-  border: 1px solid #ddd;
-  background: white;
-  cursor: pointer;
+.section-title h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111;
+  margin: 0 0 15px 0;
 }
 
-.qty-input {
-  width: 40px;
-  text-align: center;
-  border: 1px solid #ddd;
-  padding: 5px;
+.qv-price {
+  margin-bottom: 20px;
+}
+
+.price-item--regular {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111;
+}
+
+.price-item--sale {
+  font-size: 14px;
+  color: #999;
+  text-decoration: line-through;
+  margin-left: 10px;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    height: 90vh;
+  }
+  
+  .row {
+    flex-direction: column;
+  }
+  
+  .col-6:first-child {
+    min-height: 300px;
+  }
+}
+
+.col-6:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.col-6:last-child > div:not(.product-actions) {
+  flex-shrink: 0;
 }
 </style>
 
-<a href="/list-article/all">
-  <button class="btn" style="margin-bottom: 40px; margin-left: 80vh;">
-    View more Products
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="10" viewBox="0 0 20 10" fill="none">
-      <path d="M16.5803 5.00002C16.5803 5.28602 16.3463 5.52002 16.0603 5.52002L5.24168 5.52002C4.95568 5.52002 4.72168 5.28602 4.72168 5.00002C4.72168 4.71402 4.95568 4.48002 5.24168 4.48002L16.0603 4.48002C16.3463 4.48002 16.5803 4.71402 16.5803 5.00002Z" fill="#111111"/>
-      <path d="M1.04 5.00002C1.04 4.71283 0.807188 4.48002 0.52 4.48002C0.232812 4.48002 -3.52833e-08 4.71283 -2.27299e-08 5.00002C-1.01765e-08 5.28721 0.232812 5.52002 0.52 5.52002C0.807188 5.52002 1.04 5.28721 1.04 5.00002Z" fill="#111111"/>
-      <path d="M3.40133 5.00002C3.40133 4.71283 3.16852 4.48002 2.88133 4.48002C2.59414 4.48002 2.36133 4.71283 2.36133 5.00002C2.36133 5.28721 2.59414 5.52002 2.88133 5.52002C3.16852 5.52002 3.40133 5.28721 3.40133 5.00002Z" fill="#111111"/>
-      <path d="M16.5804 5.0001C16.5804 5.1197 16.5388 5.2393 16.4556 5.3381L13.0028 9.3993C12.8182 9.6177 12.488 9.6437 12.2696 9.4591C12.0512 9.2719 12.0252 8.9443 12.2098 8.7259L15.3792 5.0001L12.2124 1.2743C12.0252 1.0559 12.0538 0.728296 12.2722 0.541095C12.4906 0.353895 12.8182 0.382496 13.0054 0.600896L16.4556 4.6621C16.5388 4.7609 16.5804 4.8805 16.5804 5.0001Z" fill="#111111"/>
-      <path d="M19.8305 5.0001C19.8305 5.1197 19.7889 5.2393 19.7057 5.3381L16.2529 9.3993C16.0683 9.6177 15.7381 9.6437 15.5197 9.4591C15.3013 9.2719 15.2727 8.9443 15.4599 8.7259L18.6293 5.0001L15.4625 1.2743C15.2753 1.0559 15.3039 0.728296 15.5223 0.541095C15.7407 0.353895 16.0683 0.382496 16.2555 0.600896L19.7057 4.6621C19.7889 4.7609 19.8305 4.8805 19.8305 5.0001Z" fill="#111111"/>
-    </svg>
-  </button>
-</a>
+<div class="view-more-container">
+  <a href="/list-article/all">
+    <button class="btn-view-more">
+      View more Products
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="10" viewBox="0 0 20 10" fill="none">
+        <path d="M16.5803 5.00002C16.5803 5.28602 16.3463 5.52002 16.0603 5.52002L5.24168 5.52002C4.95568 5.52002 4.72168 5.28602 4.72168 5.00002C4.72168 4.71402 4.95568 4.48002 5.24168 4.48002L16.0603 4.48002C16.3463 4.48002 16.5803 4.71402 16.5803 5.00002Z" fill="#fff"/>
+        <path d="M1.04 5.00002C1.04 4.71283 0.807188 4.48002 0.52 4.48002C0.232812 4.48002 -3.52833e-08 4.71283 -2.27299e-08 5.00002C-1.01765e-08 5.28721 0.232812 5.52002 0.52 5.52002C0.807188 5.52002 1.04 5.28721 1.04 5.00002Z" fill="#fff"/>
+        <path d="M3.40133 5.00002C3.40133 4.71283 3.16852 4.48002 2.88133 4.48002C2.59414 4.48002 2.36133 4.71283 2.36133 5.00002C2.36133 5.28721 2.59414 5.52002 2.88133 5.52002C3.16852 5.52002 3.40133 5.28721 3.40133 5.00002Z" fill="#fff"/>
+        <path d="M16.5804 5.0001C16.5804 5.1197 16.5388 5.2393 16.4556 5.3381L13.0028 9.3993C12.8182 9.6177 12.488 9.6437 12.2696 9.4591C12.0512 9.2719 12.0252 8.9443 12.2098 8.7259L15.3792 5.0001L12.2124 1.2743C12.0252 1.0559 12.0538 0.728296 12.2722 0.541095C12.4906 0.353895 12.8182 0.382496 13.0054 0.600896L16.4556 4.6621C16.5388 4.7609 16.5804 4.8805 16.5804 5.0001Z" fill="#fff"/>
+        <path d="M19.8305 5.0001C19.8305 5.1197 19.7889 5.2393 19.7057 5.3381L16.2529 9.3993C16.0683 9.6177 15.7381 9.6437 15.5197 9.4591C15.3013 9.2719 15.2727 8.9443 15.4599 8.7259L18.6293 5.0001L15.4625 1.2743C15.2753 1.0559 15.3039 0.728296 15.5223 0.541095C15.7407 0.353895 16.0683 0.382496 16.2555 0.600896L19.7057 4.6621C19.7889 4.7609 19.8305 4.8805 19.8305 5.0001Z" fill="#fff"/>
+      </svg>
+    </button>
+  </a>
+</div>

@@ -10,13 +10,8 @@ import { RouterModule, Router } from '@angular/router';
   styleUrls: ['./admin-sidebar.component.css']
 })
 export class AdminSidebarComponent {
-  sidebarOpen: boolean = true;
 
   constructor(private router: Router) { }
-
-  toggleSidebar() {
-    this.sidebarOpen = !this.sidebarOpen;
-  }
 
   isActive(route: string): boolean {
     return this.router.url === route;

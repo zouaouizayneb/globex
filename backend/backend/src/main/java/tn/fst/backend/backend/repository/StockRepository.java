@@ -13,5 +13,6 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
     Optional<Stock> findByProduct(Product product);
     Optional<Stock> findByVariant(ProductVariant variant);
     Optional<Stock> findByProductAndVariantIsNull(Product product);
+    void deleteByProduct(Product product);
 }
 

@@ -57,15 +57,27 @@ public class ProductServiceImpl implements ProductService {
         }
 
         try {
+            // Fix inconsistent stock entries where variant_id is set but product_id is NULL
+            jdbcTemplate.update(
+                "UPDATE stock s JOIN product_variants v ON s.variant_id = v.id_variant SET s.product_id = v.product_id WHERE s.product_id IS NULL AND s.variant_id IS NOT NULL"
+            );
+
+            // Remove duplicate product-level stock entries for products that have variants
+            jdbcTemplate.update(
+                "DELETE s FROM stock s JOIN products p ON s.product_id = p.id_product WHERE s.variant_id IS NULL AND EXISTS (SELECT 1 FROM product_variants WHERE product_id = p.id_product)"
+            );
+
             List<Product> products = productRepository.findAll();
             for (Product product : products) {
-                // Ensure stock for product itself
-                boolean productStockExists = stockRepository.findByProductAndVariantIsNull(product).isPresent();
-                if (!productStockExists) {
-                    Stock stock = new Stock();
-                    stock.setProduct(product);
-                    stock.setQuantity(product.getStock() != null ? product.getStock() : 0);
-                    stockRepository.save(stock);
+                // Ensure stock for product itself (only if product has no variants)
+                if (product.getVariants() == null || product.getVariants().isEmpty()) {
+                    boolean productStockExists = stockRepository.findByProductAndVariantIsNull(product).isPresent();
+                    if (!productStockExists) {
+                        Stock stock = new Stock();
+                        stock.setProduct(product);
+                        stock.setQuantity(product.getStock() != null ? product.getStock() : 0);
+                        stockRepository.save(stock);
+                    }
                 }
 
                 if (product.getVariants() != null) {
@@ -111,6 +123,25 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product savedProduct = productRepository.save(product);
+        
+        // Ensure stock is immediately created for new products/variants
+        // Only create product-level stock if product has no variants
+        if (savedProduct.getVariants() == null || savedProduct.getVariants().isEmpty()) {
+            Stock stock = new Stock();
+            stock.setProduct(savedProduct);
+            stock.setQuantity(savedProduct.getStock() != null ? savedProduct.getStock() : 0);
+            stockRepository.save(stock);
+        } else {
+            // For products with variants, create stock for each variant with both product and variant set
+            for (ProductVariant variant : savedProduct.getVariants()) {
+                Stock stock = new Stock();
+                stock.setProduct(savedProduct);
+                stock.setVariant(variant);
+                stock.setQuantity(variant.getStockQuantity() != null ? variant.getStockQuantity() : 0);
+                stockRepository.save(stock);
+            }
+        }
+        
         return savedProduct;
     }
 
@@ -157,7 +188,17 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void deleteProduct(Long id) {
-        productRepository.deleteById(id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+
+        // Delete related stock entries first
+        stockRepository.deleteByProduct(product);
+
+        // Delete related order details
+        orderDetailRepository.deleteByProduct(product);
+
+        // Delete the product (variants and images will cascade due to CascadeType.ALL)
+        productRepository.delete(product);
     }
 
     @Override

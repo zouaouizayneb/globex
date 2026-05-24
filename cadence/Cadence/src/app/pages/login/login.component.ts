@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ServicesService } from '../../services/services.service';
 import { AuthService } from '../../services/auth.service';
+import { ShopService } from '../shared/shop.services';
 
 type ViewType = 'login' | 'register' | 'forgot';
 
@@ -53,7 +54,8 @@ export class LoginComponent implements OnInit {
   constructor(
     private services: ServicesService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private shopService: ShopService
   ) {}
 
   ngOnInit(): void {
@@ -117,6 +119,10 @@ export class LoginComponent implements OnInit {
     if (user) {
       localStorage.setItem('user', JSON.stringify(user));
     }
+
+    // Sync DB cart/wishlist with UI
+    this.shopService.syncWithBackend();
+
     this.authService.redirectByRole();
   }
 
@@ -136,7 +142,7 @@ export class LoginComponent implements OnInit {
     } else if (err.status === 401) {
       alert('Invalid credentials. Please check your username and password.');
     } else if (err.status === 403) {
-      alert('Your account is inactive or not verified. Please check your email.');
+      alert('Your account is not verified. Please check your email.');
     } else {
       alert(err.error?.message || 'Login failed. Please try again.');
     }
@@ -279,5 +285,36 @@ export class LoginComponent implements OnInit {
     this.regPassword = '';
     this.regConfirmPassword = '';
     this.forgotEmail = '';
+    
+    // Reset password visibility toggles and strength
+    this.showLoginPw   = false;
+    this.showRegPw     = false;
+    this.showConfirmPw = false;
+    this.pwStrength    = 0;
+  }
+
+
+  showLoginPw   = false;
+  showRegPw     = false;
+  showConfirmPw = false;
+
+  pwStrength = 0;
+
+
+
+  updateStrength(): void {
+    const p = this.regPassword;
+    let score = 0;
+    if (p.length >= 6)  score++;
+    if (p.length >= 10) score++;
+    if (/[A-Z]/.test(p) && /[0-9]/.test(p)) score++;
+    if (/[^A-Za-z0-9]/.test(p)) score++;
+    this.pwStrength = score;
+  }
+
+  strengthClass(segment: number): string {
+    if (segment > this.pwStrength) return '';
+    const levels = ['weak', 'fair', 'good', 'strong'];
+    return levels[this.pwStrength - 1] ?? '';
   }
 }

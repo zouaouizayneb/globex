@@ -11,7 +11,7 @@ import tn.fst.backend.backend.entity.User;
 import tn.fst.backend.backend.service.PaymentMethodService;
 import tn.fst.backend.backend.service.PayPalPaymentService;
 import tn.fst.backend.backend.service.UnifiedPaymentService;
-import tn.fst.backend.backend.service.FlouciPaymentService;
+
 
 
 @RestController
@@ -25,14 +25,8 @@ public class UnifiedPaymentController {
     private final PaymentMethodService paymentMethodService;
     private final tn.fst.backend.backend.repository.OrderRepository orderRepository;
     private final tn.fst.backend.backend.repository.PaymentRepository paymentRepository;
-    private final FlouciPaymentService flouciService;
 
-    /**
-     * Obtenir les méthodes de paiement disponibles selon le pays
-     *
-     * GET /api/payment/methods?country=TN
-     * GET /api/payment/methods?country=US
-     */
+
     @GetMapping("/methods")
     public ResponseEntity<PaymentMethodsResponse> getPaymentMethods(
             @RequestParam String country) {
@@ -41,33 +35,7 @@ public class UnifiedPaymentController {
         return ResponseEntity.ok(methods);
     }
 
-    /**
-     * Initier un paiement
-     *
-     * POST /api/payment/initiate
-     *
-     * Body (Tunisie):
-     * {
-     *   "orderId": "ORD-001",
-     *   "amount": 150.00,
-     *   "currency": "TND",
-     *   "country": "TN",
-     *   "paymentMethod": "SMT_MONETIQUE",
-     *   "returnUrl": "https://globex.tn/success",
-     *   "cancelUrl": "https://globex.tn/cancel"
-     * }
-     *
-     * Body (International):
-     * {
-     *   "orderId": "ORD-002",
-     *   "amount": 99.99,
-     *   "currency": "USD",
-     *   "country": "US",
-     *   "paymentMethod": "PAYPAL",
-     *   "returnUrl": "https://globex.tn/success",
-     *   "cancelUrl": "https://globex.tn/cancel"
-     * }
-     */
+
     @PostMapping("/initiate")
     public ResponseEntity<PaymentInitiateResponse> initiatePayment(
             @Valid @RequestBody PaymentInitiateRequest request,
@@ -95,13 +63,6 @@ public class UnifiedPaymentController {
         }
     }
 
-    /**
-     * Callback SMT après paiement
-     *
-     * POST /api/payment/smt/callback
-     *
-     * Appelé par SMT après que le client ait payé
-     */
     @PostMapping("/smt/callback")
     public ResponseEntity<String> handleSMTCallback(
             @RequestBody PaymentCallbackRequest callback) {
@@ -112,7 +73,6 @@ public class UnifiedPaymentController {
 
             if ("SUCCESS".equals(status)) {
                 // TODO: Mettre à jour la commande comme payée
-                // orderService.updateOrderStatus(orderId, OrderStatus.PAID);
 
                 return ResponseEntity.ok("Payment successful");
             } else {
@@ -126,19 +86,6 @@ public class UnifiedPaymentController {
         }
     }
 
-    /**
-     * Exécuter un paiement PayPal après approbation
-     *
-     * POST /api/payment/paypal/execute
-     *
-     * Appelé après que le client ait approuvé le paiement sur PayPal
-     *
-     * Body:
-     * {
-     *   "paymentId": "PAYID-xxx",
-     *   "payerId": "PAYERID-yyy"
-     * }
-     */
     @PostMapping("/paypal/execute")
     public ResponseEntity<PayPalPaymentResponse> executePayPalPayment(
             @Valid @RequestBody PayPalExecuteRequest request) {
@@ -184,77 +131,6 @@ public class UnifiedPaymentController {
         }
     }
 
-    /**
-     * Terminer et vérifier un paiement Flouci
-     *
-     * GET /api/payment/flouci/verify/{payment_id}
-     */
-    @GetMapping("/flouci/verify/{payment_id}")
-    public ResponseEntity<String> verifyFlouciPayment(@PathVariable String payment_id) {
-        try {
-            String status = flouciService.verifyPayment(payment_id);
-            if ("SUCCESS".equals(status)) {
-                // Find order by tracking ID / payment link
-                tn.fst.backend.backend.entity.Payment p = paymentRepository.findByTransactionId(payment_id).orElse(null);
-                if (p == null) {
-                    p = paymentRepository.findByPaymentMethod(tn.fst.backend.backend.entity.PaymentMethod.FLOUCI).stream()
-                            .filter(pmt -> pmt.getStatus() == tn.fst.backend.backend.entity.PaymentStatus.PENDING)
-                            .findFirst().orElse(null);
-                }
-
-                if (p != null) {
-                    p.setTransactionId(payment_id);
-                    p.setStatus(tn.fst.backend.backend.entity.PaymentStatus.COMPLETED);
-                    paymentRepository.save(p);
-
-                    tn.fst.backend.backend.entity.Order order = p.getOrder();
-                    order.setStatus(tn.fst.backend.backend.entity.OrderStatus.CONFIRMED);
-                    orderRepository.save(order);
-                }
-                return ResponseEntity.ok("Payment Successful");
-            }
-            return ResponseEntity.badRequest().body("Payment Failed or Pending");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error verifying: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Terminer la simulation D17
-     *
-     * GET /api/payment/d17/verify/{payment_id}
-     */
-    @GetMapping("/d17/verify/{payment_id}")
-    public ResponseEntity<String> verifyD17Payment(@PathVariable String payment_id) {
-        try {
-            tn.fst.backend.backend.entity.Payment p = paymentRepository.findByTransactionId(payment_id).orElse(null);
-            if (p == null) {
-                p = paymentRepository.findByPaymentMethod(tn.fst.backend.backend.entity.PaymentMethod.D17).stream()
-                        .filter(pmt -> pmt.getStatus() == tn.fst.backend.backend.entity.PaymentStatus.PENDING)
-                        .findFirst().orElse(null);
-            }
-
-            if (p != null) {
-                p.setTransactionId(payment_id);
-                p.setStatus(tn.fst.backend.backend.entity.PaymentStatus.COMPLETED);
-                paymentRepository.save(p);
-
-                tn.fst.backend.backend.entity.Order order = p.getOrder();
-                order.setStatus(tn.fst.backend.backend.entity.OrderStatus.CONFIRMED);
-                orderRepository.save(order);
-            }
-            return ResponseEntity.ok("Payment Successful");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Vérifier le statut d'un paiement
-     *
-     * GET /api/payment/status/{transactionId}?method=SMT_MONETIQUE
-     * GET /api/payment/status/{transactionId}?method=PAYPAL
-     */
     @GetMapping("/status/{transactionId}")
     public ResponseEntity<PaymentStatusResponse> checkPaymentStatus(
             @PathVariable String transactionId,
@@ -272,19 +148,13 @@ public class UnifiedPaymentController {
         );
     }
 
-    /**
-     * Obtenir la devise pour un pays
-     *
-     * GET /api/payment/currency?country=TN
-     * GET /api/payment/currency?country=US
-     */
+
     @GetMapping("/currency")
     public ResponseEntity<CurrencyResponse> getCurrency(@RequestParam String country) {
         String currency = paymentMethodService.getCurrencyForCountry(country);
         return ResponseEntity.ok(new CurrencyResponse(country, currency));
     }
 
-    // Helper methods
     private Long getCurrentUserId(Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof User) {
             User user = (User) authentication.getPrincipal();
@@ -293,6 +163,5 @@ public class UnifiedPaymentController {
         return null;
     }
 
-    // Inner class for currency response
     public record CurrencyResponse(String country, String currency) {}
 }

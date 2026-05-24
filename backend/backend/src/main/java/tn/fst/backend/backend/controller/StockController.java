@@ -6,6 +6,7 @@ import tn.fst.backend.backend.entity.ProductVariant;
 import tn.fst.backend.backend.repository.StockRepository;
 import tn.fst.backend.backend.repository.ProductRepository;
 import tn.fst.backend.backend.repository.ProductVariantRepository;
+import tn.fst.backend.backend.dto.StockResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/stocks")
@@ -29,19 +31,21 @@ public class StockController {
     private ProductVariantRepository variantRepository;
 
     @GetMapping
-    public List<Stock> getAllStocks() {
-        return stockRepository.findAll();
+    public List<StockResponse> getAllStocks() {
+        return stockRepository.findAll().stream()
+                .map(StockResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Stock> getStockById(@PathVariable Long id) {
+    public ResponseEntity<StockResponse> getStockById(@PathVariable Long id) {
         Optional<Stock> stock = stockRepository.findById(id);
-        return stock.map(ResponseEntity::ok)
+        return stock.map(s -> ResponseEntity.ok(StockResponse.fromEntity(s)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Stock> createStock(@RequestBody Stock stock) {
+    public ResponseEntity<StockResponse> createStock(@RequestBody Stock stock) {
         if (stock.getProduct() != null) {
             Optional<Product> product = productRepository.findById(stock.getProduct().getIdProduct());
             if (product.isPresent()) {
@@ -54,11 +58,11 @@ public class StockController {
         }
 
         Stock savedStock = stockRepository.save(stock);
-        return ResponseEntity.ok(savedStock);
+        return ResponseEntity.ok(StockResponse.fromEntity(savedStock));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Stock> updateStock(@PathVariable Long id, @RequestBody Stock stockDetails) {
+    public ResponseEntity<StockResponse> updateStock(@PathVariable Long id, @RequestBody Stock stockDetails) {
         Optional<Stock> optionalStock = stockRepository.findById(id);
         if (!optionalStock.isPresent()) {
             return ResponseEntity.notFound().build();
@@ -84,7 +88,7 @@ public class StockController {
         }
 
         Stock updatedStock = stockRepository.save(stock);
-        return ResponseEntity.ok(updatedStock);
+        return ResponseEntity.ok(StockResponse.fromEntity(updatedStock));
     }
 
     @DeleteMapping("/{id}")

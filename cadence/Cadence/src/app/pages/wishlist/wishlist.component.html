@@ -15,8 +15,8 @@
 
       <!-- Product Image -->
       <td>
-        <img 
-          [src]="getImage(item.image)" 
+        <img
+          [src]="getImage(item.variantImage || item.image)"
           alt="product"
           loading="lazy"
           style="width: 90px; border-radius: 8px;"
@@ -33,8 +33,18 @@
           {{ item.name }}
         </div>
 
+        <div class="variant-details" *ngIf="item.variantColor || item.variantSize">
+          <span *ngIf="item.variantColor">Color: {{ item.variantColor }}</span>
+          <span *ngIf="item.variantColor && item.variantSize"> | </span>
+          <span *ngIf="item.variantSize">Size: {{ item.variantSize }}</span>
+        </div>
+
         <div class="price">
-          ${{ item.price }}
+          {{ item.price | appCurrency }}
+        </div>
+
+        <div class="out-of-stock-badge" *ngIf="item.stock !== undefined && item.stock !== null && item.stock <= 0">
+          Out of Stock
         </div>
       </td>
 

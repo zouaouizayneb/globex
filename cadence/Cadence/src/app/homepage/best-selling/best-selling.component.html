@@ -67,6 +67,11 @@
         -{{ product.discount }}%
       </div>
 
+      <!-- Out of Stock badge -->
+      <div class="product-card__out-of-stock" *ngIf="product.stock !== undefined && product.stock !== null && product.stock <= 0 && !product.isHero">
+        Out of Stock
+      </div>
+
       <div class="product-card__media" (click)="viewProduct(product)">
         <img
           [src]="product.image"
@@ -88,18 +93,13 @@
         <h3 class="product-card__name">{{ product.name }}</h3>
 
         <div class="product-card__pricing">
-          <span class="product-card__price">{{ formatPrice(product.price) }}</span>
-          <span class="product-card__old-price" *ngIf="product.oldPrice">{{ formatOldPrice(product.oldPrice) }}</span>
+          <span class="product-card__price">{{ product.price | appCurrency }}</span>
+          <span class="product-card__old-price" *ngIf="product.oldPrice">{{ product.oldPrice | appCurrency }}</span>
         </div>
 
         <p class="product-card__desc" *ngIf="product.isHero && product.description">
           {{ product.description | slice:0:90 }}{{ (product.description?.length ?? 0) > 90 ? '…' : '' }}
         </p>
-
-        <div class="product-card__stars" *ngIf="!product.isHero">
-          <span class="stars-text">{{ getStars(product.rating) }}</span>
-          <span class="product-card__reviews">({{ product.reviews }})</span>
-        </div>
 
         <div class="product-card__actions">
           <button class="product-card__cta" (click)="addToCart(product)" [class.in-cart]="isInCart(product)">
@@ -136,16 +136,7 @@
     <button class="filter-tab filter-tab--active" (click)="setFilter('all')">Show All</button>
   </div>
 
-  <!-- View All CTA -->
-  <div class="bestsellers__footer" *ngIf="!loading && !error && products.length > 0">
-    <button class="view-all-btn" (click)="viewAllProducts()">
-      <span>Explore All Products</span>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <line x1="5" y1="12" x2="19" y2="12"/>
-        <polyline points="12 5 19 12 12 19"/>
-      </svg>
-    </button>
-  </div>
+
 
 </section>
 

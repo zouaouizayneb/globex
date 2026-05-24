@@ -1,49 +1,56 @@
 .newsletter-bg-1 {
-  top: -40px;
-  left: 240px;
-  position: absolute;
-  z-index:2;
-}
-.newsletter-bg-2 {
-  top: -30px;
-  right: 250px;
+  top: -20px;
+  left: 50px;
   position: absolute;
   z-index: 2;
+  opacity: 0.6;
+}
+.newsletter-bg-2 {
+  top: -10px;
+  right: 50px;
+  position: absolute;
+  z-index: 2;
+  opacity: 0.6;
 }
 .section-title {
-  margin-bottom: 30px;
+  margin-bottom: 40px;
+  position: relative;
+  z-index: 3;
 }
 
 .text-center {
   text-align: center;
 }
 .subtitle {
-  font-size: 22px;
+  font-size: 24px;
   margin-bottom: 15px;
   text-transform: capitalize;
   font-family: Delicious Handrawn, cursive;
-  color: #555555;
+  color: var(--dark-gray);
+  letter-spacing: 1px;
 }
 .section-title.line .h22 {
-  padding-bottom: 8px;
+  padding-bottom: 15px;
 }
 
 .section-title .h22 {
   text-transform: capitalize;
   position: relative;
-  color: #111111;
-  font-size: 46px;
+  color: var(--dark-gray);
+  font-size: 42px;
   font-weight: 400;
+  margin: 0;
 }
 .section-title.line h2:before{
   position: absolute;
   content: "";
   bottom: 0;
-  height: 2px;
-  width: 102px;
+  height: 3px;
+  width: 80px;
   left: 50%;
   transform: translateX(-50%);
-  background: black;
+  background: var(--green);
+  border-radius: 2px;
 }
 
 .subscribe-form-wrapper {
@@ -51,31 +58,59 @@
   max-width: 800px;
   width: 100%;
   margin: 0 auto;
-  display: flex; /* Use flexbox to align items inline */
-  align-items: center;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  z-index: 3;
 }
 .subscribe-form-wrapper .input-wrapper {
   position: relative;
-  flex-grow: 1; /* Ensure input takes up remaining space */
+  flex: 1;
 }
-.subscribe-form-wrapper input:focus {
-  outline: none; /* Removes the outline when focused */
-  border-bottom: 2px solid #e4e4e4; /* Retain only bottom border on focus */
+.subscribe-form-wrapper input:focus,
+.subscribe-form-wrapper textarea:focus {
+  outline: none;
+  border-color: var(--green);
 }
-.subscribe-form-wrapper input {
-  border: 0;
-  border-bottom: 2px solid #e4e4e4;
-  padding: 18px 35px 12px 0;
+.subscribe-form-wrapper textarea {
+  border: none;
+  border-bottom: 2px solid #e0e0e0;
+  border-radius: 0;
+  padding: 12px 14px;
   width: 100%;
+  background: transparent;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  font-family: Gothic A1, sans-serif;
+  resize: none;
+  height: 50px;
+  line-height: 1.4;
+}
+.subscribe-form-wrapper textarea::placeholder {
+  color: #999;
 }
 .subscribe-btn {
   position: relative;
-  border: 0; /* Remove button border */
-  background: none; /* Remove button background */
-  padding: 12px 20px; /* Adjust padding for button */
+  border: none;
+  background: none;
+  color: var(--green);
+  padding: 0;
   cursor: pointer;
-  display: inline-block; /* Keep button inline with input */
-  height: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  width: 50px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  font-family: Gothic A1, sans-serif;
+}
+.subscribe-btn:hover {
+  color: #3d8a66;
+}
+.subscribe-btn:disabled {
+  color: #ccc;
+  cursor: not-allowed;
 }
 input:not([type=submit]), input:not([type=checkbox]), input:not([type=button]), input:not([type=radio]){
   position: relative;
@@ -113,11 +148,11 @@ svg {
 h2{
   font-family: Federo, sans-serif;
   font-size: 26px;
-  color: #689284;
+  color: var(--green);
 }
 .footer {
-  background-color: #000000;
-  color: #689284;
+  background-color: var(--ink);
+  color: var(--green);
   padding-top: 300px;
   font-family: Gothic A1, sans-serif;
   font-size: 16px;
@@ -141,7 +176,7 @@ h2{
 }
 
 .footer-column h3 {
-  color: #689284;
+  color: var(--green);
   font-size: 18px;
   margin-bottom: 10px;
 }
@@ -152,18 +187,18 @@ h2{
 }
 
 .footer-column ul li {
-  color: #8d8d8d;
+  color: var(--white-60);
   margin: 6px 0;
   transition: color 0.3s;
   cursor: pointer;
 }
 
 .footer-column ul li:hover {
-  color: #ffffff;
+  color: var(--green);
 }
 
 .footer-column p {
-  color: #8d8d8d;
+  color: var(--white-60);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -178,7 +213,7 @@ h2{
 }
 
 .social-icons i {
-  color: #689284;
+  color: var(--green);
   font-size: 20px;
   margin-right: 10px;
   transition: color 0.3s, transform 0.3s;
@@ -186,16 +221,16 @@ h2{
 }
 
 .social-icons i:hover {
-  color: white;
+  color: var(--white);
   transform: scale(1.1);
 }
 
 .footer-bottom {
-  border-top: 1px solid #000000;
+  border-top: 1px solid var(--forest);
   margin-top: 60px;
   padding-top: 20px;
   text-align: center;
-  color: #8d8d8d;
+  color: var(--white-60);
   font-size: 13px;
 }
 

@@ -33,7 +33,7 @@
 
   <!-- ERROR -->
   <div *ngIf="error && !isLoading" class="error-banner">
-    ⚠️ {{ error }}
+     {{ error }}
     <button (click)="loadShipments()" class="retry-btn">Retry</button>
   </div>
 

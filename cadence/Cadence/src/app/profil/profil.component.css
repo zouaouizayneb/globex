@@ -139,11 +139,11 @@
     text-align: center;
     font-weight: 400;
     text-decoration: none;
-    color: #000000;
+    color: white;
     cursor: pointer;
     overflow: hidden;
-    background: #689284;
-    border: 2px solid white;
+    background: var(--green);
+    border: 2px solid var(--green);
     z-index: 1;
     border-radius: 0;
     font-family: var(--first-font);
@@ -199,7 +199,7 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     margin-top: 40px;
-    background: #689284;
+    background: var(--green);
     padding: 30px;
     border-radius: 8px;
   }

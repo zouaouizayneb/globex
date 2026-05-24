@@ -1,65 +1,373 @@
 <div class="auth-page">
-  <div class="auth-card">
+  <!-- Rich background with globe, trade routes, planes, and shopping elements -->
+  <svg class="globe-bg" viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    
+    <!-- ── Globe on the left side ── -->
+    <g class="globe-group">
+      <!-- Globe wireframe - Clear 3D Earth sphere -->
+      <g class="globe-frame">
+        <!-- Main sphere outline - THICK and VISIBLE -->
+        <circle cx="250" cy="400" r="180" stroke="rgba(77,158,120,0.80)" stroke-width="4" fill="none"/>
+        
+        <!-- Horizontal latitude lines (strong and visible) -->
+        <ellipse cx="250" cy="220" rx="100" ry="12" stroke="rgba(77,158,120,0.70)" stroke-width="2.5" fill="none"/>
+        <ellipse cx="250" cy="260" rx="150" ry="20" stroke="rgba(77,158,120,0.72)" stroke-width="2.5" fill="none"/>
+        <ellipse cx="250" cy="300" rx="175" ry="26" stroke="rgba(77,158,120,0.75)" stroke-width="2.5" fill="none"/>
+        <ellipse cx="250" cy="340" rx="180" ry="29" stroke="rgba(77,158,120,0.78)" stroke-width="2.5" fill="none"/>
+        <ellipse cx="250" cy="380" rx="182" ry="31" stroke="rgba(77,158,120,0.85)" stroke-width="3" fill="none"/>
+        <ellipse cx="250" cy="420" rx="182" ry="31" stroke="rgba(77,158,120,0.85)" stroke-width="3" fill="none"/>
+        <ellipse cx="250" cy="460" rx="180" ry="29" stroke="rgba(77,158,120,0.78)" stroke-width="2.5" fill="none"/>
+        <ellipse cx="250" cy="500" rx="175" ry="26" stroke="rgba(77,158,120,0.75)" stroke-width="2.5" fill="none"/>
+        <ellipse cx="250" cy="540" rx="150" ry="20" stroke="rgba(77,158,120,0.72)" stroke-width="2.5" fill="none"/>
+        <ellipse cx="250" cy="580" rx="100" ry="12" stroke="rgba(77,158,120,0.70)" stroke-width="2.5" fill="none"/>
+        
+        <!-- Vertical longitude lines - meridians (curved) -->
+        <path d="M250,220 Q220,400 250,580" stroke="rgba(77,158,120,0.75)" stroke-width="2.5" fill="none"/>
+        <path d="M250,220 Q170,400 250,580" stroke="rgba(77,158,120,0.65)" stroke-width="2.5" fill="none"/>
+        <path d="M250,220 Q330,400 250,580" stroke="rgba(77,158,120,0.65)" stroke-width="2.5" fill="none"/>
+        <path d="M250,220 Q120,400 250,580" stroke="rgba(77,158,120,0.55)" stroke-width="2" fill="none"/>
+        <path d="M250,220 Q380,400 250,580" stroke="rgba(77,158,120,0.55)" stroke-width="2" fill="none"/>
+        
+        <!-- Add some curved lines on the sphere for more definition -->
+        <path d="M200,220 Q200,400 200,580" stroke="rgba(77,158,120,0.50)" stroke-width="2" fill="none"/>
+        <path d="M300,220 Q300,400 300,580" stroke="rgba(77,158,120,0.50)" stroke-width="2" fill="none"/>
+      </g>
 
-    <!-- LOGIN FORM -->
+      <!-- Trade routes -->
+      <path class="trade-route" d="M 160,330 Q 200,290 230,320" stroke="rgba(77,158,120,0.40)" stroke-width="1.5" stroke-dasharray="80" stroke-dashoffset="80"/>
+      <path class="trade-route" d="M 230,320 Q 260,310 290,350" stroke="rgba(77,158,120,0.40)" stroke-width="1.5" stroke-dasharray="100" stroke-dashoffset="100"/>
+      <path class="trade-route" d="M 290,350 Q 300,380 310,430" stroke="rgba(77,158,120,0.35)" stroke-width="1.5" stroke-dasharray="95" stroke-dashoffset="95"/>
+      <path class="trade-route" d="M 310,430 Q 290,470 270,500" stroke="rgba(77,158,120,0.35)" stroke-width="1.5" stroke-dasharray="90" stroke-dashoffset="90"/>
+      <path class="trade-route" d="M 230,320 Q 240,350 250,390" stroke="rgba(77,158,120,0.30)" stroke-width="1" stroke-dasharray="60" stroke-dashoffset="60"/>
+      <path class="trade-route main-arc" d="M 160,330 Q 250,200 340,320" stroke="rgba(77,158,120,0.55)" stroke-width="2" stroke-dasharray="220" stroke-dashoffset="220"/>
+
+      <!-- City markers -->
+      <circle class="city-marker" cx="160" cy="330" r="5" fill="rgba(77,158,120,0.70)"/>
+      <circle class="city-marker" cx="230" cy="320" r="5" fill="rgba(77,158,120,0.60)"/>
+      <circle class="city-marker" cx="250" cy="390" r="6" fill="rgba(77,158,120,0.85)"/>
+      <circle class="city-marker" cx="290" cy="350" r="5" fill="rgba(77,158,120,0.60)"/>
+      <circle class="city-marker" cx="310" cy="430" r="5" fill="rgba(77,158,120,0.60)"/>
+      <circle class="city-marker" cx="270" cy="500" r="5" fill="rgba(77,158,120,0.60)"/>
+      <circle class="city-marker" cx="340" cy="320" r="5" fill="rgba(77,158,120,0.60)"/>
+    </g>
+
+    <!-- Flying planes along trade routes on the Earth -->
+    <!-- Plane 1: Flying around top of Earth -->
+    <g class="plane">
+      <path d="M 10,0 L 2,-3.5 L -4,-11 L -6,-10 L -2,-3 L -4,-3 L -4,3 L -2,3 L -6,10 L -4,11 L 2,3.5 Z" fill="rgba(255,255,255,0.85)"/>
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.05;0.15;0.85;1" dur="5.5s" repeatCount="indefinite" begin="1s"/>
+      <animateMotion dur="5.5s" repeatCount="indefinite" rotate="auto" begin="1s" path="M 70,300 Q 150,220 330,300"/>
+    </g>
+    
+    <!-- Plane 2: Upper latitude around Earth -->
+    <g class="plane">
+      <path d="M 7,0 L 1.5,-2.5 L -3,-7.5 L -4.5,-6.5 L -1.5,-2 L -3,-2 L -3,2 L -1.5,2 L -4.5,6.5 L -3,7.5 L 1.5,2.5 Z" fill="rgba(255,255,255,0.72)"/>
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.08;0.18;0.82;1" dur="6s" repeatCount="indefinite" begin="3s"/>
+      <animateMotion dur="6s" repeatCount="indefinite" rotate="auto" begin="3s" path="M 70,340 Q 150,280 330,340"/>
+    </g>
+    
+    <!-- Plane 3: Middle latitude around Earth (equator) -->
+    <g class="plane">
+      <path d="M 6,0 L 1,-2 L -2.5,-6.5 L -4,-5.5 L -1.5,-1.8 L -2.5,-1.8 L -2.5,1.8 L -1.5,1.8 L -4,5.5 L -2.5,6.5 L 1,2 Z" fill="rgba(255,255,255,0.65)"/>
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.10;0.20;0.80;1" dur="5.8s" repeatCount="indefinite" begin="5s"/>
+      <animateMotion dur="5.8s" repeatCount="indefinite" rotate="auto" begin="5s" path="M 330,400 Q 250,420 70,400"/>
+    </g>
+    
+    <!-- Plane 4: Major arc across top of Earth sphere -->
+    <g class="plane">
+      <path d="M 9,0 L 2.5,-3 L -3,-10 L -5,-8 L -2,-2.5 L -4,-2.5 L -4,2.5 L -2,2.5 L -5,8 L -3,10 L 2.5,3 Z" fill="rgba(255,255,255,0.78)"/>
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.05;0.12;0.88;1" dur="7.5s" repeatCount="indefinite" begin="0.5s"/>
+      <animateMotion dur="7.5s" repeatCount="indefinite" rotate="auto" begin="0.5s" path="M 70,300 Q 250,180 330,300"/>
+    </g>
+    
+    <!-- Plane 5: Lower latitude around Earth -->
+    <g class="plane">
+      <path d="M 8,0 L 2,-3 L -3,-9 L -5,-7.5 L -2,-2.5 L -3.5,-2.5 L -3.5,2.5 L -2,2.5 L -5,7.5 L -3,9 L 2,3 Z" fill="rgba(255,255,255,0.60)"/>
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.12;0.22;0.78;1" dur="5.2s" repeatCount="indefinite" begin="6.5s"/>
+      <animateMotion dur="5.2s" repeatCount="indefinite" rotate="auto" begin="6.5s" path="M 330,500 Q 250,520 70,500"/>
+    </g>
+
+    <!-- ── Shopping elements on the right side ── -->
+    <!-- Shopping bag icon (top right) -->
+    <g class="shopping-icon" style="animation-delay: 0s">
+      <path d="M 1050,120 L 1050,160 L 1080,160 L 1080,120 Q 1080,100 1065,100 Q 1050,100 1050,120 Z" stroke="rgba(77,158,120,0.35)" stroke-width="1.5" fill="none"/>
+      <path d="M 1050,160 L 1050,200 L 1080,200 L 1080,160 Z" stroke="rgba(77,158,120,0.35)" stroke-width="1.5" fill="none"/>
+      <path d="M 1055,100 Q 1055,85 1065,85 Q 1075,85 1075,100" stroke="rgba(77,158,120,0.35)" stroke-width="1.5" fill="none"/>
+    </g>
+
+    <!-- Package/box icon (middle right) -->
+    <g class="package-icon" style="animation-delay: 1s">
+      <rect x="1150" y="300" width="50" height="50" stroke="rgba(77,158,120,0.35)" stroke-width="1.5" fill="none"/>
+      <path d="M 1150,300 L 1175,320" stroke="rgba(77,158,120,0.35)" stroke-width="1.5"/>
+      <path d="M 1200,300 L 1175,320" stroke="rgba(77,158,120,0.35)" stroke-width="1.5"/>
+      <path d="M 1175,320 L 1175,370" stroke="rgba(77,158,120,0.35)" stroke-width="1.5"/>
+    </g>
+
+    <!-- Credit card icon (right side) -->
+    <g class="card-icon" style="animation-delay: 2s">
+      <rect x="1050" y="500" width="60" height="40" stroke="rgba(77,158,120,0.35)" stroke-width="1.5" fill="none" rx="3"/>
+      <line x1="1050" y1="520" x2="1110" y2="520" stroke="rgba(77,158,120,0.25)" stroke-width="1"/>
+      <circle cx="1080" cy="515" r="3" fill="rgba(77,158,120,0.35)"/>
+    </g>
+
+    <!-- Globe/world icon (bottom right) -->
+    <g class="world-icon" style="animation-delay: 3s">
+      <circle cx="1200" cy="680" r="25" stroke="rgba(77,158,120,0.35)" stroke-width="1.5" fill="none"/>
+      <path d="M 1200,655 Q 1200,680 1200,705" stroke="rgba(77,158,120,0.35)" stroke-width="1"/>
+      <path d="M 1175,680 L 1225,680" stroke="rgba(77,158,120,0.35)" stroke-width="1"/>
+      <path d="M 1182,668 Q 1200,675 1218,668" stroke="rgba(77,158,120,0.35)" stroke-width="1"/>
+    </g>
+
+    <!-- Animated dots connecting elements -->
+    <g class="connecting-dots">
+      <circle cx="400" cy="150" r="3" fill="rgba(77,158,120,0.30)"/>
+      <circle cx="600" cy="250" r="3" fill="rgba(77,158,120,0.25)"/>
+      <circle cx="800" cy="180" r="3" fill="rgba(77,158,120,0.20)"/>
+      <circle cx="950" cy="400" r="3" fill="rgba(77,158,120,0.25)"/>
+      <circle cx="1050" cy="600" r="3" fill="rgba(77,158,120,0.20)"/>
+      <circle cx="700" cy="750" r="3" fill="rgba(77,158,120,0.25)"/>
+    </g>
+
+  </svg>
+
+  <div class="auth-card" [class.wide]="currentView === 'register'">
+
+    <!-- LOGO -->
+    <div class="logo-wrap">
+      <img src="https://i.imgur.com/YACRFXn.png" alt="Globex" />
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         LOGIN FORM
+    ════════════════════════════════════════ -->
     <div class="auth-form" *ngIf="currentView === 'login'">
-      <h2>Log into your account</h2>
-      <input type="text" placeholder="Username or Email" [(ngModel)]="loginIdentifier" required>
 
-      <div class="password-field">
-        <input type="password" placeholder="Password" [(ngModel)]="loginPassword" required>
+      <h2>Welcome back</h2>
+      <p class="form-subtitle">Sign in to your account</p>
+
+      <div class="input-group">
+        <label for="loginId">Username or Email</label>
+        <input
+          id="loginId"
+          type="text"
+          placeholder="you@example.com"
+          [(ngModel)]="loginIdentifier"
+          (keyup.enter)="onLogin()"
+          autocomplete="username"
+          required
+        >
       </div>
 
-      <label class="remember">
-        <input type="checkbox"> Remember me
+      <div class="input-group has-icon">
+        <label for="loginPw">Password</label>
+        <input
+          id="loginPw"
+          [type]="showLoginPw ? 'text' : 'password'"
+          placeholder="••••••••"
+          [(ngModel)]="loginPassword"
+          (keyup.enter)="onLogin()"
+          autocomplete="current-password"
+          required
+        >
+        <button class="toggle-pw" type="button" (click)="showLoginPw = !showLoginPw" [attr.aria-label]="showLoginPw ? 'Hide password' : 'Show password'">
+          <!-- Eye icon -->
+          <svg *ngIf="!showLoginPw" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <!-- Eye-slash icon -->
+          <svg *ngIf="showLoginPw" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+          </svg>
+        </button>
+      </div>
+
+      <p class="forgot-link" (click)="switchView('forgot')">Forgot your password?</p>
+
+      <label class="check-row">
+        <input type="checkbox"> Remember me for 30 days
       </label>
 
-      <button class="main-btn" (click)="onLogin()">Log In</button>
-      <button class="secondary-btn" (click)="switchView('forgot')">Reset Password</button>
+      <button
+        class="btn-primary"
+        [class.loading]="isLoading"
+        [disabled]="isLoading"
+        (click)="onLogin()"
+        type="button"
+      >
+        <span class="btn-label">Sign In</span>
+        <span class="spinner" aria-hidden="true"></span>
+      </button>
 
-      <p class="switch">
-        Don't have an account?
-        <span (click)="switchView('register')" style="cursor: pointer;">Sign Up</span>
-      </p>
+      <button class="btn-ghost" type="button" (click)="switchView('register')">
+        Create a Globex account
+      </button>
+
+      <div class="security-note">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+        </svg>
+        SSL secured · 256-bit encryption
+      </div>
+
     </div>
 
-    <!-- REGISTER FORM -->
+    <!-- ═══════════════════════════════════════
+         REGISTER FORM
+    ════════════════════════════════════════ -->
     <div class="auth-form" *ngIf="currentView === 'register'">
-      <h2>Create your account</h2>
-      <input type="text" placeholder="Full Name" [(ngModel)]="regFullname" required>
-      <input type="text" placeholder="Username" [(ngModel)]="regUsername" required>
-      <input type="email" placeholder="Email Address" [(ngModel)]="regEmail" required>
-      <input type="tel" placeholder="Phone Number" [(ngModel)]="regPhone" required>
-      <input type="text" placeholder="Address" [(ngModel)]="regAddress" required>
-      <input type="text" placeholder="Country" [(ngModel)]="regCountry" required>
-      <input type="password" placeholder="Password" [(ngModel)]="regPassword" required>
-      <input type="password" placeholder="Confirm Password" [(ngModel)]="regConfirmPassword" required>
 
-      <label class="remember">
+      <h2>Join Globex</h2>
+      <p class="form-subtitle">Create your international trading account</p>
+
+      <div class="register-grid">
+
+        <!-- LEFT -->
+        <div>
+          <div class="input-group">
+            <label for="regFull">Full Name</label>
+            <input id="regFull" type="text" placeholder="Jane Doe" [(ngModel)]="regFullname" autocomplete="name" required>
+          </div>
+
+          <div class="input-group">
+            <label for="regUser">Username</label>
+            <input id="regUser" type="text" placeholder="janedoe" [(ngModel)]="regUsername" autocomplete="username" required>
+          </div>
+
+          <div class="input-group">
+            <label for="regEmail">Email Address</label>
+            <input id="regEmail" type="email" placeholder="you@example.com" [(ngModel)]="regEmail" autocomplete="email" required>
+          </div>
+
+          <div class="input-group">
+            <label for="regPhone">Phone Number</label>
+            <input id="regPhone" type="tel" placeholder="+1 555 000 0000" [(ngModel)]="regPhone" autocomplete="tel" required>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div>
+          <div class="input-group">
+            <label for="regAddr">Address</label>
+            <input id="regAddr" type="text" placeholder="123 Main St" [(ngModel)]="regAddress" autocomplete="street-address" required>
+          </div>
+
+          <div class="input-group">
+            <label for="regCountry">Country</label>
+            <input id="regCountry" type="text" placeholder="United States" [(ngModel)]="regCountry" autocomplete="country-name" required>
+          </div>
+
+          <div class="input-group has-icon">
+            <label for="regPw">Password</label>
+            <input
+              id="regPw"
+              [type]="showRegPw ? 'text' : 'password'"
+              placeholder="Min. 6 characters"
+              [(ngModel)]="regPassword"
+              (ngModelChange)="updateStrength()"
+              autocomplete="new-password"
+              required
+            >
+            <button class="toggle-pw" type="button" (click)="showRegPw = !showRegPw" aria-label="Toggle password visibility">
+              <svg *ngIf="!showRegPw" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              <svg *ngIf="showRegPw" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
+            </button>
+          </div>
+
+          <!-- Password strength indicator -->
+          <div class="strength-bar" *ngIf="regPassword.length > 0">
+            <span class="seg" [ngClass]="strengthClass(1)"></span>
+            <span class="seg" [ngClass]="strengthClass(2)"></span>
+            <span class="seg" [ngClass]="strengthClass(3)"></span>
+            <span class="seg" [ngClass]="strengthClass(4)"></span>
+          </div>
+
+          <div class="input-group has-icon">
+            <label for="regConfirm">Confirm Password</label>
+            <input
+              id="regConfirm"
+              [type]="showConfirmPw ? 'text' : 'password'"
+              placeholder="Repeat password"
+              [(ngModel)]="regConfirmPassword"
+              autocomplete="new-password"
+              required
+            >
+            <button class="toggle-pw" type="button" (click)="showConfirmPw = !showConfirmPw" aria-label="Toggle password visibility">
+              <svg *ngIf="!showConfirmPw" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              <svg *ngIf="showConfirmPw" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
+            </button>
+          </div>
+
+        </div>
+      </div><!-- /register-grid -->
+
+      <label class="check-row">
         <input type="checkbox">
-        By signing up you agree to the terms
+        I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
       </label>
 
-      <button class="main-btn" (click)="onRegister()">Sign Up</button>
+      <button
+        class="btn-primary"
+        [class.loading]="isLoading"
+        [disabled]="isLoading"
+        (click)="onRegister()"
+        type="button"
+      >
+        <span class="btn-label">Create Account</span>
+        <span class="spinner" aria-hidden="true"></span>
+      </button>
 
-      <p class="switch">
-        Already have an account?
-        <span (click)="switchView('login')" style="cursor: pointer;">Log In</span>
+      <p class="switch-row">
+        Already have an account? <span class="link" (click)="switchView('login')">Sign In</span>
       </p>
+
     </div>
 
-    <!-- FORGOT PASSWORD FORM -->
+    <!-- ═══════════════════════════════════════
+         FORGOT PASSWORD FORM
+    ════════════════════════════════════════ -->
     <div class="auth-form" *ngIf="currentView === 'forgot'">
+
       <h2>Reset Password</h2>
-      <p style="margin-bottom: 20px; font-size: 14px; color: #666;">Enter your email to receive a password reset link.</p>
-      <input type="email" placeholder="Email Address" [(ngModel)]="forgotEmail" required>
-
-      <button class="main-btn" (click)="onForgotPassword()">Send Reset Link</button>
-
-      <p class="switch">
-        Remember your password?
-        <span (click)="switchView('login')" style="cursor: pointer;">Back to Log In</span>
+      <p class="hint-text">
+        Enter the email linked to your account and we'll send<br>a secure reset link within a few minutes.
       </p>
+
+      <div class="input-group">
+        <label for="forgotEmail">Email Address</label>
+        <input
+          id="forgotEmail"
+          type="email"
+          placeholder="you@example.com"
+          [(ngModel)]="forgotEmail"
+          (keyup.enter)="onForgotPassword()"
+          autocomplete="email"
+          required
+        >
+      </div>
+
+      <button
+        class="btn-primary"
+        [class.loading]="isLoading"
+        [disabled]="isLoading"
+        (click)="onForgotPassword()"
+        type="button"
+      >
+        <span class="btn-label">Send Reset Link</span>
+        <span class="spinner" aria-hidden="true"></span>
+      </button>
+
+      <button class="btn-ghost" type="button" (click)="switchView('login')">
+        ← Back to Sign In
+      </button>
+
+      <div class="security-note">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+        </svg>
+        Link expires in 15 minutes
+      </div>
+
     </div>
 
   </div>

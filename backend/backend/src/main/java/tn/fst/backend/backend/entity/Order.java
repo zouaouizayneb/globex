@@ -49,6 +49,12 @@ public class Order {
     @Column(name = "payment_method_label", length = 50)
     private String paymentMethodLabel;
 
+    @Column(name = "country", length = 50)
+    private String country;
+
+    @Column(name = "tax_rate", precision = 5, scale = 2)
+    private BigDecimal taxRate;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails;
 

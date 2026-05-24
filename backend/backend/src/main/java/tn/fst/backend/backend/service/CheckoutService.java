@@ -24,6 +24,7 @@ public class CheckoutService {
     private final TaxService taxService;
     private final ShippingService shippingService;
     private final PaymentService paymentService;
+    private final PaymentMethodService paymentMethodService;
 
     private final CartRepository cartRepository;
     private final OrderRepository orderRepository;
@@ -38,28 +39,23 @@ public class CheckoutService {
     private final InventoryService inventoryService;
     private final EmailService emailService;
 
-    /**
-     * Get checkout summary (before placing order)
-     */
+    
     @Transactional(readOnly = true)
     public OrderSummary getCheckoutSummary(Long userId, String shippingMethod, String country) {
 
-        // Get user's cart
         CartResponse cart = cartService.getCartForUser(userId);
 
         if (cart.getItems().isEmpty()) {
             throw new IllegalStateException("Cart is empty");
         }
 
-        // Calculate subtotal
         BigDecimal subtotal = cart.getTotalPrice();
 
-        // Calculate shipping
         ShippingRateResponse shippingRate = shippingService.calculateShippingCost(
                 ShippingRateRequest.builder()
                         .destinationCountry(country)
                         .shippingMethod(shippingMethod)
-                        .weight(BigDecimal.ONE) // Default weight, can be calculated from products
+                        .weight(BigDecimal.ONE) 
                         .build()
         );
         BigDecimal shippingCost = shippingRate.getCost();
@@ -91,7 +87,7 @@ public class CheckoutService {
                 .taxAmount(taxAmount)
                 .discount(BigDecimal.ZERO)
                 .total(total)
-                .currency("USD")
+                .currency(paymentMethodService.getCurrencyForCountry(country))
                 .build();
     }
 
@@ -153,22 +149,8 @@ public class CheckoutService {
                     .build();
             orderDetailRepository.save(detail);
 
-            // Reduce stock
-            variant.setStockQuantity(variant.getStockQuantity() - cartItem.getQuantity());
-            variantRepository.save(variant);
-
-            stockRepository.findByVariant(variant)
-                    .ifPresent(stock -> {
-                        stock.setQuantity(Math.max(0, stock.getQuantity() - cartItem.getQuantity()));
-                        stockRepository.save(stock);
-                    });
-
-            // Fix 2: Record stock movement history (SALE type)
-            try {
-                inventoryService.recordSale(variant.getIdVariant(), cartItem.getQuantity(), order.getIdOrder());
-            } catch (Exception e) {
-                // Non-blocking — do not fail checkout for a logging error
-            }
+            // Reduce stock & record movement (Fix: Prevent double deduction)
+            inventoryService.recordSale(variant.getIdVariant(), cartItem.getQuantity(), order.getIdOrder());
         }
 
         // 6. Create shipment

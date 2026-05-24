@@ -38,6 +38,8 @@ public class OrderServiceImpl implements OrderService {
     private final EmailService emailService;
     private final NotificationService notificationService;
     private final InventoryService inventoryService;
+    private final TaxService taxService;
+    private final CartService cartService;
 
     @Override
     @Transactional(readOnly = true)
@@ -294,6 +296,11 @@ public class OrderServiceImpl implements OrderService {
             user = userRepository.findByEmail(request.getEmail()).orElse(null);
         }
 
+        // If still no user found, throw exception
+        if (user == null) {
+            throw new RuntimeException("User not authenticated or not found. Please log in and try again.");
+        }
+
         Client client = null;
         if (user != null) {
             client = clientRepository.findByUser(user).orElse(null);
@@ -323,6 +330,8 @@ public class OrderServiceImpl implements OrderService {
                 .totalAmount(request.getTotal() != null ? request.getTotal() : BigDecimal.ZERO)
                 .shippingCost(request.getShippingCost() != null ? request.getShippingCost() : BigDecimal.ZERO)
                 .taxAmount(request.getTaxes() != null ? request.getTaxes() : BigDecimal.ZERO)
+                .taxRate(taxService.getTaxRateForCountry(request.getCountry()))
+                .country(request.getCountry())
                 .shippingAddress(request.getShippingAddress())
                 .shippingMethod(request.getShippingMethod())
                 .paymentMethodLabel(request.getPaymentMethod())
@@ -358,23 +367,10 @@ public class OrderServiceImpl implements OrderService {
 
                 orderDetailRepository.save(detail);
 
-                // Deduct stock if variant is present and log stock movement
-                if (variant != null && variant.getStockQuantity() != null) {
-                    variant.setStockQuantity(Math.max(0, variant.getStockQuantity() - item.getQuantity()));
-                    variantRepository.save(variant);
-
-                    stockRepository.findByVariant(variant).ifPresent(stock -> {
-                        stock.setQuantity(Math.max(0, stock.getQuantity() - item.getQuantity()));
-                        stockRepository.save(stock);
-                    });
-
-                    // Fix 2: Record stock movement history (SALE type)
-                    try {
-                        inventoryService.recordSale(variant.getIdVariant(), item.getQuantity(), order.getIdOrder());
-                        log.info("Stock movement recorded for variant #{} (qty: {})", variant.getIdVariant(), item.getQuantity());
-                    } catch (Exception e) {
-                        log.warn("Failed to record stock movement for variant #{}: {}", variant.getIdVariant(), e.getMessage());
-                    }
+                // Record sale and stock movement via inventoryService
+                if (variant != null) {
+                    inventoryService.recordSale(variant.getIdVariant(), item.getQuantity(), order.getIdOrder());
+                    log.info("Stock movement recorded for variant #{} (qty: {})", variant.getIdVariant(), item.getQuantity());
                 }
             }
         }
@@ -406,7 +402,6 @@ public class OrderServiceImpl implements OrderService {
         try {
             InvoiceResponse invoiceResp = invoiceService.issueDate(order.getIdOrder());
             log.info("Invoice automatically generated for order #{}", order.getIdOrder());
-            // Generate the PDF immediately so it's available for download
             try {
                 invoiceService.ensureInvoicePdf(invoiceResp.getIdInvoice());
                 log.info("Invoice PDF generated for invoice #{}", invoiceResp.getIdInvoice());
@@ -415,7 +410,7 @@ public class OrderServiceImpl implements OrderService {
             }
         } catch (Exception e) {
             log.error("Failed to automatically generate invoice for order #{}: {}", order.getIdOrder(), e.getMessage());
-            // Keep checkout/sale flow successful even if invoice generation fails.
+            throw new RuntimeException("Failed to generate invoice: " + e.getMessage(), e);
         }
 
         // Fix 4: Notify all admins — in-app notification + email
@@ -436,8 +431,30 @@ public class OrderServiceImpl implements OrderService {
                 emailService.sendNewOrderAdminEmail(order, admin.getEmail());
             }
             log.info("Admin notifications sent for order #{} to {} admin(s)", order.getIdOrder(), admins.size());
+            
+            // Fix 5: Notify client — handle guest checkout (null user)
+            try {
+                if (order.getUser() != null && order.getUser().getEmail() != null) {
+                    emailService.sendNewOrderClientEmail(order, order.getUser().getEmail());
+                } else if (request.getEmail() != null) {
+                    // Try using the email from the request for guest checkout
+                    emailService.sendNewOrderClientEmail(order, request.getEmail());
+                }
+            } catch (Exception e) {
+                log.warn("Failed to notify client of new order #{}: {}", order.getIdOrder(), e.getMessage());
+            }
         } catch (Exception e) {
             log.warn("Failed to send admin notifications for order #{}: {}", order.getIdOrder(), e.getMessage());
+        }
+
+        // Clear the user's cart after successful order placement
+        try {
+            if (userId != null) {
+                cartService.clearCart(userId);
+                log.info("Cart cleared for user {} after order #{}", userId, order.getIdOrder());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to clear cart for user {} after order #{}: {}", userId, order.getIdOrder(), e.getMessage());
         }
 
         return order;

@@ -1,14 +1,51 @@
 .slider-container {
   width: 100%;
   overflow: hidden;
-  background: #0a0a0a;
-  padding: 50px 0;
+  background: linear-gradient(135deg, #030d07 0%, #071910 50%, #0c2c1a 100%);
+  padding: 35px 0;
+  position: relative;
+  border-top: 1px solid rgba(77,158,120,0.15);
+  border-bottom: 1px solid rgba(77,158,120,0.15);
+}
+
+/* Soft green glow effect */
+.slider-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -200px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(77,158,120,0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: glow-float 6s ease-in-out infinite;
+}
+
+.slider-container::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -200px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(77,158,120,0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: glow-float 8s ease-in-out infinite reverse;
+}
+
+@keyframes glow-float {
+  0%, 100% { transform: translateY(0px); opacity: 0.5; }
+  50% { transform: translateY(-20px); opacity: 0.8; }
 }
 
 .slider-track {
   display: flex;
   width: max-content;
-  animation: scroll 25s linear infinite;
+  animation: scroll 30s linear infinite;
+  position: relative;
+  z-index: 1;
 }
 
 .slide {
@@ -16,49 +53,60 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 12px;
 }
 
 .logo-text {
   color: #ffffff;
-  opacity: 0.9;
-  transition: 0.3s;
+  opacity: 0.75;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: center;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 8px rgba(77,158,120,0.15);
 }
 
 .logo-text:hover {
   opacity: 1;
-  transform: scale(1.05);
+  transform: scale(1.08);
+  text-shadow: 0 4px 16px rgba(77,158,120,0.30);
+  color: #4d9e78;
 }
 
-/* FONT STYLES (close to your image) */
+/* FONT STYLES with green theme */
 
 .serif {
-  font-family: 'Playfair Display', serif;
-  font-size: 28px;
-  letter-spacing: 1px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px;
+  font-weight: 300;
+  letter-spacing: 1.5px;
 }
 
 .handwritten {
-  font-family: 'Pacifico', cursive;
-  font-size: 26px;
+  font-family: 'Delicious Handrawn', cursive;
+  font-size: 20px;
+  font-weight: 400;
 }
 
 .clean {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 22px;
-  letter-spacing: 3px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 2px;
 }
 
 .elegant {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 26px;
+  font-size: 20px;
+  font-weight: 300;
   font-style: italic;
+  letter-spacing: 1px;
 }
 
 .bold {
-  font-family: 'Oswald', sans-serif;
-  font-size: 20px;
-  letter-spacing: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
 }
 

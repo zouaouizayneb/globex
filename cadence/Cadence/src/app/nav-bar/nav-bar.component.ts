@@ -54,7 +54,6 @@ export class NavBarComponent implements OnInit {
   currencyDropdownOpen: boolean = false;
   languageDropdownOpen: boolean = false;
   selectedCurrency: string = 'USD';
-  selectedLanguage: string = 'English';
   
   currencies = [
     { code: 'USD', symbol: '$', flagCode: 'us', rate: 1 },
@@ -63,14 +62,6 @@ export class NavBarComponent implements OnInit {
     { code: 'GBP', symbol: '£', flagCode: 'gb', rate: 0.79 },
     { code: 'EUR', symbol: '€', flagCode: 'eu', rate: 0.92 },
     { code: 'TND', symbol: 'د.ت', flagCode: 'tn', rate: 3.12 }
-  ];
-  
-  languages = [
-    { name: 'English', flagCode: 'gb' },
-    { name: 'العربية', flagCode: 'tn' },
-    { name: 'Deutsch', flagCode: 'de' },
-    { name: 'Español', flagCode: 'es' },
-    { name: 'Français', flagCode: 'fr' }
   ];
 
   constructor(
@@ -86,11 +77,6 @@ export class NavBarComponent implements OnInit {
     this.currencyService.getSelectedCurrency().subscribe(currency => {
       this.selectedCurrency = currency;
     });
-
-    const savedLanguage = localStorage.getItem('selectedLanguage');
-    if (savedLanguage) {
-      this.selectedLanguage = savedLanguage;
-    }
 
     this.shop.cartOpen$.subscribe(isOpen => {
       if (isOpen && this.cartDrawer) {
@@ -125,6 +111,10 @@ export class NavBarComponent implements OnInit {
 
   get cartCount(): number {
     return this.shop.cartCount;
+  }
+
+  get wishlistCount(): number {
+    return this.shop.wishlist.length;
   }
 
   async getCategories() {
@@ -298,24 +288,12 @@ export class NavBarComponent implements OnInit {
     this.languageDropdownOpen = false;
   }
 
-  toggleLanguageDropdown() {
-    this.languageDropdownOpen = !this.languageDropdownOpen;
-    this.currencyDropdownOpen = false;
-  }
-
   selectCurrency(currency: any) {
     this.currencyService.setCurrency(currency.code);
     this.currencyDropdownOpen = false;
   }
 
-  selectLanguage(language: any) {
-    this.selectedLanguage = language.name;
-    this.languageDropdownOpen = false;
-    localStorage.setItem('selectedLanguage', language.name);
-  }
-
   updateCurrencyDisplay(currency: any) {
-
     console.log(`Currency changed to ${currency.code} with rate ${currency.rate}`);
   }
 
@@ -332,11 +310,6 @@ export class NavBarComponent implements OnInit {
   getCurrentCurrencyFlagCode(): string {
     const currency = this.currencies.find(c => c.code === this.selectedCurrency);
     return currency?.flagCode || this.currencies[0]?.flagCode || 'us';
-  }
-
-  getCurrentLanguageFlagCode(): string {
-    const language = this.languages.find(l => l.name === this.selectedLanguage);
-    return language?.flagCode || this.languages[0]?.flagCode || 'gb';
   }
 
   toggleSearch() {

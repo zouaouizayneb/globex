@@ -8,9 +8,9 @@
 :host {
   display: block;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #fff;
+  background: var(--white);
   min-height: 100vh;
-  color: #1a1a1a;
+  color: var(--dark-gray);
 }
 
 /* ──────────────────────────────────────────────────────────────────────
@@ -21,7 +21,7 @@
   align-items: center;
   justify-content: center;
   padding: 18px 40px;
-  border-bottom: 1px solid #e1e3e5;
+  border-bottom: 1px solid var(--medium-gray);
   position: relative;
 }
 
@@ -30,7 +30,7 @@
   align-items: center;
   gap: 10px;
   text-decoration: none;
-  color: #1a1a1a;
+  color: var(--dark-gray);
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.3px;
@@ -39,7 +39,7 @@
 .brand-logo svg {
   width: 28px;
   height: 28px;
-  stroke: #5a8b7c;
+  stroke: var(--green);
 }
 
 .cart-link {
@@ -47,7 +47,7 @@
   right: 40px;
   display: flex;
   align-items: center;
-  color: #1a73e8;
+  color: var(--green);
   text-decoration: none;
   position: absolute;
   right: 40px;
@@ -64,8 +64,8 @@
   position: absolute;
   top: -6px;
   right: -8px;
-  background: #1a73e8;
-  color: #fff;
+  background: var(--green);
+  color: var(--white);
   font-size: 10px;
   font-weight: 700;
   width: 18px;
@@ -91,14 +91,14 @@
   flex: 1;
   max-width: 600px;
   padding: 40px 48px 60px;
-  border-right: 1px solid #e1e3e5;
+  border-right: 1px solid var(--medium-gray);
 }
 
 /* Error banner */
 .error-banner {
   background: #fef2f2;
   border: 1px solid #fecaca;
-  color: #dc2626;
+  color: var(--danger);
   padding: 12px 16px;
   border-radius: 8px;
   margin-bottom: 20px;
@@ -113,7 +113,7 @@
 .form-section h2 {
   font-size: 18px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--dark-gray);
   margin: 0 0 16px;
 }
 
@@ -128,7 +128,7 @@
 
 .section-link {
   font-size: 13px;
-  color: #1a73e8;
+  color: var(--green);
   text-decoration: none;
 }
 .section-link:hover { text-decoration: underline; }
@@ -153,12 +153,12 @@
 .form-field select {
   width: 100%;
   padding: 13px 14px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--medium-gray);
   border-radius: 6px;
   font-size: 14px;
   font-family: 'Inter', sans-serif;
-  color: #1a1a1a;
-  background: #fff;
+  color: var(--dark-gray);
+  background: var(--white);
   transition: border-color 0.2s, box-shadow 0.2s;
   outline: none;
   appearance: none;
@@ -166,8 +166,8 @@
 
 .form-field input:focus,
 .form-field select:focus {
-  border-color: #1a73e8;
-  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12);
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px var(--green-lt);
 }
 
 .form-field input::placeholder { color: #9ca3af; }
@@ -305,6 +305,102 @@
   border: 1px solid #d1d5db;
   border-radius: 10px;
   overflow: hidden;
+}
+
+/* Payment methods list */
+.payment-methods-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.payment-method-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #e5e7eb;
+  transition: background 0.15s;
+}
+
+.payment-method-option:last-child { border-bottom: none; }
+
+.payment-method-option.selected { background: #f0f7ff; }
+
+.payment-method-option input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #1a73e8;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.payment-method-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.payment-icon { display: flex; align-items: center; justify-content: center; color: #4b5563; }
+.payment-icon svg { width: 22px; height: 22px; }
+.payment-label { font-size: 14px; font-weight: 500; color: #1a1a1a; }
+
+.payment-check {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d1d5db;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.payment-method-option.selected .payment-check {
+  border-color: #1a73e8;
+  background: #1a73e8;
+}
+
+.payment-method-option.selected .payment-check::after {
+  content: '✓';
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Payment details */
+.payment-details {
+  padding: 16px 18px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.paypal-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.paypal-logo-small { height: 24px; }
+
+.paypal-info p {
+  font-size: 13.5px;
+  color: #374151;
+  margin: 0;
+}
+
+.cash-delivery-info p {
+  font-size: 13.5px;
+  color: #374151;
+  margin: 0 0 8px;
+}
+
+.delivery-note {
+  font-size: 12.5px;
+  color: #6b7280;
+  margin: 0 !important;
 }
 
 .paypal-selected-row {

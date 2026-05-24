@@ -1,0 +1,29 @@
+<div class="verify-email-container">
+  <div class="verify-card">
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Verifying your email...</p>
+    </div>
+
+    <div *ngIf="success" class="success-state">
+      <svg class="success-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" fill="#4CAF50"/>
+        <path d="M8 12L11 15L16 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h2>Email Verified Successfully!</h2>
+      <p>{{ message }}</p>
+      <p class="redirect-text">Redirecting to login page...</p>
+      <button (click)="goToLogin()" class="btn">Go to Login</button>
+    </div>
+
+    <div *ngIf="error" class="error-state">
+      <svg class="error-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" fill="#F44336"/>
+        <path d="M15 9L9 15M9 9L15 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h2>Verification Failed</h2>
+      <p>{{ message }}</p>
+      <button (click)="goToLogin()" class="btn">Go to Login</button>
+    </div>
+  </div>
+</div>

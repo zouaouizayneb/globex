@@ -363,11 +363,11 @@ form .row [class*=col-] {
 .btn, .product-list-view .product-card .product-card-inner .cart-btn, .pdp-right-column .qnty-btn-wrp .buy-btn button {
     text-align: center;
     padding: 12px 22px;
-    color: #111111;
-    background-color: #689284;
+    color: white;
+    background-color: var(--green);
     appearance: none;
     outline: none;
-    border: 1px solid #689284;
+    border: 1px solid var(--green);
     font-size: 16px;
     line-height: 1;
     display: inline-flex;

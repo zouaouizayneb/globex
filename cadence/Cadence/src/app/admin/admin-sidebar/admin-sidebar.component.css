@@ -14,7 +14,7 @@
 .admin-sidebar {
   width: var(--sb-width);
   height: 100vh;
-  background: white;
+  background: #0c2c1a;
   border-right: 1px solid var(--sb-border);
   display: flex;
   flex-direction: column;
@@ -32,10 +32,10 @@
   align-items: center;
   justify-content: center;
   padding: 20px 16px 16px;
-  border-bottom: 1px solid var(--sb-border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   gap: 6px;
   min-height: 80px;
-  background: white;
+  background: #0c2c1a;
 }
 
 .sidebar-logo img {
@@ -47,7 +47,7 @@
 
 .sidebar-logo .tagline {
   font-size: 11px;
-  color: var(--sb-muted);
+  color: rgba(255, 255, 255, 0.7);
   letter-spacing: 0.3px;
   margin: 0;
   font-weight: 400;
@@ -70,7 +70,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: var(--sb-muted);
+  color: rgba(255, 255, 255, 0.5);
   padding: 14px 12px 6px;
 }
 
@@ -86,7 +86,7 @@
   padding: 10px 12px;
   border-radius: 8px;
   text-decoration: none;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 13px;
   font-weight: 500;
   transition: all 0.3s ease;
@@ -100,36 +100,36 @@
   flex-shrink: 0;
   stroke-linecap: round;
   stroke-linejoin: round;
-  color: #9ca3af;
+  color: rgba(255, 255, 255, 0.6);
   transition: all 0.3s ease;
 }
 
 /* Hover */
 .menu-link:hover {
-  background: #fafafa;
-  color: #1a1a1a;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
 .menu-link:hover svg {
-  color: var(--sb-primary);
+  color: white;
 }
 
 /* Active */
 .menu-item.active .menu-link {
-  background: var(--sb-primary-bg);
-  color: var(--sb-primary);
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
   font-weight: 600;
 }
 
 .menu-item.active .menu-link svg {
-  color: var(--sb-primary);
+  color: white;
 }
 
 /* Badge */
 .menu-badge {
   margin-left: auto;
-  background: #edf2ef;
-  color: var(--sb-primary);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
   font-size: 10.5px;
   font-weight: 700;
   padding: 2px 7px;
@@ -141,28 +141,28 @@
 /* Divider line between groups */
 .menu-divider {
   height: 1px;
-  background: var(--sb-border);
+  background: rgba(255, 255, 255, 0.1);
   margin: 10px 12px;
 }
 
 /* Logout link red colour */
 .menu-item--logout .menu-link {
-  color: #e05252;
+  color: #ff6b6b;
 }
 .menu-item--logout .menu-link svg {
-  color: #e05252;
+  color: #ff6b6b;
 }
 .menu-item--logout .menu-link:hover {
-  background: #fef2f2;
-  color: #dc2626;
+  background: rgba(255, 107, 107, 0.15);
+  color: #ff8787;
 }
 
 /* ── Footer ─────────────────────────────────────────────────────────── */
 .sidebar-footer {
   padding: 14px 18px;
-  border-top: 1px solid var(--sb-border);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 11px;
-  color: var(--sb-muted);
+  color: rgba(255, 255, 255, 0.6);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -171,11 +171,11 @@
 .sidebar-footer p {
   margin: 0;
   font-weight: 600;
-  color: #374151;
+  color: white;
   font-size: 12px;
 }
 
 .sidebar-footer span {
   font-size: 11px;
-  color: var(--sb-muted);
+  color: rgba(255, 255, 255, 0.6);
 }

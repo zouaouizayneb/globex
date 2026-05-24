@@ -14,6 +14,7 @@
   overflow: hidden;
   /* sidebar is fixed at 220px — push content right */
   margin-left: 220px;
+  margin-top: 64px;
 }
 
 .admin-content {

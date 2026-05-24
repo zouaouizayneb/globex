@@ -72,6 +72,8 @@ public class OrderDetailServiceImpl implements OrderDetailService {
         if (!orderDetailRepository.existsById(id))
             throw new RuntimeException("OrderDetail not found with id: " + id);
         orderDetailRepository.deleteById(id);
+
     }
 }
+
 
