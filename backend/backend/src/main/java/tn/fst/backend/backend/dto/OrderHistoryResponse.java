@@ -27,5 +27,7 @@ public class OrderHistoryResponse {
     private String shippingStatus;
     private Boolean canCancel;
     private Boolean canReturn;
+    private String customerName;
+    private String customerEmail;
 }
 

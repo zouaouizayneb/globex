@@ -1,9 +1,12 @@
 package tn.fst.backend.backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "product_variants")
@@ -21,8 +24,6 @@ public class ProductVariant {
 
     private String color;
 
-    private String imageUrl;
-
     @Column(precision = 10, scale = 2)
     private BigDecimal additionalPrice = BigDecimal.ZERO;
 
@@ -33,6 +34,10 @@ public class ProductVariant {
     @JoinColumn(name = "product_id", nullable = false)
     @JsonBackReference
     private Product product;
+
+    @OneToMany(mappedBy = "variant", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<ProductImage> images = new ArrayList<>();
 
     public ProductVariant() {}
 
@@ -92,20 +97,18 @@ public class ProductVariant {
         this.product = product;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public List<ProductImage> getImages() {
+        return images;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImages(List<ProductImage> images) {
+        this.images = images;
     }
 
     public BigDecimal getTotalPrice() {
+        BigDecimal basePrice = product != null && product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO;
         BigDecimal add = additionalPrice != null ? additionalPrice : BigDecimal.ZERO;
-        if (product != null && product.getPrice() != null) {
-            return product.getPrice().add(add);
-        }
-        return add;
+        return basePrice.add(add);
     }
 
     public boolean isInStock() {
@@ -115,4 +118,19 @@ public class ProductVariant {
     public boolean canFulfill(int quantity) {
         return stockQuantity != null && stockQuantity >= quantity;
     }
+
+    /**
+     * Returns the primary image URL, or the first image URL, or null if there are no images.
+     */
+    public String getImageUrl() {
+        if (images == null || images.isEmpty()) {
+            return null;
+        }
+        return images.stream()
+                .filter(img -> Boolean.TRUE.equals(img.getIsPrimary()))
+                .findFirst()
+                .map(ProductImage::getImageUrl)
+                .orElseGet(() -> images.get(0).getImageUrl());
+    }
+
 }

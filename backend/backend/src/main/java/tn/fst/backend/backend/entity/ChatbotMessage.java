@@ -1,6 +1,9 @@
 package tn.fst.backend.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import tn.fst.backend.backend.entity.ChatConversation;
+import tn.fst.backend.backend.entity.User;
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,9 +24,15 @@ public class ChatbotMessage {
     @Column(name = "date_msg")
     private LocalDateTime dateMsg = LocalDateTime.now();
 
+    // Relation avec ChatConversation
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conversation_id", nullable = false)
+    @JsonBackReference
+    private ChatConversation conversation;
+
     // Relation avec User
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     public ChatbotMessage() {}
@@ -43,6 +52,9 @@ public class ChatbotMessage {
 
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
+
+    public ChatConversation getConversation() { return conversation; }
+    public void setConversation(ChatConversation conversation) { this.conversation = conversation; }
 }
 
 

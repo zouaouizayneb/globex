@@ -223,13 +223,18 @@
         <div class="summary-items">
           <div class="summary-item" *ngFor="let item of cartItems">
             <div class="item-thumb-wrap">
-              <img [src]="item.image" [alt]="item.name" class="item-thumb">
+              <img [src]="item.variantImage || item.image" [alt]="item.name" class="item-thumb">
               <span class="item-qty-badge">{{ item.quantity }}</span>
             </div>
             <div class="item-info">
               <p class="item-name">{{ item.name }}</p>
+              <p class="item-variant" *ngIf="item.variantColor || item.variantSize">
+                <span *ngIf="item.variantColor">Color: {{ item.variantColor }}</span>
+                <span *ngIf="item.variantColor && item.variantSize"> | </span>
+                <span *ngIf="item.variantSize">Size: {{ item.variantSize }}</span>
+              </p>
             </div>
-            <span class="item-price">${{ (item.price * (item.quantity ?? 1)) | number:'1.2-2' }}</span>
+            <span class="item-price">{{ currencyService.formatPrice(item.price * (item.quantity ?? 1)) }}</span>
           </div>
         </div>
 
@@ -243,17 +248,17 @@
         <div class="summary-totals">
           <div class="total-row">
             <span>Subtotal</span>
-            <span>${{ subtotal | number:'1.2-2' }}</span>
+            <span>{{ currencyService.formatPrice(subtotal) }}</span>
           </div>
           <div class="total-row">
             <span>Shipping</span>
             <span *ngIf="!delivery.address" class="muted">Enter shipping address</span>
             <span *ngIf="delivery.address && shippingCost === 0" class="free">FREE</span>
-            <span *ngIf="delivery.address && shippingCost > 0">${{ shippingCost | number:'1.2-2' }}</span>
+            <span *ngIf="delivery.address && shippingCost > 0">{{ currencyService.formatPrice(shippingCost) }}</span>
           </div>
           <div class="total-row">
             <span>Estimated taxes</span>
-            <span>${{ taxes | number:'1.2-2' }}</span>
+            <span>{{ currencyService.formatPrice(taxes) }}</span>
           </div>
         </div>
 
@@ -261,7 +266,7 @@
 
         <div class="grand-total">
           <span>Total</span>
-          <span class="grand-amount"><small>USD</small> ${{ total | number:'1.2-2' }}</span>
+          <span class="grand-amount">{{ currencyService.formatPrice(total) }}</span>
         </div>
 
       </div>

@@ -91,6 +91,7 @@ export class ShopService {
           name: item.productName,
           price: item.pricePerUnit,
           image: item.imageUrl,
+          variantImage: item.imageUrl,
           quantity: item.quantity,
           colors: [],
           rating: 5,
@@ -110,6 +111,7 @@ export class ShopService {
           name: item.productName,
           price: item.currentPrice,
           image: item.imageUrl,
+          variantImage: item.imageUrl,
           colors: [],
           rating: 5,
           variantColor: item.color,
@@ -139,15 +141,16 @@ export class ShopService {
     const token = localStorage.getItem('token');
     // Use variantId if provided, fall back to id
     const vid = product.variantId || product.id;
+    const qty = product.quantity || 1;
     if (token) {
       try {
-        await firstValueFrom(this.api.addToCart(vid, 1));
+        await firstValueFrom(this.api.addToCart(vid, qty));
         // Update local cart immediately for UI responsiveness
         const found = this.cart.find(item => item.id === vid);
         if (found) {
-          found.quantity! += 1;
+          found.quantity! += qty;
         } else {
-          this.cart.push({ ...product, id: vid, variantId: vid, quantity: 1 });
+          this.cart.push({ ...product, id: vid, variantId: vid, quantity: qty });
         }
         this.saveCartLocal();
         await this.syncWithBackend();
@@ -157,9 +160,9 @@ export class ShopService {
         // Still add to local cart for guest users
         const found = this.cart.find(item => item.id === vid);
         if (found) {
-          found.quantity! += 1;
+          found.quantity! += qty;
         } else {
-          this.cart.push({ ...product, id: vid, variantId: vid, quantity: 1 });
+          this.cart.push({ ...product, id: vid, variantId: vid, quantity: qty });
         }
         this.saveCartLocal();
       }
@@ -167,10 +170,10 @@ export class ShopService {
       // Guest (no token) – use variantId if present, otherwise fallback to product.id
       const found = this.cart.find(item => item.id === vid);
       if (found) {
-        found.quantity! += 1;
+        found.quantity! += qty;
       } else {
         // Ensure the stored item uses the variant identifier as its id
-        this.cart.push({ ...product, id: vid, variantId: vid, quantity: 1 });
+        this.cart.push({ ...product, id: vid, variantId: vid, quantity: qty });
       }
       this.saveCartLocal();
     }

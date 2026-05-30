@@ -1,86 +1,61 @@
 package tn.fst.backend.backend.controller;
 
-import tn.fst.backend.backend.entity.Client;
-import tn.fst.backend.backend.entity.User;
-import tn.fst.backend.backend.repository.ClientRepository;
-import tn.fst.backend.backend.repository.UserRepository;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tn.fst.backend.backend.dto.ClientRequest;
+import tn.fst.backend.backend.dto.ClientResponse;
+import tn.fst.backend.backend.service.ClientService;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/clients")
 @CrossOrigin(origins = "http://localhost:4200")
+@RequiredArgsConstructor
 public class ClientController {
 
-    @Autowired
-    private ClientRepository clientRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    private final ClientService clientService;
 
     @GetMapping
-    public List<Client> getAllClients() {
-        return clientRepository.findAll();
+    public ResponseEntity<List<ClientResponse>> getAllClients() {
+        List<ClientResponse> clients = clientService.getAllClients();
+        return ResponseEntity.ok(clients);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Client> getClientById(@PathVariable Long id) {
-        Optional<Client> client = clientRepository.findById(id);
-        return client.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ClientResponse> getClientById(@PathVariable Long id) {
+        ClientResponse client = clientService.getClientById(id);
+        return ResponseEntity.ok(client);
     }
 
     @PostMapping
-    public ResponseEntity<Client> createClient(@RequestBody Client client) {
-        // Vérifier que l'utilisateur existe
-        if (client.getUser() != null) {
-            Optional<User> user = userRepository.findById(client.getUser().getIdUser());
-            if (user.isPresent()) {
-                client.setUser(user.get());
-            } else {
-                return ResponseEntity.badRequest().build();
-            }
-        } else {
-            return ResponseEntity.badRequest().build();
-        }
-
-        Client savedClient = clientRepository.save(client);
-        return ResponseEntity.ok(savedClient);
+    public ResponseEntity<ClientResponse> createClient(@Valid @RequestBody ClientRequest request) {
+        ClientResponse response = clientService.createClient(request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Client> updateClient(@PathVariable Long id, @RequestBody Client clientDetails) {
-        Optional<Client> optionalClient = clientRepository.findById(id);
-        if (!optionalClient.isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Client client = optionalClient.get();
-        client.setAddress(clientDetails.getAddress());
-        client.setCountry(clientDetails.getCountry());
-
-        // Mettre à jour l'utilisateur si fourni
-        if (clientDetails.getUser() != null) {
-            Optional<User> user = userRepository.findById(clientDetails.getUser().getIdUser());
-            user.ifPresent(client::setUser);
-        }
-
-        Client updatedClient = clientRepository.save(client);
-        return ResponseEntity.ok(updatedClient);
+    public ResponseEntity<ClientResponse> updateClient(
+            @PathVariable Long id,
+            @Valid @RequestBody ClientRequest request) {
+        ClientResponse response = clientService.updateClient(id, request);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
-        if (!clientRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        clientRepository.deleteById(id);
+        clientService.deleteClient(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<ClientResponse> updateClientStatus(
+            @PathVariable Long id,
+            @RequestParam String status) {
+        ClientResponse response = clientService.updateClientStatus(id, status);
+        return ResponseEntity.ok(response);
     }
 }

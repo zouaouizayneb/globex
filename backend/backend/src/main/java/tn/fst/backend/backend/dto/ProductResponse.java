@@ -1,6 +1,10 @@
 package tn.fst.backend.backend.dto;
 
+import tn.fst.backend.backend.entity.ProductStatus;
 import tn.fst.backend.backend.entity.Product;
+import tn.fst.backend.backend.dto.CategoryResponse;
+import tn.fst.backend.backend.dto.ProductVariantResponse;
+import tn.fst.backend.backend.dto.ProductImageResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,16 +14,14 @@ public class ProductResponse {
     private Long idProduct;
     private String name;
     private String description;
-    private String color;
-    private String size;
-    private String imageUrl;
+    private Double price;
     private CategoryResponse category;
     private List<ProductVariantResponse> variants;
     private List<ProductImageResponse> images;
     private LocalDateTime createdAt;
     private Double rating;
-    private java.math.BigDecimal price;
-    private Integer stock;
+    private Long supplierId;
+    private ProductStatus status;
 
     public ProductResponse() {}
 
@@ -37,6 +39,19 @@ public class ProductResponse {
         response.setIdProduct(product.getIdProduct());
         response.setName(product.getName());
         response.setDescription(product.getDescription());
+
+        // Use product price if available, otherwise calculate from minimum variant price
+        if (product.getPrice() != null && product.getPrice().doubleValue() > 0) {
+            response.setPrice(product.getPrice().doubleValue());
+        } else if (product.getVariants() != null && !product.getVariants().isEmpty()) {
+            Double minPrice = product.getVariants().stream()
+                    .map(v -> v.getTotalPrice() != null ? v.getTotalPrice().doubleValue() : 0.0)
+                    .min(Double::compare)
+                    .orElse(0.0);
+            response.setPrice(minPrice);
+        } else {
+            response.setPrice(0.0);
+        }
 
         if (product.getVariants() != null) {
             response.setVariants(product.getVariants().stream()
@@ -60,7 +75,8 @@ public class ProductResponse {
                             img.getAltText(),
                             img.getIsPrimary(),
                             img.getDisplayOrder(),
-                            img.getCreatedAt()))
+                            img.getCreatedAt(),
+                            img.getVariant() != null ? img.getVariant().getIdVariant() : null))
                     .toList());
         }
 
@@ -70,11 +86,8 @@ public class ProductResponse {
         }
         response.setCreatedAt(product.getCreatedAt());
         response.setRating(product.getRating());
-        response.setPrice(product.getPrice());
-        response.setStock(product.getStock());
-        response.setColor(product.getColor());
-        response.setSize(product.getSize());
-        response.setImageUrl(product.getImageUrl());
+        response.setSupplierId(product.getSupplier() != null ? product.getSupplier().getIdSupplier() : null);
+        response.setStatus(product.getStatus());
         return response;
     }
 
@@ -100,6 +113,14 @@ public class ProductResponse {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
     }
 
     public CategoryResponse getCategory() {
@@ -142,43 +163,19 @@ public class ProductResponse {
         this.rating = rating;
     }
 
-    public java.math.BigDecimal getPrice() {
-        return price;
+    public Long getSupplierId() {
+        return supplierId;
     }
 
-    public void setPrice(java.math.BigDecimal price) {
-        this.price = price;
+    public void setSupplierId(Long supplierId) {
+        this.supplierId = supplierId;
     }
 
-    public Integer getStock() {
-        return stock;
+    public ProductStatus getStatus() {
+        return status;
     }
 
-    public void setStock(Integer stock) {
-        this.stock = stock;
-    }
-
-    public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
-    }
-
-    public String getSize() {
-        return size;
-    }
-
-    public void setSize(String size) {
-        this.size = size;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setStatus(ProductStatus status) {
+        this.status = status;
     }
 }

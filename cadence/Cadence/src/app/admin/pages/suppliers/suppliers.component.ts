@@ -87,8 +87,7 @@ export class SuppliersComponent implements OnInit {
       name: this.formName.trim(),
       email: this.formEmail.trim(),
       phone: this.formPhone.trim(),
-      address: this.formAddress.trim(),
-      status: this.formStatus
+      address: this.formAddress.trim()
     };
 
     const request$ = this.editingSupplier
@@ -97,9 +96,26 @@ export class SuppliersComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
-        this.showModal = false;
-        this.isSaving = false;
-        this.loadSuppliers();
+        // If editing and status changed, update status separately
+        if (this.editingSupplier && this.editingSupplier.status !== this.formStatus) {
+          this.adminService.updateSupplierStatus(this.editingSupplier.id, this.formStatus).subscribe({
+            next: () => {
+              this.showModal = false;
+              this.isSaving = false;
+              this.loadSuppliers();
+            },
+            error: () => {
+              alert('Supplier saved but status update failed.');
+              this.showModal = false;
+              this.isSaving = false;
+              this.loadSuppliers();
+            }
+          });
+        } else {
+          this.showModal = false;
+          this.isSaving = false;
+          this.loadSuppliers();
+        }
       },
       error: () => {
         alert('Failed to save supplier.');

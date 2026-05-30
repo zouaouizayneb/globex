@@ -92,7 +92,7 @@
 .search-input:focus,
 .filter-select:focus {
   outline: none;
-  border-color: #4a8b6f;
+  border-color: #0c2c1a;
   box-shadow: 0 0 0 3px rgba(74, 139, 111, 0.1);
 }
 
@@ -141,7 +141,7 @@
   justify-content: center;
   background: #e8f0ed;
   border-radius: 8px;
-  color: #4a8b6f;
+  color: #0c2c1a;
 }
 
 .category-icon svg {
@@ -189,7 +189,7 @@
 .stat .value {
   font-size: 18px;
   font-weight: 700;
-  color: #4a8b6f;
+  color: #0c2c1a;
 }
 
 .status-badge {
@@ -202,7 +202,7 @@
 
 .status-badge.status-active {
   background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  color: #17a072;
 }
 
 .status-badge.status-inactive {
@@ -551,12 +551,12 @@
 }
 
 .product-actions-overlay .action-btn.edit {
-  background: #4a8b6f;
+  background: #0c2c1a;
   color: white;
 }
 
 .product-actions-overlay .action-btn.edit:hover {
-  background: #3d7159;
+  background: #0c2c1a;
 }
 
 .product-actions-overlay .action-btn.delete {
@@ -676,14 +676,14 @@
   border: none;
   cursor: pointer;
   font-size: 14px;
-  color: #4a8b6f;
+  color: #0c2c1a;
   font-weight: 600;
   margin-bottom: 16px;
   transition: color 0.2s ease;
 }
 
 .back-btn:hover {
-  color: #3d7159;
+  color: #0c2c1a;
 }
 
 .back-btn svg {
@@ -848,7 +848,7 @@
 }
 
 .thumb:hover {
-  border-color: #4a8b6f;
+  border-color: #0c2c1a;
 }
 
 .thumb img {
@@ -876,7 +876,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: #4a8b6f;
+  color: #0c2c1a;
   margin-bottom: 12px;
 }
 
@@ -1037,5 +1037,63 @@
   font-family: 'Courier New', monospace;
 }
 
+.btn-globex {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  padding: 8px 16px;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 600;
+  text-decoration: none;
+  color: #ffffff;
+  cursor: pointer;
+  overflow: hidden;
+  background: #0c2c1a; /* Soft Green */
+  border: 2px solid var(--forest);
+  z-index: 1;
+  border-radius: 0;
+  font-family: 'Inter', -apple-system, sans-serif;
+  white-space: nowrap;
+  transition: all 0.4s ease;
+}
+.btn-globex:hover {
+  color: #0c2c1a;
+  border-color: #ffffff;
+}
+.btn-globex:before,
+.btn-globex:after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: calc(100% + 40px);
+  height: 100%;
+  top: 0;
+  transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+  background: #ffffff; /* Black hover fill */
+  clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 50%, calc(100% - 40px) 100%, 0 100%);
+}
+
+.btn-globex:before {
+  left: calc(-100% - 40px);
+}
+
+.btn-globex:after {
+  left: 100%;
+  transform: rotate(180deg);
+}
+
+.btn-globex:hover:before {
+  left: 0;
+}
+
+.btn-globex:hover:after {
+  left: 0;
+}
+
+.btn-globex:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 

@@ -43,18 +43,24 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**", "/login", "/register", "/error").permitAll()
                         .requestMatchers("/api/public/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        
+                        .requestMatchers("/api/verify-schema/**").permitAll()
+
                         // 3. Public Shop Content (Browsing)
                         .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**", "/api/brands/**", "/api/reviews/product/**").permitAll()
-                        
-                        // 4. PROTECTED: Orders & Checkout (Require Login)
+
+                        // 4. Admin endpoints (for testing)
+                        .requestMatchers("/api/suppliers/**").permitAll()
+                        .requestMatchers("/api/clients/**").permitAll()
+                        .requestMatchers("/api/transporteurs/**").permitAll()
+
+                        // 5. PROTECTED: Orders & Checkout (Require Login)
                         .requestMatchers("/api/orders/**").authenticated()
                         .requestMatchers("/api/checkout/**").authenticated()
                         .requestMatchers("/api/cart/**").authenticated()
                         .requestMatchers("/api/addresses/**").authenticated()
                         .requestMatchers("/api/payment/**", "/api/payments/**").authenticated()
-                        
-                        // 5. Admin & Others
+
+                        // 6. Admin & Others
                         .requestMatchers("/api/reports/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

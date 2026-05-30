@@ -74,7 +74,7 @@
 .search-input:focus,
 .filter-select:focus {
   outline: none;
-  border-color: #4a8b6f;
+  border-color: #0c2c1a;
   box-shadow: 0 0 0 3px rgba(74, 139, 111, 0.1);
 }
 
@@ -182,12 +182,12 @@
 
 .orders {
   font-weight: 600;
-  color: #4a8b6f;
+  color: #0c2c1a;
 }
 
 .spent {
   font-weight: 700;
-  color: #4a8b6f;
+  color: #0c2c1a;
 }
 
 .status-badge {
@@ -233,7 +233,7 @@
 }
 
 .action-btn.edit {
-  color: #3b82f6;
+  color: #2562c5;
 }
 
 .action-btn.edit:hover {
@@ -241,7 +241,7 @@
 }
 
 .action-btn.delete {
-  color: #ef4444;
+  color: #c53232;
 }
 
 .action-btn.delete:hover {
@@ -325,7 +325,7 @@
   width: 36px;
   height: 36px;
   border: 3px solid #f0f0f0;
-  border-top-color: #4a8b6f;
+  border-top-color: #0c2c1a;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -419,7 +419,7 @@
 }
 
 .form-input:focus {
-  border-color: #4a8b6f;
+  border-color:#0c2c1a;
   outline: none;
   box-shadow: 0 0 0 3px rgba(74, 139, 111, 0.1);
 }
@@ -476,3 +476,63 @@
   font-size: 12px;
   font-weight: 600;
 }
+
+.btn-globex {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  padding: 8px 16px;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 600;
+  text-decoration: none;
+  color: #ffffff;
+  cursor: pointer;
+  overflow: hidden;
+  background: #0c2c1a; /* Soft Green */
+  border: 2px solid var(--forest);
+  z-index: 1;
+  border-radius: 0;
+  font-family: 'Inter', -apple-system, sans-serif;
+  white-space: nowrap;
+  transition: all 0.4s ease;
+}
+.btn-globex:hover {
+  color: #0c2c1a;
+  border-color: #ffffff;
+}
+.btn-globex:before,
+.btn-globex:after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: calc(100% + 40px);
+  height: 100%;
+  top: 0;
+  transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+  background: #ffffff; /* Black hover fill */
+  clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 50%, calc(100% - 40px) 100%, 0 100%);
+}
+
+.btn-globex:before {
+  left: calc(-100% - 40px);
+}
+
+.btn-globex:after {
+  left: 100%;
+  transform: rotate(180deg);
+}
+
+.btn-globex:hover:before {
+  left: 0;
+}
+
+.btn-globex:hover:after {
+  left: 0;
+}
+
+.btn-globex:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

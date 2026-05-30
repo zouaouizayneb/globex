@@ -4,6 +4,7 @@ import tn.fst.backend.backend.entity.Shipment;
 import tn.fst.backend.backend.entity.Order;
 import tn.fst.backend.backend.repository.ShipmentRepository;
 import tn.fst.backend.backend.repository.OrderRepository;
+import tn.fst.backend.backend.repository.TransporteurRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,9 @@ public class ShipmentController {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private TransporteurRepository transporteurRepository;
 
     @GetMapping
     public List<Shipment> getAllShipments() {
@@ -65,10 +69,23 @@ public class ShipmentController {
         shipment.setTrackingNumber(shipmentDetails.getTrackingNumber());
         shipment.setStatus(shipmentDetails.getStatus());
         shipment.setDateShip(shipmentDetails.getDateShip());
+        shipment.setShippingMethod(shipmentDetails.getShippingMethod());
+        shipment.setShippingCost(shipmentDetails.getShippingCost());
+        shipment.setEstimatedDeliveryDate(shipmentDetails.getEstimatedDeliveryDate());
+        shipment.setDeliveredAt(shipmentDetails.getDeliveredAt());
 
         if (shipmentDetails.getOrder() != null) {
             Optional<Order> order = orderRepository.findById(shipmentDetails.getOrder().getIdOrder());
             order.ifPresent(shipment::setOrder);
+        }
+
+        // Link Transporter changes back to the Order
+        if (shipmentDetails.getTransporterId() != null && shipment.getOrder() != null) {
+            Optional<tn.fst.backend.backend.entity.Transporteur> transporteur = transporteurRepository.findById(shipmentDetails.getTransporterId());
+            if (transporteur.isPresent()) {
+                shipment.getOrder().setTransporteur(transporteur.get());
+                orderRepository.save(shipment.getOrder());
+            }
         }
 
         Shipment updatedShipment = shipmentRepository.save(shipment);

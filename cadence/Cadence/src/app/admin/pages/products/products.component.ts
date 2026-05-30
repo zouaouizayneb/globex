@@ -30,15 +30,11 @@ export class ProductsComponent implements OnInit {
   editingProduct: AdminProduct | null = null;
   formName = '';
   formDescription = '';
-  formImageUrls: string[] = [];
   formCategoryId: number | '' = '';
   formSupplierId: number | '' = '';
   formPrice: number = 0;
-  formColor: string = '';
-  formSize: string = '';
-  formStock: number = 0;
   formStatus: 'active' | 'inactive' | 'draft' = 'active';
-  formVariants: { sku: string; additionalPrice: number; color: string; size: string; stockQuantity: number; imageUrl: string }[] = [];
+  formVariants: { sku: string; additionalPrice: number; color: string; size: string; stockQuantity: number; imageUrls: string[] }[] = [];
   isSaving = false;
 
   constructor(
@@ -110,15 +106,11 @@ export class ProductsComponent implements OnInit {
     this.editingProduct = null;
     this.formName = '';
     this.formDescription = '';
-    this.formImageUrls = [''];
     this.formCategoryId = '';
     this.formSupplierId = '';
     this.formPrice = 0;
-    this.formColor = '';
-    this.formSize = '';
-    this.formStock = 0;
     this.formStatus = 'active';
-    this.formVariants = [{ sku: `PROD-${Date.now()}`, additionalPrice: 0, color: '', size: '', stockQuantity: 0, imageUrl: '' }];
+    this.formVariants = [{ sku: `PROD-${Date.now()}`, additionalPrice: 0, color: '', size: '', stockQuantity: 0, imageUrls: [''] }];
     this.showModal = true;
   }
 
@@ -128,20 +120,16 @@ export class ProductsComponent implements OnInit {
     this.editingProduct = p;
     this.formName = p.name;
     this.formDescription = p.description || '';
-    this.formImageUrls = p.imageUrl ? [p.imageUrl] : [];
     this.formCategoryId = p.categoryId || '';
     this.formSupplierId = p.supplierId || '';
     this.formPrice = p.price || 0;
-    this.formColor = p.color || '';
-    this.formSize = p.size || '';
-    this.formStock = p.stock || 0;
     this.formStatus = p.status || 'active';
-    this.formVariants = [{ sku: p.sku || '', additionalPrice: 0, color: '', size: '', stockQuantity: p.stock, imageUrl: p.imageUrl || '' }];
+    this.formVariants = [{ sku: p.sku || '', additionalPrice: 0, color: '', size: '', stockQuantity: p.stock || 0, imageUrls: p.imageUrl ? [p.imageUrl] : [''] }];
     this.showModal = true;
   }
 
   addVariant(): void {
-    this.formVariants.push({ sku: `PROD-${Date.now()}-${this.formVariants.length}`, additionalPrice: 0, color: '', size: '', stockQuantity: 0, imageUrl: '' });
+    this.formVariants.push({ sku: `PROD-${Date.now()}-${this.formVariants.length}`, additionalPrice: 0, color: '', size: '', stockQuantity: 0, imageUrls: [''] });
   }
 
   removeVariant(index: number): void {
@@ -150,40 +138,38 @@ export class ProductsComponent implements OnInit {
     }
   }
 
-  addImageUrl(): void {
-    this.formImageUrls.push('');
+  addImageUrl(variantIndex: number): void {
+    this.formVariants[variantIndex].imageUrls.push('');
   }
 
-  removeImageUrl(index: number): void {
-    if (this.formImageUrls.length > 0) {
-      this.formImageUrls.splice(index, 1);
+  removeImageUrl(variantIndex: number, imageIndex: number): void {
+    if (this.formVariants[variantIndex].imageUrls.length > 0) {
+      this.formVariants[variantIndex].imageUrls.splice(imageIndex, 1);
     }
   }
 
   saveProduct(): void {
     if (!this.formName.trim() || this.formVariants.length === 0) return;
+    if (this.formPrice <= 0) {
+      alert('Please enter a base price greater than 0.');
+      return;
+    }
     this.isSaving = true;
-
-    const images = this.formImageUrls
-      .filter(url => url.trim())
-      .map((url, index) => ({ imageUrl: url.trim(), isPrimary: index === 0 }));
 
     const payload = {
       name: this.formName.trim(),
       description: this.formDescription.trim(),
       price: this.formPrice,
-      color: this.formColor.trim(),
-      size: this.formSize.trim(),
-      stock: this.formStock,
       category: this.formCategoryId ? { idCategory: this.formCategoryId } : null,
-      images: images,
+      supplier: this.formSupplierId ? { idSupplier: this.formSupplierId } : null,
+      status: this.formStatus.toUpperCase(),
       variants: this.formVariants.map(v => ({
         sku: v.sku,
         additionalPrice: v.additionalPrice,
         color: v.color,
         size: v.size,
         stockQuantity: v.stockQuantity,
-        imageUrl: v.imageUrl
+        images: v.imageUrls.filter(url => url.trim()).map((url, index) => ({ imageUrl: url.trim(), isPrimary: index === 0 }))
       }))
     };
 
@@ -224,8 +210,26 @@ export class ProductsComponent implements OnInit {
   deleteProduct(id: number): void {
     if (!confirm('Delete this product?')) return;
     this.adminService.deleteProduct(id).subscribe({
-      next: () => this.products = this.products.filter(p => p.id !== id),
-      error: () => alert('Failed to delete product.')
+      next: () => {
+        this.products = this.products.filter(p => p.id !== id);
+        this.adminService.triggerRefresh();
+      },
+      error: (err) => {
+        console.error('Failed to delete product:', err);
+        console.error('Error status:', err.status);
+        console.error('Error body:', err.error);
+        let errorMessage = 'Failed to delete product.';
+        if (err.status === 403) {
+          errorMessage = 'Access denied. You need ADMIN privileges to delete products.';
+        } else if (err.status === 401) {
+          errorMessage = 'Authentication required. Please log in again.';
+        } else if (err.status === 404) {
+          errorMessage = 'Product not found.';
+        } else {
+          errorMessage = err.error?.message || err.error?.error || err.message || errorMessage;
+        }
+        alert(errorMessage);
+      }
     });
   }
 

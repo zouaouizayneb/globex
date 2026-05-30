@@ -52,7 +52,7 @@
   <!-- TABLE -->
   <div class="card table-card" *ngIf="!isLoading">
     <div class="table-header">
-      <h3>{{ filteredStocks.length }} Products</h3>
+      <h3>{{ filteredStocks.length }} Items</h3>
     </div>
     <div class="table-wrapper">
       <table class="stock-table">
@@ -77,23 +77,12 @@
               <span class="quantity" [class.low]="stock.quantity <= 10" [class.out]="stock.quantity === 0">{{ stock.quantity }}</span>
             </td>
             <td>
-              <span class="status-badge" [ngClass]="getStatusClass(stock.status)">
-                {{ getStatusLabel(stock.status) }}
-              </span>
+              <span class="status-badge" [ngClass]="getStatusClass(stock.status)">{{ getStatusLabel(stock.status) }}</span>
             </td>
             <td>
               <div class="stock-actions">
-                <button class="stock-btn minus" (click)="decrement(stock)" [disabled]="stock.quantity === 0" title="Decrease">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                </button>
-                <button class="stock-btn plus" (click)="increment(stock)" title="Increase">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                </button>
+                <button class="stock-btn minus" (click)="decrementStock(stock)" [disabled]="stock.quantity === 0" title="Decrease">-</button>
+                <button class="stock-btn plus" (click)="incrementStock(stock)" title="Increase">+</button>
               </div>
             </td>
           </tr>

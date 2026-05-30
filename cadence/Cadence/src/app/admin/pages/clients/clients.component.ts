@@ -87,8 +87,7 @@ export class ClientsComponent implements OnInit {
       name: this.formName.trim(),
       email: this.formEmail.trim(),
       phone: this.formPhone.trim(),
-      country: this.formCountry.trim(),
-      status: this.formStatus
+      country: this.formCountry.trim()
     };
 
     const request$ = this.editingClient
@@ -97,9 +96,26 @@ export class ClientsComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
-        this.showModal = false;
-        this.isSaving = false;
-        this.loadClients();
+        // If editing and status changed, update status separately
+        if (this.editingClient && this.editingClient.status !== this.formStatus) {
+          this.adminService.updateClientStatus(this.editingClient.id, this.formStatus).subscribe({
+            next: () => {
+              this.showModal = false;
+              this.isSaving = false;
+              this.loadClients();
+            },
+            error: () => {
+              alert('Client saved but status update failed.');
+              this.showModal = false;
+              this.isSaving = false;
+              this.loadClients();
+            }
+          });
+        } else {
+          this.showModal = false;
+          this.isSaving = false;
+          this.loadClients();
+        }
       },
       error: () => {
         alert('Failed to save client.');

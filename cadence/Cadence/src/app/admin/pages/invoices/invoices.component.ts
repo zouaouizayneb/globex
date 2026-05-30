@@ -96,8 +96,8 @@ export class InvoicesComponent implements OnInit {
     link.click();
   }
 
-  getStatusColor(status: string): string {
-    switch(status.toUpperCase()) {
+  getStatusColor(status: string | undefined): string {
+    switch(status?.toUpperCase()) {
       case 'DRAFT':    return '#6b7280';
       case 'SENT':     return '#3b82f6';
       case 'PAID':     return '#10b981';
@@ -107,8 +107,8 @@ export class InvoicesComponent implements OnInit {
     }
   }
 
-  getStatusIcon(status: string): string {
-    switch(status.toUpperCase()) {
+  getStatusIcon(status: string | undefined): string {
+    switch(status?.toUpperCase()) {
       case 'DRAFT':    return '📝';
       case 'SENT':     return '📤';
       case 'PAID':     return '✅';
@@ -121,39 +121,175 @@ export class InvoicesComponent implements OnInit {
   async generateInvoicePDF(invoice: AdminInvoice): Promise<void> {
     try {
       this.generatingInvoice[invoice.id_invoice] = true;
-      
+
       const { jsPDF } = await import('jspdf');
-      const html2canvas = (await import('html2canvas')).default;
-      
-      const invoiceHTML = this.generateInvoiceHTML(invoice);
-      const canvas = await html2canvas(invoiceHTML, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff'
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
+
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
-      
-      const imgWidth = 210 - 20;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+
+      // Add header
+      pdf.setFontSize(28);
+      pdf.setTextColor(74, 139, 111);
+      pdf.text('INVOICE', 105, 25, { align: 'center' });
+
+      pdf.setFontSize(10);
+      pdf.setTextColor(102, 102, 102);
+      pdf.text('Cadence ERP System', 105, 32, { align: 'center' });
+
+      // Add invoice details
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Invoice #: ${invoice.invoice_number || 'N/A'}`, 150, 50, { align: 'right' });
+      pdf.setFontSize(10);
+      pdf.setTextColor(102, 102, 102);
+      pdf.text(`Issue Date: ${invoice.issue_date || 'N/A'}`, 150, 56, { align: 'right' });
+      pdf.text(`Due Date: ${invoice.due_date || 'N/A'}`, 150, 62, { align: 'right' });
+
+      // Add bill to section
+      pdf.setFontSize(10);
+      pdf.setTextColor(51, 51, 51);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('BILL TO:', 20, 80);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(invoice.customer_name || 'Unknown Customer', 20, 88);
+      pdf.setFontSize(10);
+      pdf.setTextColor(102, 102, 102);
+      const addressLines = (invoice.billing_address || 'N/A').split('\n');
+      addressLines.forEach((line, index) => {
+        pdf.text(line, 20, 94 + (index * 5));
+      });
+
+      // Add order reference
+      pdf.setFontSize(10);
+      pdf.setTextColor(51, 51, 51);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('ORDER REFERENCE:', 120, 80);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(12);
+      pdf.setTextColor(74, 139, 111);
+      pdf.text(invoice.order_id_display || '#' + (invoice.order_id || 'N/A'), 120, 88);
+      pdf.setFontSize(10);
+      pdf.setTextColor(102, 102, 102);
+      pdf.text(`Currency: ${invoice.currency || 'USD'}`, 120, 94);
+
+      // Add status
+      pdf.setFontSize(10);
+      pdf.setTextColor(51, 51, 51);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('STATUS:', 20, 120);
+      pdf.setFont('helvetica', 'normal');
+      const statusColor = this.getStatusColor(invoice.status);
+      const rgbColor = this.hexToRgb(statusColor);
+      pdf.setTextColor(rgbColor.r, rgbColor.g, rgbColor.b);
+      pdf.text(`${this.getStatusIcon(invoice.status || '')} ${invoice.status || 'N/A'}`, 45, 120);
+
+      // Add table header
+      pdf.setFillColor(248, 250, 249);
+      pdf.rect(20, 130, 170, 8, 'F');
+      pdf.setFontSize(10);
+      pdf.setTextColor(51, 51, 51);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Description', 25, 136);
+      pdf.text('Amount', 175, 136, { align: 'right' });
+
+      // Add table rows
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(0, 0, 0);
+      let y = 146;
+      pdf.text('Subtotal', 25, y);
+      pdf.text(`${invoice.currency || 'USD'} ${(invoice.subtotal || 0).toFixed(2)}`, 175, y, { align: 'right' });
+      y += 8;
+
+      if ((invoice.shipping_cost || 0) > 0) {
+        pdf.text('Shipping Cost', 25, y);
+        pdf.text(`${invoice.currency || 'USD'} ${(invoice.shipping_cost || 0).toFixed(2)}`, 175, y, { align: 'right' });
+        y += 8;
+      }
+
+      if ((invoice.discount_amount || 0) > 0) {
+        pdf.setTextColor(239, 68, 68);
+        pdf.text('Discount', 25, y);
+        pdf.text(`-${invoice.currency || 'USD'} ${(invoice.discount_amount || 0).toFixed(2)}`, 175, y, { align: 'right' });
+        pdf.setTextColor(0, 0, 0);
+        y += 8;
+      }
+
+      if ((invoice.tax_amount || 0) > 0) {
+        pdf.text(`Tax (${invoice.tax_rate || 0}%)`, 25, y);
+        pdf.text(`${invoice.currency || 'USD'} ${(invoice.tax_amount || 0).toFixed(2)}`, 175, y, { align: 'right' });
+        y += 8;
+      }
+
+      // Add total
+      pdf.setDrawColor(221, 221, 221);
+      pdf.line(120, y + 5, 175, y + 5);
+      y += 12;
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(74, 139, 111);
+      pdf.text('Total:', 120, y);
+      pdf.text(`${invoice.currency || 'USD'} ${(invoice.total_amount || 0).toFixed(2)}`, 175, y, { align: 'right' });
+
+      // Add payment info
+      y += 10;
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(102, 102, 102);
+      if (invoice.paid_date) {
+        pdf.text(`Paid on: ${invoice.paid_date}`, 120, y);
+        y += 5;
+      }
+      if (invoice.payment_method) {
+        pdf.text(`Payment Method: ${invoice.payment_method}`, 120, y);
+      }
+
+      // Add notes if present
+      if (invoice.notes) {
+        y += 15;
+        pdf.setFillColor(249, 250, 251);
+        pdf.rect(20, y, 170, 20, 'F');
+        pdf.setFontSize(10);
+        pdf.setTextColor(51, 51, 51);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Notes:', 25, y + 7);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(9);
+        pdf.setTextColor(102, 102, 102);
+        const noteLines = pdf.splitTextToSize(invoice.notes, 160);
+        pdf.text(noteLines, 25, y + 13);
+      }
+
+      // Add footer
+      pdf.setFontSize(9);
+      pdf.setTextColor(153, 153, 153);
+      pdf.text('Thank you for your business!', 105, 280, { align: 'center' });
+      pdf.text(`Generated on ${new Date().toLocaleString()}`, 105, 285, { align: 'center' });
+
       pdf.save(`Invoice-${invoice.invoice_number}.pdf`);
-      
+
       // Mark PDF as generated
       invoice.pdf_generated = true;
-      
+
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Failed to generate invoice PDF');
+      alert('Failed to generate invoice PDF: ' + (error as Error).message);
     } finally {
       this.generatingInvoice[invoice.id_invoice] = false;
     }
+  }
+
+  private hexToRgb(hex: string): { r: number; g: number; b: number } {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : { r: 0, g: 0, b: 0 };
   }
 
   downloadExistingPDF(invoice: AdminInvoice): void {
@@ -165,116 +301,5 @@ export class InvoicesComponent implements OnInit {
     } else {
       alert('No PDF file available for this invoice');
     }
-  }
-
-  private generateInvoiceHTML(invoice: AdminInvoice): HTMLElement {
-    const div = document.createElement('div');
-    div.style.padding = '20px';
-    div.style.fontFamily = 'Arial, sans-serif';
-    div.style.backgroundColor = '#ffffff';
-    div.style.width = '800px';
-    
-    div.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #4a8b6f; padding-bottom: 20px; margin-bottom: 20px;">
-        <div>
-          <h1 style="color: #4a8b6f; margin: 0; font-size: 28px;">INVOICE</h1>
-          <p style="color: #666; margin: 5px 0 0 0; font-size: 12px;">Cadence ERP System</p>
-        </div>
-        <div style="text-align: right;">
-          <p style="font-size: 14px; margin: 0; font-weight: bold;">Invoice #: <span style="color: #4a8b6f;">${invoice.invoice_number}</span></p>
-          <p style="font-size: 12px; color: #666; margin: 5px 0;">Issue Date: ${invoice.issue_date}</p>
-          <p style="font-size: 12px; color: #666; margin: 5px 0;">Due Date: ${invoice.due_date || 'N/A'}</p>
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
-        <div>
-          <h3 style="color: #333; font-size: 12px; text-transform: uppercase; margin: 0 0 10px 0; letter-spacing: 1px;">Bill To:</h3>
-          <p style="margin: 0; font-weight: bold; font-size: 14px;">${invoice.customer_name || 'Unknown Customer'}</p>
-          <p style="margin: 5px 0 0 0; font-size: 12px; color: #666; white-space: pre-wrap;">${invoice.billing_address || 'N/A'}</p>
-        </div>
-        <div>
-          <h3 style="color: #333; font-size: 12px; text-transform: uppercase; margin: 0 0 10px 0; letter-spacing: 1px;">Order Reference:</h3>
-          <p style="margin: 0; font-weight: bold; font-size: 14px; color: #4a8b6f;">${invoice.order_id_display || '#' + invoice.order_id}</p>
-          <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">Currency: ${invoice.currency}</p>
-        </div>
-      </div>
-
-      <div style="margin-bottom: 20px;">
-        <h3 style="color: #333; font-size: 12px; text-transform: uppercase; margin: 0 0 10px 0; letter-spacing: 1px;">Status:</h3>
-        <div style="display: inline-block; padding: 6px 12px; border-radius: 4px; background: ${this.getStatusColor(invoice.status)}20; color: ${this.getStatusColor(invoice.status)}; font-weight: 600; font-size: 12px;">
-          ${this.getStatusIcon(invoice.status)} ${invoice.status}
-        </div>
-      </div>
-
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border-top: 1px solid #ddd; border-bottom: 2px solid #4a8b6f;">
-        <thead>
-          <tr style="background: #f8faf9;">
-            <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #333; border-bottom: 1px solid #ddd;">Description</th>
-            <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #333; border-bottom: 1px solid #ddd;">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="padding: 12px; font-size: 12px; color: #333;">Subtotal</td>
-            <td style="padding: 12px; text-align: right; font-size: 12px; color: #333;">${invoice.currency} ${invoice.subtotal.toFixed(2)}</td>
-          </tr>
-          ${invoice.shipping_cost > 0 ? `
-          <tr>
-            <td style="padding: 12px; font-size: 12px; color: #333;">Shipping Cost</td>
-            <td style="padding: 12px; text-align: right; font-size: 12px; color: #333;">${invoice.currency} ${invoice.shipping_cost.toFixed(2)}</td>
-          </tr>
-          ` : ''}
-          ${invoice.discount_amount > 0 ? `
-          <tr>
-            <td style="padding: 12px; font-size: 12px; color: #333;">Discount</td>
-            <td style="padding: 12px; text-align: right; font-size: 12px; color: #ef4444;">-${invoice.currency} ${invoice.discount_amount.toFixed(2)}</td>
-          </tr>
-          ` : ''}
-          ${invoice.tax_amount > 0 ? `
-          <tr>
-            <td style="padding: 12px; font-size: 12px; color: #333;">Tax (${invoice.tax_rate}%)</td>
-            <td style="padding: 12px; text-align: right; font-size: 12px; color: #333;">${invoice.currency} ${invoice.tax_amount.toFixed(2)}</td>
-          </tr>
-          ` : ''}
-        </tbody>
-      </table>
-
-      <div style="display: flex; justify-content: flex-end; margin-bottom: 30px;">
-        <div style="width: 250px;">
-          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid #ddd; font-size: 12px;">
-            <span style="font-weight: 600; color: #333;">Total:</span>
-            <span style="color: #4a8b6f; font-weight: bold; font-size: 14px;">${invoice.currency} ${invoice.total_amount.toFixed(2)}</span>
-          </div>
-          ${invoice.paid_date ? `
-          <div style="display: flex; justify-content: space-between; padding: 8px 0; font-size: 11px; color: #666;">
-            <span>Paid on:</span>
-            <span>${invoice.paid_date}</span>
-          </div>
-          ` : ''}
-          ${invoice.payment_method ? `
-          <div style="display: flex; justify-content: space-between; padding: 8px 0; font-size: 11px; color: #666;">
-            <span>Payment Method:</span>
-            <span>${invoice.payment_method}</span>
-          </div>
-          ` : ''}
-        </div>
-      </div>
-
-      ${invoice.notes ? `
-      <div style="background: #f9fafb; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
-        <h4 style="margin: 0 0 8px 0; font-size: 12px; color: #333;">Notes:</h4>
-        <p style="margin: 0; font-size: 11px; color: #666; white-space: pre-wrap;">${invoice.notes}</p>
-      </div>
-      ` : ''}
-
-      <div style="border-top: 1px solid #ddd; padding-top: 20px; text-align: center;">
-        <p style="font-size: 11px; color: #999; margin: 0;">Thank you for your business!</p>
-        <p style="font-size: 11px; color: #999; margin: 5px 0 0 0;">Generated on ${new Date().toLocaleString()}</p>
-      </div>
-    `;
-    
-    document.body.appendChild(div);
-    return div;
   }
 }

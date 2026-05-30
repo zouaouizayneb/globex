@@ -217,7 +217,19 @@ app.get('/products', (req, res) => {
       res.json(productsWithImages);  // Envoie les produits avec leurs images sous le format demandé
   });
 });
-// 
+// -------------------------------------------------
+// Orders endpoint for admin interface
+// -------------------------------------------------
+app.get('/api/orders', (req, res) => {
+  const query = 'SELECT * FROM orders';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Erreur lors de la récupération des commandes :', err);
+      return res.status(500).send('Erreur de serveur');
+    }
+    res.json(results);
+  });
+});
 // Lancer le serveur
 app.listen(PORT, () => {
   console.log(`Serveur backend écoute sur http://localhost:${PORT}`);

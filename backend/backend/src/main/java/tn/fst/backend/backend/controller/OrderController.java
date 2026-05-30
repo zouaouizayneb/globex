@@ -30,9 +30,38 @@ public class OrderController {
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Order>> getAllOrders() {
+    public ResponseEntity<List<OrderHistoryResponse>> getAllOrders() {
         List<Order> orders = orderService.getAllOrdersList();
-        return ResponseEntity.ok(orders);
+        List<OrderHistoryResponse> response = orders.stream()
+                .map(order -> {
+                    String customerName = "Unknown";
+                    String customerEmail = "N/A";
+                    if (order.getClient() != null) {
+                        customerName = order.getClient().getName();
+                        if (order.getClient().getUser() != null) {
+                            customerEmail = order.getClient().getUser().getEmail();
+                        }
+                    } else if (order.getUser() != null) {
+                        customerName = order.getUser().getFullname();
+                        customerEmail = order.getUser().getEmail();
+                    }
+                    return OrderHistoryResponse.builder()
+                        .orderId(order.getIdOrder())
+                        .orderNumber("ORD-" + String.format("%06d", order.getIdOrder()))
+                        .orderDate(order.getDateOrder())
+                        .status(order.getStatus().name())
+                        .totalAmount(order.getTotalAmount())
+                        .itemCount(order.getOrderDetails() != null ? order.getOrderDetails().size() : 0)
+                        .paymentMethod(order.getPaymentMethodLabel() != null ? order.getPaymentMethodLabel() : "UNKNOWN")
+                        .shippingStatus("PENDING")
+                        .canCancel(false)
+                        .canReturn(false)
+                        .customerName(customerName)
+                        .customerEmail(customerEmail)
+                        .build();
+                })
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/history")

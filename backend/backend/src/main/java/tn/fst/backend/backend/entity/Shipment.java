@@ -54,6 +54,9 @@ public class Shipment {
     @Column(name = "delivered_at")
     private LocalDateTime deliveredAt;
 
+    @Transient
+    private Long transporterId;
+
     @PrePersist
     protected void onCreate() {
         if (dateShip == null) {
@@ -66,5 +69,10 @@ public class Shipment {
      */
     public Long getIdShipment() {
         return idShip;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonGetter("orderId")
+    public Long getOrderId() {
+        return order != null ? order.getIdOrder() : null;
     }
 }

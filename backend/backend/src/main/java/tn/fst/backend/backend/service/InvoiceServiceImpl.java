@@ -10,6 +10,7 @@ import tn.fst.backend.backend.entity.*;
 import tn.fst.backend.backend.exeptions.ResourceNotFoundException;
 import tn.fst.backend.backend.repository.*;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -62,20 +63,41 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     @Override
     public InvoiceResponse ensureInvoicePdf(Long invoiceId) throws Exception {
+        System.out.println("=== ensureInvoicePdf called for invoice ID: " + invoiceId + " ===");
         Invoice invoice = findInvoiceEntityById(invoiceId);
+        System.out.println("Invoice found: " + invoice.getInvoiceNumber());
 
         if (invoice.getPdfPath() != null) {
             Path existing = Paths.get(invoice.getPdfPath());
             if (Files.exists(existing)) {
+                System.out.println("PDF already exists at: " + invoice.getPdfPath());
                 return mapToInvoiceResponse(invoice);
             }
         }
 
-        List<OrderDetail> orderDetails = orderDetailRepository.findByOrder(invoice.getOrder());
-        String pdfPath = generateInvoicePDF(invoice, orderDetails);
-        invoice.setPdfPath(pdfPath);
-        invoice = invoiceRepository.save(invoice);
-        return mapToInvoiceResponse(invoice);
+        try {
+            System.out.println("Fetching order details...");
+            List<OrderDetail> orderDetails = orderDetailRepository.findByOrder(invoice.getOrder());
+            System.out.println("Order details count: " + (orderDetails != null ? orderDetails.size() : "null"));
+            
+            if (orderDetails == null || orderDetails.isEmpty()) {
+                throw new IllegalStateException("No order details found for invoice " + invoice.getInvoiceNumber());
+            }
+            
+            System.out.println("Generating PDF...");
+            String pdfPath = generateInvoicePDF(invoice, orderDetails);
+            System.out.println("PDF generated at: " + pdfPath);
+            
+            invoice.setPdfPath(pdfPath);
+            invoice = invoiceRepository.save(invoice);
+            System.out.println("Invoice updated with PDF path");
+            
+            return mapToInvoiceResponse(invoice);
+        } catch (Exception e) {
+            System.err.println("ERROR in ensureInvoicePdf: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Override
@@ -306,17 +328,23 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     private String generateInvoicePDF(Invoice invoice, List<OrderDetail> orderDetails) throws Exception {
+        System.out.println("=== generateInvoicePDF starting ===");
         Path dir = Paths.get(INVOICE_PDF_DIR);
+        System.out.println("PDF directory: " + dir.toAbsolutePath());
+        
         if (!Files.exists(dir)) {
+            System.out.println("Creating directory...");
             Files.createDirectories(dir);
         }
 
         String fileName = invoice.getInvoiceNumber() + ".pdf";
         String filePath = INVOICE_PDF_DIR + fileName;
+        System.out.println("PDF file path: " + new File(filePath).getAbsolutePath());
 
         Document document = new Document(PageSize.A4);
         PdfWriter.getInstance(document, new FileOutputStream(filePath));
         document.open();
+        System.out.println("Document opened");
 
         Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
         Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
@@ -422,6 +450,8 @@ public class InvoiceServiceImpl implements InvoiceService {
         document.add(countryInfo);
 
         document.close();
+        System.out.println("Document closed successfully");
+        System.out.println("=== generateInvoicePDF completed ===");
         return filePath;
     }
 

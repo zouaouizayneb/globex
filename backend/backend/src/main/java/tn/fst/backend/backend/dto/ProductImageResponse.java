@@ -10,6 +10,7 @@ public class ProductImageResponse {
     private Boolean isPrimary;
     private Integer displayOrder;
     private LocalDate createdAt;
+    private Long variantId;
 
     public ProductImageResponse() {}
 
@@ -27,6 +28,25 @@ public class ProductImageResponse {
         r.setIsPrimary(isPrimary);
         r.setDisplayOrder(displayOrder);
         r.setCreatedAt(createdAt);
+        return r;
+    }
+
+    public static ProductImageResponse of(
+            Long idImage,
+            String imageUrl,
+            String altText,
+            Boolean isPrimary,
+            Integer displayOrder,
+            LocalDate createdAt,
+            Long variantId) {
+        ProductImageResponse r = new ProductImageResponse();
+        r.setIdImage(idImage);
+        r.setImageUrl(imageUrl);
+        r.setAltText(altText);
+        r.setIsPrimary(isPrimary);
+        r.setDisplayOrder(displayOrder);
+        r.setCreatedAt(createdAt);
+        r.setVariantId(variantId);
         return r;
     }
 
@@ -76,5 +96,13 @@ public class ProductImageResponse {
 
     public void setCreatedAt(LocalDate createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Long getVariantId() {
+        return variantId;
+    }
+
+    public void setVariantId(Long variantId) {
+        this.variantId = variantId;
     }
 }

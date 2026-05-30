@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ShopService } from '../shared/shop.services';
 import { ServicesService } from '../../services/services.service';
+import { CurrencyService } from '../../services/currency.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -87,7 +88,8 @@ export class CheckoutComponent implements OnInit {
     public shop: ShopService,
     private api: ServicesService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    public currencyService: CurrencyService
   ) {}
 
   ngOnInit(): void {
@@ -234,7 +236,7 @@ export class CheckoutComponent implements OnInit {
           this.api.initiatePayment({
             orderId: String(orderId),
             amount: this.total,
-            currency: this.delivery.country === 'TN' ? 'TND' : 'USD', // Simple currency map
+            currency: this.currencyService.getCurrentCurrency(), // Currency code
             country: this.delivery.country,
             paymentMethod: paymentMethod,
             description: `Order ${orderId}`,

@@ -68,12 +68,12 @@
             <td><span class="items-count">{{ order.items }} items</span></td>
             <td><span class="total">${{ order.total | number:'1.2-2' }}</span></td>
             <td>
-              <select class="filter-select" [(ngModel)]="selectedStatusByOrder[order.orderId]">
+              <select class="filter-select" [(ngModel)]="order.selectedStatus">
                 <option *ngFor="let status of statuses" [value]="status">{{ status | titlecase }}</option>
               </select>
             </td>
             <td>
-              <select class="filter-select" [(ngModel)]="selectedTransporterByOrder[order.orderId]">
+              <select class="filter-select" [(ngModel)]="order.selectedTransporterId">
                 <option [ngValue]="null">Select transporteur</option>
                 <option *ngFor="let transporter of transporters" [ngValue]="transporter.id">
                   {{ transporter.name }}
@@ -88,13 +88,13 @@
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
                 </button>
-                <button class="save-btn" 
-                        [class.success]="showSuccess[order.orderId]"
-                        [disabled]="isSaving[order.orderId]"
+                <button class="save-btn"
+                        [class.success]="order.showSuccess"
+                        [disabled]="order.isSaving"
                         (click)="saveOrderUpdates(order)">
-                  <span *ngIf="!isSaving[order.orderId] && !showSuccess[order.orderId]">Save</span>
-                  <span *ngIf="isSaving[order.orderId]" class="spinner-mini"></span>
-                  <span *ngIf="showSuccess[order.orderId]">
+                  <span *ngIf="!order.isSaving && !order.showSuccess">Save</span>
+                  <span *ngIf="order.isSaving" class="spinner-mini"></span>
+                  <span *ngIf="order.showSuccess">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width: 14px; height: 14px;">
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>

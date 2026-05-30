@@ -11,14 +11,14 @@ import { AdminService, StockItem, StockAlert } from '../../services/admin.servic
   styleUrls: ['./stock-management.component.css']
 })
 export class StockManagementComponent implements OnInit {
-
   stocks: StockItem[] = [];
   lowStockAlerts: StockAlert[] = [];
   isLoading = true;
   error: string | null = null;
 
-  searchTerm: string = '';
-  filterStatus: string = '';
+  // UI helpers
+  searchTerm = '';
+  filterStatus = '';
 
   constructor(private adminService: AdminService) {}
 
@@ -29,7 +29,6 @@ export class StockManagementComponent implements OnInit {
   loadStock(): void {
     this.isLoading = true;
     this.error = null;
-
     this.adminService.getStock().subscribe({
       next: (stocks) => {
         this.stocks = stocks;
@@ -46,53 +45,39 @@ export class StockManagementComponent implements OnInit {
 
   loadLowStockAlerts(): void {
     this.adminService.getLowStockAlerts(10).subscribe({
-      next: (alerts) => {
-        this.lowStockAlerts = alerts;
-      }
+      next: alerts => this.lowStockAlerts = alerts
     });
   }
 
-  get filteredStocks(): StockItem[] {
+  get filteredStocks() {
     return this.stocks.filter(s => {
       const matchesSearch = s.productName.toLowerCase().includes(this.searchTerm.toLowerCase());
-      const matchesStatus = !this.filterStatus || s.status === this.filterStatus;
+      const matchesStatus = this.filterStatus ? s.status === this.filterStatus : true;
       return matchesSearch && matchesStatus;
     });
   }
 
-  increment(stock: StockItem) {
+  incrementStock(stock: StockItem): void {
     stock.quantity++;
     this.updateStock(stock);
   }
 
-  decrement(stock: StockItem) {
+  decrementStock(stock: StockItem): void {
     if (stock.quantity > 0) {
       stock.quantity--;
       this.updateStock(stock);
     }
   }
 
-  updateStock(stock: StockItem) {
+  private updateStock(stock: StockItem): void {
     this.adminService.updateStockQuantity(stock.id, stock.quantity).subscribe({
       next: () => {
-        this.updateStockStatus(stock);
+        this.loadStock();
         this.loadLowStockAlerts();
         this.adminService.triggerRefresh();
       },
-      error: () => {
-        alert('Failed to update stock. Please try again.');
-      }
+      error: () => alert('Failed to update stock. Please try again.')
     });
-  }
-
-  updateStockStatus(stock: StockItem) {
-    if (stock.quantity === 0) {
-      stock.status = 'out-of-stock';
-    } else if (stock.quantity <= 10) {
-      stock.status = 'low-stock';
-    } else {
-      stock.status = 'in-stock';
-    }
   }
 
   getStatusClass(status: string): string {

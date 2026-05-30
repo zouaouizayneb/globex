@@ -1,5 +1,8 @@
 package tn.fst.backend.backend.dto;
 
+import tn.fst.backend.backend.dto.ProductResponse;
+import tn.fst.backend.backend.dto.ProductVariantResponse;
+
 import tn.fst.backend.backend.entity.Stock;
 
 public class StockResponse {
@@ -7,7 +10,7 @@ public class StockResponse {
     private Long idStock;
     private Integer quantity;
     private ProductResponse product;
-    private ProductVariantResponse variant;
+    private  ProductVariantResponse variant;
 
     public StockResponse() {}
 

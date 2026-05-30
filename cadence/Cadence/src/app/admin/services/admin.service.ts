@@ -61,6 +61,10 @@ export interface AdminOrder {
   status: 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED';
   items: number;
   transporterName?: string;
+  selectedStatus?: 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED';
+  selectedTransporterId?: number | null;
+  isSaving?: boolean;
+  showSuccess?: boolean;
 }
 
 export interface AdminCategory {
@@ -289,14 +293,9 @@ export class AdminService {
 
   // ── CLIENTS ────────────────────────────────────────────────
   getClients(): Observable<AdminClient[]> {
-    return forkJoin({
-      clients: this.http.get<any[]>(`${this.base}/clients`).pipe(catchError(() => of([]))),
-      orders: this.http.get<any[]>(`${this.base}/orders/all`).pipe(catchError(() => of([])))
-    }).pipe(
-      map(({ clients, orders }) => {
-        console.log('Clients orders from API:', orders);
-        return clients.map(c => this.mapClient(c, orders));
-      })
+    return this.http.get<any[]>(`${this.base}/clients`).pipe(
+      map(clients => clients.map(c => this.mapClient(c, []))),
+      catchError(() => of([]))
     );
   }
 
@@ -310,6 +309,10 @@ export class AdminService {
 
   updateClient(id: number, client: any): Observable<any> {
     return this.http.put(`${this.base}/clients/${id}`, client);
+  }
+
+  updateClientStatus(id: number, status: string): Observable<any> {
+    return this.http.put(`${this.base}/clients/${id}/status`, null, { params: { status } });
   }
 
   // ── TRANSPORTEURS ───────────────────────────────────────────
@@ -365,9 +368,13 @@ export class AdminService {
     return this.http.put(`${this.base}/suppliers/${id}`, supplier);
   }
 
+  updateSupplierStatus(id: number, status: string): Observable<any> {
+    return this.http.put(`${this.base}/suppliers/${id}/status`, null, { params: { status } });
+  }
+
   private mapSupplier(s: any): AdminSupplier {
     return {
-      id: s.idSupplier ?? s.id,
+      id: s.supplierId ?? s.idSupplier ?? s.id,
       name: s.name ?? s.companyName ?? 'Unknown',
       email: s.email ?? '',
       phone: s.phone ?? s.phoneNumber ?? '',
@@ -380,14 +387,6 @@ export class AdminService {
   private mapClient(c: any, allOrders: any[]): AdminClient {
     const user = c.user ?? {};
     const clientId = c.idClient ?? c.id;
-    const userId = user.idUser ?? user.id;
-
-    const clientOrders = allOrders.filter(o => 
-      (o.client?.idClient === clientId || o.client?.id === clientId) || 
-      (o.user?.idUser === userId || o.user?.id === userId)
-    );
-    
-    const totalSpent = clientOrders.reduce((sum: number, o: any) => sum + (parseFloat(o.totalAmount) || 0), 0);
 
     return {
       id: clientId,
@@ -396,8 +395,8 @@ export class AdminService {
       phone: user.phoneNumber ?? user.phone ?? c.phone ?? c.phoneNumber ?? '',
       country: c.country ?? user.country ?? '',
       status: (user.isActive !== false && c.status !== 'inactive') ? 'active' : 'inactive',
-      totalOrders: clientOrders.length,
-      totalSpent,
+      totalOrders: c.totalOrders ?? 0,
+      totalSpent: c.totalSpent ?? 0,
       joinDate: user.createdAt ?? c.createdAt ?? '',
     };
   }
@@ -417,17 +416,18 @@ export class AdminService {
   }
 
   private mapOrder(o: any): AdminOrder {
-    const orderId = o.id_order ?? o.idOrder ?? o.id;
-    const customer = o.user?.fullname ?? o.user?.username ?? o.client?.name ?? `Client #${o.client_id ?? o.user_id}`;
+    console.log('Raw order data:', o);
+    const orderId = o.orderId ?? o.idOrder ?? o.id_order ?? o.id ?? o.orderId;
+    const customer = o.customerName ?? o.customer ?? o.client?.name ?? o.client?.user?.fullname ?? o.client?.user?.username ?? o.user?.fullname ?? o.user?.username ?? o.client_name ?? o.clientName ?? o.fullname ?? o.name ?? `Client #${o.client?.idClient ?? o.client?.id ?? o.user?.idUser ?? o.user?.id ?? o.client_id ?? o.user_id ?? o.clientId ?? o.userId}`;
     const mapped = {
-      orderId,
-      id: `#ORD-${String(orderId).padStart(3, '0')}`,
+      orderId: orderId || 0,
+      id: orderId ? `#ORD-${String(orderId).padStart(3, '0')}` : '#ORD-???',
       customer,
-      date: o.date_order ?? o.dateOrder ?? o.date ?? '',
-      total: parseFloat(o.total_amount ?? o.totalAmount ?? 0),
+      date: o.orderDate ?? o.dateOrder ?? o.date_order ?? o.date ?? o.orderDate ?? o.createdAt ?? '',
+      total: parseFloat(o.totalAmount ?? o.total_amount ?? o.total ?? o.amount ?? 0),
       status: o.status ?? 'PENDING',
-      items: o.orderDetails?.length ?? o.items ?? 0,
-      transporterName: o.transporteur?.name ?? o.shipment?.carrier ?? '',
+      items: o.itemCount ?? o.orderDetails?.length ?? o.items ?? o.itemCount ?? o.numberOfItems ?? 0,
+      transporterName: o.transporteur?.name ?? o.shipment?.carrier ?? o.carrier ?? '',
     };
     console.log('Mapped order:', mapped);
     return mapped;
@@ -642,38 +642,39 @@ export class AdminService {
   }
 
   private mapInvoice(inv: any, orders: any[], users: any[]): AdminInvoice {
-    const order = orders.find(o => (o.id_order ?? o.id) === inv.order_id);
-    const user = users.find(u => (u.idUser ?? u.id) === inv.user_id);
+    const orderIdVal = inv.orderId ?? inv.order_id ?? 0;
+    const order = orders.find(o => (o.orderId ?? o.id_order ?? o.id) === orderIdVal);
+    const user = users.find(u => (u.idUser ?? u.id) === inv.userId);
 
     return {
-      id_invoice: inv.id_invoice ?? inv.id ?? 0,
-      billing_address: inv.billing_address ?? '',
-      created_at: inv.created_at ?? inv.createdAt ?? '',
+      id_invoice: inv.idInvoice ?? inv.id_invoice ?? inv.id ?? 0,
+      billing_address: inv.billingAddress ?? inv.billing_address ?? '',
+      created_at: inv.createdAt ?? inv.created_at ?? '',
       currency: inv.currency ?? 'USD',
-      discount_amount: parseFloat(inv.discount_amount ?? inv.discountAmount ?? 0),
-      due_date: inv.due_date ?? inv.dueDate ?? '',
-      internal_notes: inv.internal_notes ?? inv.internalNotes ?? '',
-      invoice_number: inv.invoice_number ?? inv.invoiceNumber ?? `INV-${inv.id_invoice ?? inv.id}`,
-      issue_date: inv.issue_date ?? inv.issueDate ?? '',
+      discount_amount: parseFloat(inv.discountAmount ?? inv.discount_amount ?? 0),
+      due_date: inv.dueDate ?? inv.due_date ?? '',
+      internal_notes: inv.internalNotes ?? inv.internal_notes ?? '',
+      invoice_number: inv.invoiceNumber ?? inv.invoice_number ?? `INV-${inv.idInvoice ?? inv.id}`,
+      issue_date: inv.issueDate ?? inv.issue_date ?? '',
       notes: inv.notes ?? '',
-      paid_date: inv.paid_date ?? inv.paidDate ?? '',
-      payment_method: inv.payment_method ?? inv.paymentMethod ?? '',
-      payment_reference: inv.payment_reference ?? inv.paymentReference ?? '',
-      pdf_generated: inv.pdf_generated ?? inv.pdfGenerated ?? false,
-      pdf_path: inv.pdf_path ?? inv.pdfPath ?? '',
-      shipping_address: inv.shipping_address ?? inv.shippingAddress ?? '',
-      shipping_cost: parseFloat(inv.shipping_cost ?? inv.shippingCost ?? 0),
+      paid_date: inv.paidDate ?? inv.paid_date ?? '',
+      payment_method: inv.paymentMethod ?? inv.payment_method ?? '',
+      payment_reference: inv.paymentReference ?? inv.payment_reference ?? '',
+      pdf_generated: inv.pdfGenerated ?? inv.pdf_generated ?? !!(inv.pdfPath ?? inv.pdf_path),
+      pdf_path: inv.pdfPath ?? inv.pdf_path ?? '',
+      shipping_address: inv.shippingAddress ?? inv.shipping_address ?? '',
+      shipping_cost: parseFloat(inv.shippingCost ?? inv.shipping_cost ?? 0),
       status: inv.status ?? 'DRAFT',
-      subtotal: parseFloat(inv.subtotal ?? 0),
-      tax_amount: parseFloat(inv.tax_amount ?? inv.taxAmount ?? 0),
-      tax_rate: parseFloat(inv.tax_rate ?? inv.taxRate ?? 0),
-      tax_type: inv.tax_type ?? inv.taxType ?? '',
-      total_amount: parseFloat(inv.total_amount ?? inv.totalAmount ?? 0),
-      updated_at: inv.updated_at ?? inv.updatedAt ?? '',
-      order_id: inv.order_id ?? inv.orderId ?? 0,
-      user_id: inv.user_id ?? inv.userId ?? 0,
-      customer_name: user?.fullname ?? user?.username ?? order?.user?.fullname ?? order?.user?.username ?? 'Unknown',
-      order_id_display: order ? `#ORD-${String(order.id_order ?? order.id).padStart(3, '0')}` : `#${inv.order_id}`
+      subtotal: parseFloat(inv.subtotal ?? inv.totalAmount ?? 0),
+      tax_amount: parseFloat(inv.taxAmount ?? inv.tax_amount ?? 0),
+      tax_rate: parseFloat(inv.taxRate ?? inv.tax_rate ?? 0),
+      tax_type: inv.taxType ?? inv.tax_type ?? '',
+      total_amount: parseFloat(inv.totalAmount ?? inv.total_amount ?? 0),
+      updated_at: inv.updatedAt ?? inv.updated_at ?? '',
+      order_id: orderIdVal,
+      user_id: inv.userId ?? inv.user_id ?? 0,
+      customer_name: inv.customerName ?? user?.fullname ?? user?.username ?? order?.customer ?? order?.user?.fullname ?? order?.user?.username ?? 'Unknown',
+      order_id_display: orderIdVal ? `#ORD-${String(orderIdVal).padStart(3, '0')}` : `#${orderIdVal}`
     };
   }
 }

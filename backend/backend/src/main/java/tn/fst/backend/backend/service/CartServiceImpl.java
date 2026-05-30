@@ -34,9 +34,22 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional(readOnly = true)
     public CartResponse getCartForUser(Long userId) {
-        User user = getUserById(userId);
-        Cart cart = getOrCreateCart(user);
-        return mapToCartResponse(cart);
+        log.info("=== getCartForUser called for userId: {} ===", userId);
+        try {
+            User user = getUserById(userId);
+            log.info("User found: {}", user.getIdUser());
+            
+            Cart cart = getOrCreateCart(user);
+            log.info("Cart found/created: {}", cart.getIdCart());
+            log.info("Cart items count: {}", cart.getItems().size());
+            
+            CartResponse response = mapToCartResponse(cart);
+            log.info("=== getCartForUser completed successfully ===");
+            return response;
+        } catch (Exception e) {
+            log.error("ERROR in getCartForUser: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
@@ -327,13 +340,16 @@ public class CartServiceImpl implements CartService {
         ProductVariant variant = item.getVariant();
         Product product = variant.getProduct();
 
+        // Use variant primary image, fallback to product primary image
+        String imageUrl = variant.getImageUrl() != null ? variant.getImageUrl() : product.getPrimaryImageUrl();
+
         return CartItemResponse.builder()
                 .cartItemId(item.getIdCartItem())
                 .variantId(variant.getIdVariant())
                 .sku(variant.getSku())
                 .productName(product.getName())
                 .variantDetails(item.getVariantDetails())
-                .imageUrl(product.getPrimaryImageUrl())
+                .imageUrl(imageUrl)
                 .quantity(item.getQuantity())
                 .pricePerUnit(item.getPriceAtAdd())
                 .subtotal(item.getSubtotal())

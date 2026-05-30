@@ -49,7 +49,7 @@
 }
 
 .stat-value.new {
-  color: #4d9e78;
+  color: #0c2c1a;
 }
 
 .comments-controls {
@@ -77,7 +77,7 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #4d9e78;
+  border-color: #0c2c1a;
   box-shadow: 0 0 0 2px rgba(77, 158, 120, 0.1);
 }
 
@@ -100,7 +100,7 @@
 
 .filter-select:focus {
   outline: none;
-  border-color: #4d9e78;
+  border-color: #0c2c1a;
 }
 
 .comments-list {
@@ -132,7 +132,7 @@
 }
 
 .comment-card.new {
-  border-left-color: #4d9e78;
+  border-left-color: #0c2c1a;
   background: #f0f8f5;
 }
 
@@ -222,7 +222,7 @@
 }
 
 .action-btn.delete-btn:hover {
-  color: #d32f2f;
+  color: #961f1f;
 }
 
 /* Detail Modal */
@@ -348,12 +348,12 @@
 }
 
 .btn-primary {
-  background: #4d9e78;
+  background: #0c2c1a;
   color: white;
 }
 
 .btn-primary:hover {
-  background: #3d7e63;
+  background: #0c2c1a;
 }
 
 .btn-secondary {
@@ -410,3 +410,63 @@
     margin: 0 10px;
   }
 }
+
+.btn-globex {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  padding: 8px 16px;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 600;
+  text-decoration: none;
+  color: #ffffff;
+  cursor: pointer;
+  overflow: hidden;
+  background: #0c2c1a; /* Soft Green */
+  border: 2px solid var(--forest);
+  z-index: 1;
+  border-radius: 0;
+  font-family: 'Inter', -apple-system, sans-serif;
+  white-space: nowrap;
+  transition: all 0.4s ease;
+}
+.btn-globex:hover {
+  color: #0c2c1a;
+  border-color: #ffffff;
+}
+.btn-globex:before,
+.btn-globex:after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: calc(100% + 40px);
+  height: 100%;
+  top: 0;
+  transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+  background: #ffffff; /* Black hover fill */
+  clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 50%, calc(100% - 40px) 100%, 0 100%);
+}
+
+.btn-globex:before {
+  left: calc(-100% - 40px);
+}
+
+.btn-globex:after {
+  left: 100%;
+  transform: rotate(180deg);
+}
+
+.btn-globex:hover:before {
+  left: 0;
+}
+
+.btn-globex:hover:after {
+  left: 0;
+}
+
+.btn-globex:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

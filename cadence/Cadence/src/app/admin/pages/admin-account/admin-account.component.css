@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --color-primary: #4d9e78;
+  --color-primary: #256340;
   --color-primary-dark: #0c2c1a;
   --color-accent: #8f3131;
   --color-border: #e5e7eb;
@@ -88,7 +88,7 @@
   width: 80px;
   height: 80px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #4a8b6f, #3d7159);
+  background: linear-gradient(135deg,#0c2c1a, #3d7159);
   color: white;
   display: flex;
   align-items: center;
@@ -291,8 +291,8 @@
 }
 
 .btn-globex:hover:not(:disabled) {
-  background: #3d8560;
-  box-shadow: 0 4px 12px rgba(77, 158, 120, 0.3);
+  background: #0c2c1a;
+  box-shadow: 0 4px 12px rgba(127, 214, 174, 0.3);
 }
 
 .btn-globex:disabled {

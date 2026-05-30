@@ -59,8 +59,7 @@ public class SupplierController {
     @PutMapping("/{supplierId}")
     public ResponseEntity<SupplierResponse> updateSupplier(
             @PathVariable Long supplierId,
-            @Valid @RequestBody SupplierRequest request,
-            Authentication authentication) {
+            @Valid @RequestBody SupplierRequest request) {
 
         SupplierResponse response = supplierService.updateSupplier(supplierId, request);
         return ResponseEntity.ok(response);
@@ -69,10 +68,17 @@ public class SupplierController {
     @PutMapping("/{supplierId}/status")
     public ResponseEntity<SupplierResponse> updateSupplierStatus(
             @PathVariable Long supplierId,
-            @RequestParam SupplierStatus status,
-            Authentication authentication) {
+            @RequestParam SupplierStatus status) {
 
         SupplierResponse response = supplierService.updateSupplierStatus(supplierId, status);
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{supplierId}")
+    public ResponseEntity<Void> deleteSupplier(
+            @PathVariable Long supplierId) {
+
+        supplierService.deleteSupplier(supplierId);
+        return ResponseEntity.noContent().build();
     }
 }

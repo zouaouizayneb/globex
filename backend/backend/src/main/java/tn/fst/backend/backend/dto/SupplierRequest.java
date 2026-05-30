@@ -16,7 +16,6 @@ public class SupplierRequest {
     @NotBlank(message = "Le nom est obligatoire")
     private String name;
 
-    @Email(message = "Email invalide")
     private String email;
 
     private String phone;

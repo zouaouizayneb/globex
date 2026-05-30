@@ -28,10 +28,11 @@ import { AppCurrencyPipe } from '../../pipes/currency.pipe';
 export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
 
   products: BestSellerProduct[] = [];
-  loading: boolean = true;
-  error: string = '';
 
-  activeFilter: string = 'all';
+  activeFilter: string = '';
+  error: string = '';
+  loading: boolean = false;
+
   toastVisible: boolean = false;
   toastMessage: string = '';
 
@@ -73,11 +74,10 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
         }
 
         this.products = this.mapBestSellersToProducts(bestSellers);
-
+        // Set first product as hero if exists
         if (this.products.length > 0) {
           this.products[0].isHero = true;
         }
-
         this.loading = false;
         setTimeout(() => {
           this.animateEntrance();
@@ -105,7 +105,7 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
         id: bestSeller.idProduct,
         name: bestSeller.name,
         description: bestSeller.description,
-        price: bestSeller.price || 0,
+        price: this.extractPrice(bestSeller),
         image: this.getPrimaryImage(bestSeller.images, bestSeller.imageUrl),
         rating: Math.floor(bestSeller.rating || 0),
         colors: this.getColors(bestSeller.variants),
@@ -177,14 +177,30 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   extractPrice(p: any): number {
-    if (p.price !== undefined && p.price !== null) {
-      if (typeof p.price === 'number') return p.price;
-      if (typeof p.price === 'object' && p.price.toNumber) return p.price.toNumber();
-      if (typeof p.price === 'string') return parseFloat(p.price.replace(',', '.'));
+    // Helper to safely parse a numeric value
+    const parseNumber = (value: any): number | undefined => {
+      if (typeof value === 'number') return value;
+      if (typeof value === 'string') {
+        const cleaned = value.replace(/[^\d.,-]/g, '').replace(',', '.');
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? undefined : num;
+      }
+      if (value && typeof value === 'object' && 'toNumber' in value) {
+        try { return (value as any).toNumber(); } catch { }
+      }
+      return undefined;
+    };
+
+    // Check possible price fields in order of preference
+    const candidates = [p.price, p.basePrice, p.base_price];
+    for (const candidate of candidates) {
+      const parsed = parseNumber(candidate);
+      if (parsed !== undefined) return parsed;
     }
+
+    // Fallback to variant pricing
     const variantPrice = this.getMinPrice(p.variants);
-    if (variantPrice > 0) return variantPrice;
-    return 0;
+    return variantPrice > 0 ? variantPrice : 0;
   }
 
   getPrimaryImage(images: any[], fallbackUrl?: string): string {
@@ -297,16 +313,18 @@ export class BestSellingComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   setFilter(filter: string): void {
+    // filter tabs removed; method kept for compatibility
     this.activeFilter = filter;
   }
 
   getFilteredProducts(): BestSellerProduct[] {
-    if (this.activeFilter === 'all') return this.products;
-    return this.products.filter(p => p.badge === this.activeFilter);
+    // Not used in new layout; return all products
+    return this.products;
   }
 
   isProductVisible(product: BestSellerProduct): boolean {
-    return this.activeFilter === 'all' || product.badge === this.activeFilter;
+    // All products are visible; actual visibility controlled by sections
+    return true;
   }
 
   showToast(message: string): void {

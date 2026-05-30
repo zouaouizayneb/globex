@@ -3,6 +3,7 @@ package tn.fst.backend.backend.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import tn.fst.backend.backend.dto.BestSellerResponse;
+import tn.fst.backend.backend.dto.ProductRequest;
 import tn.fst.backend.backend.dto.ProductResponse;
 import tn.fst.backend.backend.entity.Product;
 
@@ -14,7 +15,9 @@ public interface ProductService {
     List<Product> getProductsByCategory(Long categoryId);
     Product getProductById(Long id);
     Product createProduct(Product product);
+    Product createProductFromRequest(ProductRequest productRequest);
     Product updateProduct(Long id, Product productDetails);
+    Product updateProductFromRequest(Long id, ProductRequest productRequest);
     void deleteProduct(Long id);
 
     Page<Product> getAllProducts(Pageable pageable);

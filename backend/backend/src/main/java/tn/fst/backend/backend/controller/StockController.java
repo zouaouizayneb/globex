@@ -7,6 +7,8 @@ import tn.fst.backend.backend.repository.StockRepository;
 import tn.fst.backend.backend.repository.ProductRepository;
 import tn.fst.backend.backend.repository.ProductVariantRepository;
 import tn.fst.backend.backend.dto.StockResponse;
+import tn.fst.backend.backend.dto.ProductResponse;
+import tn.fst.backend.backend.dto.ProductVariantResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -32,8 +34,32 @@ public class StockController {
 
     @GetMapping
     public List<StockResponse> getAllStocks() {
-        return stockRepository.findAll().stream()
-                .map(StockResponse::fromEntity)
+        // Return stock data from ProductVariant directly with product eagerly loaded
+        return variantRepository.findAllWithProduct().stream()
+                .map(variant -> {
+                    StockResponse response = new StockResponse();
+                    response.setIdStock(variant.getIdVariant()); // Use variant ID as stock ID
+                    response.setQuantity(variant.getStockQuantity());
+                    
+                    // Set product info
+                    if (variant.getProduct() != null) {
+                        response.setProduct(ProductResponse.fromEntity(variant.getProduct()));
+                    }
+                    
+                    // Set variant info
+                    response.setVariant(ProductVariantResponse.of(
+                        variant.getIdVariant(),
+                        variant.getSku(),
+                        variant.getSize(),
+                        variant.getColor(),
+                        variant.getImageUrl(),
+                        variant.getAdditionalPrice(),
+                        variant.getStockQuantity(),
+                        variant.getTotalPrice()
+                    ));
+                    
+                    return response;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -62,33 +88,38 @@ public class StockController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<StockResponse> updateStock(@PathVariable Long id, @RequestBody Stock stockDetails) {
-        Optional<Stock> optionalStock = stockRepository.findById(id);
-        if (!optionalStock.isPresent()) {
+    public ResponseEntity<StockResponse> updateStock(@PathVariable Long id, @RequestBody tn.fst.backend.backend.dto.StockUpdateRequest request) {
+        // Update ProductVariant directly
+        Optional<ProductVariant> optionalVariant = variantRepository.findById(id);
+        if (!optionalVariant.isPresent()) {
             return ResponseEntity.notFound().build();
         }
 
-        Stock stock = optionalStock.get();
-        stock.setQuantity(stockDetails.getQuantity());
+        ProductVariant variant = optionalVariant.get();
+        variant.setStockQuantity(request.getQuantity());
+        variantRepository.save(variant);
 
-        // Sync back to Product or Variant
-        if (stock.getVariant() != null) {
-            ProductVariant variant = stock.getVariant();
-            variant.setStockQuantity(stock.getQuantity());
-            variantRepository.save(variant);
-        } else if (stock.getProduct() != null) {
-            Product product = stock.getProduct();
-            product.setStock(stock.getQuantity());
-            productRepository.save(product);
+        // Return updated stock response
+        StockResponse response = new StockResponse();
+        response.setIdStock(variant.getIdVariant());
+        response.setQuantity(variant.getStockQuantity());
+
+        if (variant.getProduct() != null) {
+            response.setProduct(ProductResponse.fromEntity(variant.getProduct()));
         }
 
-        if (stockDetails.getProduct() != null) {
-            Optional<Product> product = productRepository.findById(stockDetails.getProduct().getIdProduct());
-            product.ifPresent(stock::setProduct);
-        }
+        response.setVariant(ProductVariantResponse.of(
+            variant.getIdVariant(),
+            variant.getSku(),
+            variant.getSize(),
+            variant.getColor(),
+            variant.getImageUrl(),
+            variant.getAdditionalPrice(),
+            variant.getStockQuantity(),
+            variant.getTotalPrice()
+        ));
 
-        Stock updatedStock = stockRepository.save(stock);
-        return ResponseEntity.ok(StockResponse.fromEntity(updatedStock));
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")

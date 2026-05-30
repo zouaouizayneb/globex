@@ -1,10 +1,12 @@
 package tn.fst.backend.backend.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tn.fst.backend.backend.dto.BestSellerResponse;
+import tn.fst.backend.backend.dto.ProductRequest;
 import tn.fst.backend.backend.dto.ProductResponse;
 import tn.fst.backend.backend.entity.Product;
 import tn.fst.backend.backend.service.ProductService;
@@ -76,20 +78,21 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody Product product) {
-        Product created = productService.createProduct(product);
+    public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductRequest productRequest) {
+        Product created = productService.createProductFromRequest(productRequest);
         return ResponseEntity.ok(ProductResponse.fromEntity(created));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id, @RequestBody Product product) {
-        Product updated = productService.updateProduct(id, product);
+    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id, @RequestBody ProductRequest productRequest) {
+        Product updated = productService.updateProductFromRequest(id, productRequest);
         return ResponseEntity.ok(ProductResponse.fromEntity(updated));
     }
 }

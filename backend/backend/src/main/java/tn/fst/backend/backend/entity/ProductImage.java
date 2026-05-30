@@ -30,6 +30,10 @@ public class ProductImage {
     @JsonBackReference
     private Product product;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id", nullable = true)
+    private ProductVariant variant;
+
     private LocalDate createdAt;
 
     public ProductImage() {}
@@ -91,6 +95,14 @@ public class ProductImage {
 
     public void setProduct(Product product) {
         this.product = product;
+    }
+
+    public ProductVariant getVariant() {
+        return variant;
+    }
+
+    public void setVariant(ProductVariant variant) {
+        this.variant = variant;
     }
 
     public LocalDate getCreatedAt() {

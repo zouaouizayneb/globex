@@ -1,14 +1,15 @@
 package tn.fst.backend.backend.service;
 
-import tn.fst.backend.backend.entity.Client;
+import tn.fst.backend.backend.dto.ClientRequest;
+import tn.fst.backend.backend.dto.ClientResponse;
 import java.util.List;
-import java.util.Optional;
 
 public interface ClientService {
-    List<Client> getAllClients();
-    Optional<Client> getClientById(Long id);
-    Client createClient(Client client);
-    Client updateClient(Long id, Client client);
+    List<ClientResponse> getAllClients();
+    ClientResponse getClientById(Long id);
+    ClientResponse createClient(ClientRequest request);
+    ClientResponse updateClient(Long id, ClientRequest request);
+    ClientResponse updateClientStatus(Long id, String status);
     void deleteClient(Long id);
 }
 

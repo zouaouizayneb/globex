@@ -1,6 +1,7 @@
 package tn.fst.backend.backend.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import tn.fst.backend.backend.entity.Product;
 import tn.fst.backend.backend.entity.ProductVariant;
@@ -28,5 +29,8 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     long countByStockQuantity(Integer quantity);
 
     long countByStockQuantityLessThanEqual(Integer threshold);
+
+    @Query("SELECT v FROM ProductVariant v JOIN FETCH v.product")
+    List<ProductVariant> findAllWithProduct();
 
 }

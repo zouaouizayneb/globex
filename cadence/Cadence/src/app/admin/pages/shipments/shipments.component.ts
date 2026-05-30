@@ -77,6 +77,15 @@ export class ShipmentsComponent implements OnInit {
     this.editingShipment = null;
   }
 
+  onTransporterChange(transporterId: any): void {
+    if (!this.editingShipment) return;
+    const t = this.transporters.find(tr => tr.id == transporterId);
+    if (t) {
+      this.editingShipment.shippingCost = t.deliveryFee;
+      this.editingShipment.carrier = t.name;
+    }
+  }
+
   saveShipment(): void {
     if (!this.editingShipment) return;
 

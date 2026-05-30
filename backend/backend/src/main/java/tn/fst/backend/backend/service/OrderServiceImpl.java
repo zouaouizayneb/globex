@@ -481,6 +481,7 @@ public class OrderServiceImpl implements OrderService {
                         .build();
             }
             shipment.setCarrier(transporteur.getName());
+            shipment.setShippingCost(transporteur.getDeliveryFee());
         }
 
         if (shipment != null && order.getStatus() != null) {

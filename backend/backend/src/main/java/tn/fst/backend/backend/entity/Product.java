@@ -9,6 +9,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import tn.fst.backend.backend.entity.Category;
+import tn.fst.backend.backend.entity.Supplier;
+import tn.fst.backend.backend.entity.ProductStatus;
 
 @Entity
 @Table(name = "products")
@@ -25,41 +28,35 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "color")
-    private String color;
-
-    @Column(name = "size")
-    private String size;
-
-    @Column(name = "image_url")
-    private String imageUrl;
-
     @Column(precision = 10, scale = 2)
-    private BigDecimal price;
+    private BigDecimal price = BigDecimal.ZERO;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "supplier_id")
+    private Supplier supplier;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<ProductVariant> variants = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<ProductImage> images = new ArrayList<>();
-
-    @Column(columnDefinition = "DECIMAL(3,2) DEFAULT 4.5")
-    private Double rating;
-
-    @Column(name = "stock")
-    private Integer stock;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ProductStatus status;
+
+    @Column(columnDefinition = "DECIMAL(3,2) DEFAULT 4.5")
+    private Double rating;
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
@@ -94,44 +91,12 @@ public class Product {
         this.description = description;
     }
 
-    public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
-    }
-
-    public String getSize() {
-        return size;
-    }
-
-    public void setSize(String size) {
-        this.size = size;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
     public BigDecimal getPrice() {
         return price;
     }
 
     public void setPrice(BigDecimal price) {
         this.price = price;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
     }
 
     public List<ProductVariant> getVariants() {
@@ -172,13 +137,24 @@ public class Product {
         this.rating = rating;
     }
 
-    public Integer getStock() {
-        return stock;
+    public Supplier getSupplier() {
+        return supplier;
     }
 
-    public void setStock(Integer stock) {
-        this.stock = stock;
+    public void setSupplier(Supplier supplier) {
+        this.supplier = supplier;
     }
+
+    public ProductStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ProductStatus status) {
+        this.status = status;
+    }
+
+
+
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
@@ -195,4 +171,12 @@ public class Product {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
 }

@@ -80,6 +80,15 @@ public class SupplierService {
         return mapToSupplierResponse(supplier);
     }
 
+    public void deleteSupplier(Long supplierId) {
+        Supplier supplier = getSupplierById(supplierId);
+
+        // Set supplier to null in all purchase orders to avoid foreign key constraint
+        // Or use soft delete by setting status to INACTIVE
+        supplier.setStatus(SupplierStatus.INACTIVE);
+        supplierRepository.save(supplier);
+    }
+
     private Supplier getSupplierById(Long supplierId) {
         return supplierRepository.findById(supplierId)
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier", supplierId));

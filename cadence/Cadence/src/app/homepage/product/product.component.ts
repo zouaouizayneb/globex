@@ -282,7 +282,25 @@ export class ProductComponent implements OnInit, OnDestroy {
     console.log('Adding to cart:', product);
     console.log('🔍 QuickView:', this.showQuickView, 'selectedProduct:', this.selectedProduct?.name, 'selectedVariant:', this.selectedVariant);
 
-    // Stock validation is handled by the backend
+    // Stock validation
+    let availableStock = 0;
+    if (this.showQuickView && this.selectedVariant) {
+      availableStock = this.selectedVariant.stockQuantity ?? this.selectedVariant.stock ?? 0;
+    } else if (product.stock) {
+      availableStock = product.stock;
+    } else if (product.variants && product.variants.length > 0) {
+      availableStock = product.variants[0].stockQuantity ?? product.variants[0].stock ?? 0;
+    }
+
+    if (availableStock <= 0) {
+      alert('This product is out of stock and cannot be added to cart.');
+      return;
+    }
+
+    if (this.quantity > availableStock) {
+      alert(`Only ${availableStock} item(s) available in stock.`);
+      return;
+    }
 
     // If NOT in QuickView and product has variants, open QuickView first
     if (!this.showQuickView && product.variants && product.variants.length > 0) {
@@ -413,6 +431,16 @@ export class ProductComponent implements OnInit, OnDestroy {
       targetVariantId = this.selectedVariant.idVariant || this.selectedVariant.id;
       targetVariant = this.selectedVariant;
     }
+    // If adding from grid, find the variant in fullProducts
+    else if (product.variantId) {
+      const index = this.products.findIndex(p => p.id === product.id);
+      if (index !== -1 && this.fullProducts[index]) {
+        const fullProduct = this.fullProducts[index];
+        targetVariant = fullProduct.variants?.find((v: any) =>
+          (v.idVariant || v.id) === product.variantId
+        );
+      }
+    }
     // Fallback if not set but variants available
     else if (!targetVariantId && product.variants && product.variants.length > 0) {
       targetVariantId = product.variants[0].idVariant || product.variants[0].id;
@@ -513,23 +541,21 @@ export class ProductComponent implements OnInit, OnDestroy {
 
   selectColor(color: string): void {
     this.selectedColor = color;
-    const variant = this.selectedProduct?.variants?.find((v: any) => v.color === color);
+    // Try to find variant with matching color AND current selected size
+    let variant = this.selectedProduct?.variants?.find((v: any) => 
+      v.color === color && (this.selectedSize ? v.size === this.selectedSize : true)
+    );
+    // If not found, just find by color
+    if (!variant) {
+      variant = this.selectedProduct?.variants?.find((v: any) => v.color === color);
+    }
     console.log('✅ selectColor called:', color, 'Found variant:', variant);
     if (variant) {
       this.selectedVariant = variant;
       this.selectedSize = variant.size || '';
       console.log('✅ selectedVariant set to:', this.selectedVariant);
-      // Try to find the image index for this variant
-      if (variant.imageUrl && this.selectedProduct.images) {
-        const idx = this.selectedProduct.images.findIndex((img: any) => img.imageUrl === variant.imageUrl || img.url === variant.imageUrl);
-        if (idx !== -1) {
-          this.currentImageIndex = idx;
-        } else {
-          this.currentImageIndex = 0;
-        }
-      } else {
-        this.currentImageIndex = 0;
-      }
+      // Set image index to 0 to show the variant's image (which is first in getCurrentImages)
+      this.currentImageIndex = 0;
     } else {
       this.currentImageIndex = 0;
     }
@@ -537,7 +563,14 @@ export class ProductComponent implements OnInit, OnDestroy {
 
   selectSize(size: string): void {
     this.selectedSize = size;
-    const variant = this.selectedProduct?.variants?.find((v: any) => v.size === size);
+    // Try to find variant with matching size AND current selected color
+    let variant = this.selectedProduct?.variants?.find((v: any) => 
+      v.size === size && (this.selectedColor ? v.color === this.selectedColor : true)
+    );
+    // If not found, just find by size
+    if (!variant) {
+      variant = this.selectedProduct?.variants?.find((v: any) => v.size === size);
+    }
     if (variant) {
       this.selectedVariant = variant;
       this.selectedColor = variant.color || '';
@@ -644,6 +677,29 @@ export class ProductComponent implements OnInit, OnDestroy {
 
   formatOldPrice(oldPriceInUSD: number): string {
     return this.currencyService.formatPrice(oldPriceInUSD);
+  }
+
+  isOutOfStock(product: any): boolean {
+    let availableStock = 0;
+    if (this.showQuickView && this.selectedVariant) {
+      availableStock = this.selectedVariant.stockQuantity ?? this.selectedVariant.stock ?? 0;
+    } else if (product.stock) {
+      availableStock = product.stock;
+    } else if (product.variants && product.variants.length > 0) {
+      availableStock = product.variants[0].stockQuantity ?? product.variants[0].stock ?? 0;
+    }
+    return availableStock <= 0;
+  }
+
+  getAvailableStock(product: any): number {
+    if (this.showQuickView && this.selectedVariant) {
+      return this.selectedVariant.stockQuantity ?? this.selectedVariant.stock ?? 0;
+    } else if (product.stock) {
+      return product.stock;
+    } else if (product.variants && product.variants.length > 0) {
+      return product.variants[0].stockQuantity ?? product.variants[0].stock ?? 0;
+    }
+    return 0;
   }
 }
 

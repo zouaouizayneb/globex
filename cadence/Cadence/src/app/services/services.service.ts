@@ -7,7 +7,7 @@ import { Observable, map } from 'rxjs';
 })
 export class ServicesService {
 
-  private prefix = 'http://localhost:8080'; // Update this if your backend runs on a different port or URL
+  private prefix = 'http://localhost:8080'; 
 
   constructor(private http: HttpClient) {}
 
